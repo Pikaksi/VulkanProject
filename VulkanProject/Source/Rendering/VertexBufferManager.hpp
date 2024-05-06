@@ -18,7 +18,6 @@ public:
     std::vector<VkBuffer> indexBuffers;
     std::vector<VkDeviceMemory> indexBufferMemories;
 
-
     VertexBufferManager()
     {
     }

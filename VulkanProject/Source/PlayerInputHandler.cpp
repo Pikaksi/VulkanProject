@@ -28,7 +28,7 @@ void PlayerInputHandler::handleMouseMovement(GLFWwindow* window, double xPos, do
     mouseMovementX = xPos - mousePreviousLocationX;
     mouseMovementY = yPos - mousePreviousLocationY;
 
-    std::cout << "mouse movement is " << mouseMovementX << "  " << mouseMovementY << "\n";
+    //std::cout << "mouse movement is " << mouseMovementX << "  " << mouseMovementY << "\n";
 
     mousePreviousLocationX = xPos;
     mousePreviousLocationY = yPos;

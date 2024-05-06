@@ -14,7 +14,6 @@ class WorldManager
 {
 public:
 	std::unordered_map<glm::i32vec3, Chunk> chunks;
-	
 
 	WorldManager()
 	{

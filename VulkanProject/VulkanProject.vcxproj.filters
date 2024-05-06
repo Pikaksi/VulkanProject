@@ -57,6 +57,9 @@
     <ClCompile Include="Source\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\World\BlockDataLookup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader.vert">
@@ -114,6 +117,9 @@
     </ClInclude>
     <ClInclude Include="Source\Application.hpp">
       <Filter>shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\World\BlockDataLookup.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

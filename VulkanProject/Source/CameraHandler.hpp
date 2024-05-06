@@ -20,7 +20,7 @@ public:
 	}
 
 	float sensitivity = 0.01f;
-	float speedNormal = 2.0f;
+	float speedNormal = 4.0f;
 	float speedFaster = 32.0f;
 
 	glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);

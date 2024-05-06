@@ -46,9 +46,9 @@ void CameraHandler::updateCameraTransform()
     }
 
     std::cout << std::setprecision(2) << std::fixed;
-    std::cout << "coordinates are   " << position.x << "   " << position.y << "   " << position.z <<
+    /*std::cout << "coordinates are   " << position.x << "   " << position.y << "   " << position.z <<
         "  time passed is: " << timePassed <<
-        "  rotation = " << rotationX << "   " << rotationY << "\n";
+        "  rotation = " << rotationX << "   " << rotationY << "\n";*/
 
     rotationX += PlayerInputHandler::getInstance().mouseMovementX * sensitivity;
     rotationY += -PlayerInputHandler::getInstance().mouseMovementY * sensitivity;

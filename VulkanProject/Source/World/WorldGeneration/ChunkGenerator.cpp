@@ -1,9 +1,6 @@
 #include <iostream>
 
-#include "FastNoise/FastNoise.h"
-#include "glm/vec3.hpp"
-
-#include "World/Chunk.hpp"
+#include "ChunkGenerator.hpp"
 
 Chunk generateChunk(glm::i32vec3 chunkLocation)
 {
@@ -19,7 +16,6 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 	std::vector<float> noiseOutput(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE);
 
 	// Generate a CHUNK_SIZE x CHUNK_SIZE x CHUNK_SIZE area of noise
-	float frequency = 0.03f;
 	fnGenerator->GenUniformGrid3D(noiseOutput.data(),
 		chunkLocation.z * CHUNK_SIZE,
 		chunkLocation.y * CHUNK_SIZE,

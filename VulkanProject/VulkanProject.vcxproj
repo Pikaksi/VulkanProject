@@ -24,6 +24,7 @@
     <ClCompile Include="Source\Rendering\ChunkRenderer.cpp" />
     <ClCompile Include="Source\Rendering\VertexBufferManager.cpp" />
     <ClCompile Include="Source\VulkanHelperFunctions.cpp" />
+    <ClCompile Include="Source\World\BlockDataLookup.cpp" />
     <ClCompile Include="Source\World\Chunk.cpp" />
     <ClCompile Include="Source\FilePathHandler.cpp" />
     <ClCompile Include="Source\main.cpp" />
@@ -51,6 +52,7 @@
     <None Include="Shaders\vert.spv" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\World\BlockDataLookup.hpp" />
     <ClInclude Include="Source\Application.hpp" />
     <ClInclude Include="Source\Rendering\ChunkRenderer.hpp" />
     <ClInclude Include="Source\World\WorldGeneration\ChunkGenerator.hpp" />

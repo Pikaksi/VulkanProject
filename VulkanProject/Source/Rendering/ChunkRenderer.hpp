@@ -13,8 +13,10 @@ class VertexBufferManager;
 
 class ChunkRenderer
 {
-public:
+private:
+	const int renderDistance = 4;
 	std::vector<glm::i32vec3> chunksToRender;
+public:
 
 	ChunkRenderer()
 	{
@@ -27,7 +29,9 @@ public:
 		chunksToRender.push_back(glm::i32vec3(0, 1, 1));
 		chunksToRender.push_back(glm::i32vec3(-1, 1, -1));
 	}
+
 	
+	void addChunksToBeRendered();
 	void renderNewChunks(WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
 	void renderChunk(glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
 };
