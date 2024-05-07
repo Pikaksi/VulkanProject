@@ -25,14 +25,16 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 	int index = 0;
 
 	Chunk chunk;
+	glm::i32vec3 chunkBlockLocation = chunkLocation * 16;
 
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 		for (int y = 0; y < CHUNK_SIZE; y++) {
 			for (int z = 0; z < CHUNK_SIZE; z++) {
 
 				float noise = noiseOutput[index];
-				//std::cout << noise << "\n";
 				index += 1;
+
+				noise += heightNoiseMultiplier * (chunkLocation.y * CHUNK_SIZE + y);
 				
 				if (noise < 0.0f) {
 					chunk.blocks[chunkLocationToIndex(x, y, z)] = stone;

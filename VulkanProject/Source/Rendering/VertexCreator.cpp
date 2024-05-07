@@ -64,10 +64,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((x != CHUNK_SIZE - 1 && !isSolidBlock[chunk[chunkLocationToIndex(x + 1, y, z)]])
 		|| (x == CHUNK_SIZE - 1 && chunkPX != nullptr && !isSolidBlock[chunkPX[chunkLocationToIndex(0, y, z)]])) {
 
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 1.0f} });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -75,10 +75,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((x != 0 && !isSolidBlock[chunk[chunkLocationToIndex(x - 1, y, z)]])
 		|| (x == 0 && chunkNX != nullptr && !isSolidBlock[chunkNX[chunkLocationToIndex(CHUNK_SIZE - 1, y, z)]])) {
 
-		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ    }, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ + 1}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} });
-		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ    }, {0.5f, 0.5f, 0.5f}, {0.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ + 1}, {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f} });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -86,10 +86,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((y != CHUNK_SIZE - 1 && !isSolidBlock[chunk[chunkLocationToIndex(x, y + 1, z)]])
 		|| (y == CHUNK_SIZE - 1 && chunkPY != nullptr && !isSolidBlock[chunkPY[chunkLocationToIndex(x, 0, z)]])) {
 
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f} });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -97,10 +97,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((y != 0 && !isSolidBlock[chunk[chunkLocationToIndex(x, y - 1, z)]])
 		|| (y == 0 && chunkNY != nullptr && !isSolidBlock[chunkNY[chunkLocationToIndex(x, CHUNK_SIZE - 1, z)]])) {
 
-		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {0.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {1.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {0.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {1.0f, 1.0f} });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -108,15 +108,15 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((z != CHUNK_SIZE - 1 && !isSolidBlock[chunk[chunkLocationToIndex(x, y, z + 1)]])
 		|| (z == CHUNK_SIZE - 1 && chunkPZ != nullptr && !isSolidBlock[chunkPZ[chunkLocationToIndex(x, y, 0)]])) {
 
-		vertices.push_back(Vertex{ {locationX    , locationY    , locationZ + 1}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY    , locationZ + 1}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 1.0f} });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
 	// backward
-	std::cout << "x = " << x << " y = " << y << " z = " << z << " ";
+	/*std::cout << "x = " << x << " y = " << y << " z = " << z << " ";
 	if (z != 0) {
 		std::cout << " in chunk block = " << chunk[chunkLocationToIndex(x, y, z - 1)]  << " is not solid = " << !isSolidBlock[chunk[chunkLocationToIndex(x, y, z - 1)]] << " ";
 	}
@@ -125,15 +125,14 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 			std::cout << " not NULL pointer = " << !isSolidBlock[chunkNZ[chunkLocationToIndex(x, y, CHUNK_SIZE - 1)]] << " ";
 		}
 	}
-	std::cout << "\n";
+	std::cout << "\n";*/
 	if ((z != 0 && !isSolidBlock[chunk[chunkLocationToIndex(x, y, z - 1)]])
 		|| (z == 0 && chunkNZ != nullptr && !isSolidBlock[chunkNZ[chunkLocationToIndex(x, y, CHUNK_SIZE - 1)]])) {
 
-		std::cout << "made face\n";
-		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} });
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 0.0f} });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 1.0f} });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 1.0f} });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 }

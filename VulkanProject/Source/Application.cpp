@@ -71,7 +71,6 @@ void Application::initVulkan() {
 
     //createVertexBuffer();
     //createIndexBuffer();
-    chunkRenderer.renderNewChunks(worldManager, vertexBufferManager);
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();
@@ -79,14 +78,33 @@ void Application::initVulkan() {
     createSyncObjects();
 }
 
-void Application::mainLoop() {
+void Application::mainLoop()
+{
     while (!glfwWindowShouldClose(window)) {
         cameraHandler.updateCameraTransform();
+
         glfwPollEvents();
+
+        gameMainLoop();
+        
         drawFrame();
     }
 
     vkDeviceWaitIdle(device);
+}
+
+void Application::gameMainLoop()
+{
+    glm::i32vec3 chunkLocation = glm::i32vec3(
+        std::floor(cameraHandler.position.x / (float)CHUNK_SIZE), 
+        std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
+        std::floor(cameraHandler.position.z / (float)CHUNK_SIZE)
+    );
+    std::cout << "location = " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
+    std::cout << "camera location = " << cameraHandler.position.x << " " << cameraHandler.position.y << " " << cameraHandler.position.z << "\n";
+    chunkRenderer.addChunksToBeRendered(chunkLocation);
+
+    chunkRenderer.renderNewChunks(worldManager, vertexBufferManager);
 }
 
 void Application::cleanupSwapChain() {

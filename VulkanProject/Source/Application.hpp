@@ -95,6 +95,8 @@ private:
         int a = 1;
     }
 
+    VertexBufferManager vertexBufferManager;
+
     GLFWwindow* window;
 
     VkInstance instance;
@@ -152,7 +154,6 @@ private:
     ChunkRenderer chunkRenderer;
     CameraHandler cameraHandler;
     WorldManager worldManager;
-    VertexBufferManager vertexBufferManager;
 
     bool framebufferResized = false;
 
@@ -161,6 +162,7 @@ private:
     void initGame();
     void initVulkan();
     void mainLoop();
+    void gameMainLoop();
     void cleanupSwapChain();
     void cleanup();
     void recreateSwapChain();

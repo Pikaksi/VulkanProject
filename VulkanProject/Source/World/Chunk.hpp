@@ -2,7 +2,7 @@
 
 #include <World/BlockType.hpp>
 
-const int CHUNK_SIZE = 4;
+const int CHUNK_SIZE = 64;
 
 struct Chunk
 {

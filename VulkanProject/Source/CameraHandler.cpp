@@ -77,7 +77,7 @@ UniformBufferObject CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent)
     );
     ubo.model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    ubo.proj = glm::perspective(glm::radians(85.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 200.0f);
+    ubo.proj = glm::perspective(glm::radians(85.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
     //ubo.proj[1][1] *= -1;
     
     return ubo;

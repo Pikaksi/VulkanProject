@@ -5,6 +5,8 @@
 
 #include "glm/vec3.hpp"
 
+#include <unordered_set>
+
 #include "Vertex.hpp"
 #include "World/WorldManager.hpp"
 #include "VertexCreator.hpp"
@@ -14,12 +16,15 @@ class VertexBufferManager;
 class ChunkRenderer
 {
 private:
-	const int renderDistance = 4;
+	const int renderDistance = 3;
 	std::vector<glm::i32vec3> chunksToRender;
+	std::unordered_set<glm::i32vec3> renderedChunks;
+	glm::i32vec3 lastChunkRenderingLocation = glm::i32vec3(9999, 9999, 9999);
 public:
 
 	ChunkRenderer()
 	{
+		/*
 		chunksToRender.push_back(glm::i32vec3(0, 0, 0));
 		chunksToRender.push_back(glm::i32vec3(1, 0, 0));
 		chunksToRender.push_back(glm::i32vec3(0, 0, 1));
@@ -27,11 +32,13 @@ public:
 		chunksToRender.push_back(glm::i32vec3(0, 1, 0));
 		chunksToRender.push_back(glm::i32vec3(1, 1, 0));
 		chunksToRender.push_back(glm::i32vec3(0, 1, 1));
+		chunksToRender.push_back(glm::i32vec3(-1, 0, 0));
 		chunksToRender.push_back(glm::i32vec3(-1, 1, -1));
+		*/
 	}
 
 	
-	void addChunksToBeRendered();
+	void addChunksToBeRendered(glm::i32vec3 position);
 	void renderNewChunks(WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
 	void renderChunk(glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
 };
