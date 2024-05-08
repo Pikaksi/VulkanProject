@@ -17,6 +17,7 @@ public:
     bool qPressed = false;
     bool ePressed = false;
     bool shiftPressed = false;
+    bool ctrlPressed = false;
 
     double mousePreviousLocationX = 0.0f;
     double mousePreviousLocationY = 0.0f;

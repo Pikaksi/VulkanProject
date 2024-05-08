@@ -7,13 +7,13 @@
 
 void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
-	short* chunk = worldManager.chunks[chunkLocation].blocks;
-	short* chunkPX = nullptr;
-	short* chunkNX = nullptr;
-	short* chunkPY = nullptr;
-	short* chunkNY = nullptr;
-	short* chunkPZ = nullptr;
-	short* chunkNZ = nullptr;
+	BlockType* chunk = worldManager.chunks[chunkLocation].blocks;
+	BlockType* chunkPX = nullptr;
+	BlockType* chunkNX = nullptr;
+	BlockType* chunkPY = nullptr;
+	BlockType* chunkNY = nullptr;
+	BlockType* chunkPZ = nullptr;
+	BlockType* chunkNZ = nullptr;
 
 	glm::i32vec3 pX = glm::i32vec3(chunkLocation.x + 1, chunkLocation.y, chunkLocation.z);
 	glm::i32vec3 nX = glm::i32vec3(chunkLocation.x - 1, chunkLocation.y, chunkLocation.z);
@@ -45,7 +45,7 @@ void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 		for (int y = 0; y < CHUNK_SIZE; y++) {
 			for (int z = 0; z < CHUNK_SIZE; z++) {
-				short blockType = chunk[chunkLocationToIndex(x, y, z)];
+				__int16 blockType = chunk[chunkLocationToIndex(x, y, z)];
 				if (blockType == air) {
 					continue;
 				}
@@ -58,7 +58,7 @@ void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 }
 
 void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices,
-	short* chunk, short* chunkPX, short* chunkNX, short* chunkPY, short* chunkNY, short* chunkPZ, short* chunkNZ) // chunkPX means chunk in Positive X direction
+	BlockType* chunk, BlockType* chunkPX, BlockType* chunkNX, BlockType* chunkPY, BlockType* chunkNY, BlockType* chunkPZ, BlockType* chunkNZ) // chunkPX means chunk in Positive X direction
 {
 	// right
 	if ((x != CHUNK_SIZE - 1 && !isSolidBlock[chunk[chunkLocationToIndex(x + 1, y, z)]])

@@ -43,6 +43,7 @@ void PlayerInputHandler::handleKeyPress(GLFWwindow* window, int key, int scancod
     toggleKey(GLFW_KEY_Q, qPressed, key, action);
     toggleKey(GLFW_KEY_E, ePressed, key, action);
     toggleKey(GLFW_KEY_LEFT_SHIFT, shiftPressed, key, action);
+    toggleKey(GLFW_KEY_LEFT_CONTROL, ctrlPressed, key, action);
 }
 
 void PlayerInputHandler::toggleKey(int glfwKeyToCompare, bool& valueToModify, int key, int action)

@@ -22,7 +22,9 @@ void CameraHandler::updateCameraTransform()
     float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - timeLastFrame).count();
     timeLastFrame = currentTime;
 
-    float speed = PlayerInputHandler::getInstance().shiftPressed ? speedFaster : speedNormal;
+    float speed = speedNormal 
+        * PlayerInputHandler::getInstance().shiftPressed ? slowerSpeedMultiplier : 1
+        * PlayerInputHandler::getInstance().ctrlPressed ? fasterSpeedMultiplier : 1;
 
     if (PlayerInputHandler::getInstance().wPressed) {
         position += cameraForwardDirection() * speed * timePassed;

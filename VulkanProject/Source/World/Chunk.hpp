@@ -6,7 +6,7 @@ const int CHUNK_SIZE = 64;
 
 struct Chunk
 {
-	short* blocks = new short[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE];
+	BlockType* blocks = new BlockType[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE];
 };
 
 int chunkLocationToIndex(const int x, const int y, const int z);
