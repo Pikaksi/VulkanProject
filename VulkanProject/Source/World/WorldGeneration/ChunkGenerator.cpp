@@ -25,7 +25,6 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 	int index = 0;
 
 	Chunk chunk;
-	glm::i32vec3 chunkBlockLocation = chunkLocation * 16;
 
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 		for (int y = 0; y < CHUNK_SIZE; y++) {
@@ -34,7 +33,11 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 				float noise = noiseOutput[index];
 				index += 1;
 
-				noise += heightNoiseMultiplier * (chunkLocation.y * CHUNK_SIZE + y);
+				if ((chunkLocation.x * CHUNK_SIZE + x) * (chunkLocation.x * CHUNK_SIZE + x) +
+					(chunkLocation.z * CHUNK_SIZE + z) * (chunkLocation.z * CHUNK_SIZE + z)
+					> 500) {
+					noise += heightNoiseMultiplier * (chunkLocation.y * CHUNK_SIZE + y);
+				}
 				
 				if (noise < 0.0f) {
 					chunk.blocks[chunkLocationToIndex(x, y, z)] = stone;
