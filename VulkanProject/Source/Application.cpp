@@ -100,8 +100,8 @@ void Application::gameMainLoop()
         std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
         std::floor(cameraHandler.position.z / (float)CHUNK_SIZE)
     );
-    std::cout << "location = " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
-    std::cout << "camera location = " << cameraHandler.position.x << " " << cameraHandler.position.y << " " << cameraHandler.position.z << "\n";
+    //std::cout << "location = " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
+    //std::cout << "camera location = " << cameraHandler.position.x << " " << cameraHandler.position.y << " " << cameraHandler.position.z << "\n";
     chunkRenderer.addChunksToBeRendered(chunkLocation);
 
     chunkRenderer.renderNewChunks(worldManager, vertexBufferManager);
@@ -147,6 +147,8 @@ void Application::cleanup() {
     vkDestroyImage(device, textureImage, nullptr);
     vkFreeMemory(device, textureImageMemory, nullptr);
 
+    vertexBufferManager.cleanUpBuffers();
+
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -156,7 +158,7 @@ void Application::cleanup() {
     }
 
     vkDestroyCommandPool(device, commandPool, nullptr);
-
+    
     vkDestroyDevice(device, nullptr);
 
     if (enableValidationLayers) {

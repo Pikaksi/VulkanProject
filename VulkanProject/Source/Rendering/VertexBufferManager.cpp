@@ -5,7 +5,7 @@ void VertexBufferManager::addChunkVertices(std::vector<Vertex>& vertices, std::v
     VkBuffer vertexBuffer, indexBuffer;
     VkDeviceMemory vertexBufferMemory, indexBufferMemory;
 
-    std::cout << "vertex buffer size = " << vertices.size() << "\n";
+    //std::cout << "vertex buffer size = " << vertices.size() << "\n";
 
     createVertexBuffer(vertexBuffer, vertexBufferMemory, vertices);
     createIndexBuffer(indexBuffer, indexBufferMemory, indices);
@@ -64,7 +64,7 @@ void VertexBufferManager::createIndexBuffer(VkBuffer& buffer, VkDeviceMemory& me
     vkFreeMemory(Application::getInstance().device, stagingBufferMemory, nullptr);
 }
 
-VertexBufferManager::~VertexBufferManager()
+void VertexBufferManager::cleanUpBuffers()
 {
     for (VkBuffer vertexBuffer : vertexBuffers) {
         vkDestroyBuffer(Application::getInstance().device, vertexBuffer, nullptr);

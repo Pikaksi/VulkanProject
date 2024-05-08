@@ -26,7 +26,7 @@ public:
     void createVertexBuffer(VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices);
     void createIndexBuffer(VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices);
 
-    ~VertexBufferManager();
+    void cleanUpBuffers();
 
 };
 
