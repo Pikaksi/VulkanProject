@@ -19,11 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VulkanRendering\ImageCreator.hpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\CameraHandler.cpp" />
     <ClCompile Include="Source\Rendering\ChunkRenderer.cpp" />
     <ClCompile Include="Source\Rendering\VertexBufferManager.cpp" />
+    <ClCompile Include="Source\TextureCreator.cpp" />
     <ClCompile Include="Source\VulkanHelperFunctions.cpp" />
+    <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp" />
+    <ClCompile Include="Source\VulkanRendering\ImageCreator.cpp" />
+    <ClCompile Include="Source\VulkanRendering\PipelineManager.cpp" />
+    <ClCompile Include="Source\VulkanRendering\RenderPass.cpp" />
+    <ClCompile Include="Source\VulkanRendering\SwapChain.cpp" />
+    <ClCompile Include="Source\VulkanRendering\VulkanUtilities.cpp" />
     <ClCompile Include="Source\World\BlockDataLookup.cpp" />
     <ClCompile Include="Source\World\Chunk.cpp" />
     <ClCompile Include="Source\FilePathHandler.cpp" />
@@ -50,8 +58,11 @@
     <None Include="Shaders\shader.frag" />
     <None Include="Shaders\shader.vert" />
     <None Include="Shaders\vert.spv" />
+    <None Include="Textures\TextSpriteSheetGimp.xcf" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\VulkanRendering\RenderPass.hpp" />
+    <ClInclude Include="Source\VulkanRendering\DeviceCreator.hpp" />
     <ClInclude Include="Source\World\BlockDataLookup.hpp" />
     <ClInclude Include="Source\Application.hpp" />
     <ClInclude Include="Source\Rendering\ChunkRenderer.hpp" />
@@ -66,6 +77,13 @@
     <ClInclude Include="Source\World\WorldManager.hpp" />
     <ClInclude Include="Source\Rendering\VertexBufferManager.hpp" />
     <ClInclude Include="Source\VulkanHelperFunctions.hpp" />
+    <ClInclude Include="Source\TextureCreator.hpp" />
+    <ClInclude Include="Source\VulkanRendering\VulkanTypes.hpp" />
+    <ClInclude Include="Source\VulkanRendering\SwapChain.hpp" />
+    <ClInclude Include="Source\VulkanRendering\VulkanUtilities.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\TextSpriteSheet.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

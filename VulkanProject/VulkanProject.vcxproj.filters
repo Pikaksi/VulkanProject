@@ -60,6 +60,30 @@
     <ClCompile Include="Source\World\BlockDataLookup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\TextureCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\PipelineManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\VulkanUtilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\RenderPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\SwapChain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\ImageCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VulkanRendering\ImageCreator.hpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader.vert">
@@ -77,6 +101,7 @@
     <None Include="Shaders\compile.bat">
       <Filter>shaders</Filter>
     </None>
+    <None Include="Textures\TextSpriteSheetGimp.xcf" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\VertexCreator.hpp">
@@ -121,6 +146,24 @@
     <ClInclude Include="Source\World\BlockDataLookup.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\TextureCreator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VulkanRendering\VulkanTypes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VulkanRendering\DeviceCreator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VulkanRendering\SwapChain.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VulkanRendering\VulkanUtilities.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VulkanRendering\RenderPass.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoiseD.dll">
@@ -129,5 +172,10 @@
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">
       <Filter>Resource Files</Filter>
     </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\TextSpriteSheet.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

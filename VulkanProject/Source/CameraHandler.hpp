@@ -21,8 +21,8 @@ public:
 
 	float sensitivity = 0.01f;
 	float speedNormal = 4.0f;
-	float slowerSpeedMultiplier = 8.0f;
-	float fasterSpeedMultiplier = 64.0f;
+	float slowerSpeedMultiplier = 5.0f;
+	float fasterSpeedMultiplier = 20.0f;
 
 	glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
 
