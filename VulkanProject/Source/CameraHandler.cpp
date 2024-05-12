@@ -63,7 +63,7 @@ void CameraHandler::updateCameraTransform()
 
 }
 
-UniformBufferObject CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent)
+CameraUniformBufferObject CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent)
 {
     // camera x rotation is handled in lookAt and y rotation in ubo.model
     static auto startTime = std::chrono::high_resolution_clock::now();
@@ -71,7 +71,7 @@ UniformBufferObject CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent)
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-    UniformBufferObject ubo{};
+    CameraUniformBufferObject ubo{};
     ubo.view = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),

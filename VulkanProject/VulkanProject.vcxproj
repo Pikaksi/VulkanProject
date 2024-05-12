@@ -19,6 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
+    <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
+    <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
+    <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
     <ClCompile Include="Source\VulkanRendering\ImageCreator.hpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\CameraHandler.cpp" />
@@ -28,7 +32,7 @@
     <ClCompile Include="Source\VulkanHelperFunctions.cpp" />
     <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp" />
     <ClCompile Include="Source\VulkanRendering\ImageCreator.cpp" />
-    <ClCompile Include="Source\VulkanRendering\PipelineManager.cpp" />
+    <ClCompile Include="Source\VulkanRendering\GraphicsPipeline.cpp" />
     <ClCompile Include="Source\VulkanRendering\RenderPass.cpp" />
     <ClCompile Include="Source\VulkanRendering\SwapChain.cpp" />
     <ClCompile Include="Source\VulkanRendering\VulkanUtilities.cpp" />
@@ -61,6 +65,12 @@
     <None Include="Textures\TextSpriteSheetGimp.xcf" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\VulkanRendering\FrameDrawer.hpp" />
+    <ClInclude Include="Source\Constants.hpp" />
+    <ClInclude Include="Source\VulkanRendering\Buffers.hpp" />
+    <ClInclude Include="Source\VulkanRendering\Commands.hpp" />
+    <ClInclude Include="Source\VulkanRendering\Descriptor.hpp" />
+    <ClInclude Include="Source\VulkanRendering\GraphicsPipeline.hpp" />
     <ClInclude Include="Source\VulkanRendering\RenderPass.hpp" />
     <ClInclude Include="Source\VulkanRendering\DeviceCreator.hpp" />
     <ClInclude Include="Source\World\BlockDataLookup.hpp" />

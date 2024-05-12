@@ -5,12 +5,6 @@
 
 #include <chrono>
 
-struct UniformBufferObject {
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
-};
-
 class CameraHandler
 {
 public:
@@ -35,5 +29,5 @@ public:
 	glm::vec3 cameraUpDirection();
 	glm::vec3 cameraForwardDirection();
 	void updateCameraTransform();
-	UniformBufferObject getCameraMatrix(VkExtent2D swapChainExtent);
+	CameraUniformBufferObject getCameraMatrix(VkExtent2D swapChainExtent);
 };

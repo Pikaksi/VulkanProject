@@ -40,8 +40,6 @@
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
 class Application
 {
 public:
@@ -89,10 +87,6 @@ private:
 
     VkSampler textureSampler;
 
-    std::vector<VkBuffer> uniformBuffers;
-    std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void*> uniformBuffersMapped;
-
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
@@ -115,22 +109,9 @@ private:
     void mainLoop();
     void gameMainLoop();
     void cleanup();
-    void createDescriptorSetLayout();
-    void createGraphicsPipeline();
-    void createCommandPool();
     bool hasStencilComponent(VkFormat format);
-    void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-    void createTextureSampler();
-    void createUniformBuffers();
-    void createDescriptorPool();
-    void createDescriptorSets();
-    VkCommandBuffer beginSingleTimeCommands();
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-    void createCommandBuffers();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     void createSyncObjects();
     void updateUniformBuffer(uint32_t currentImage);
     void drawFrame();
-    VkShaderModule createShaderModule(const std::vector<char>& code);
-    static std::vector<char> readFile(const std::string& filename);
 };

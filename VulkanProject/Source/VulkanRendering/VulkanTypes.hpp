@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "glm/mat4x4.hpp"
 
 #include <vector>
 #include <optional>
@@ -20,7 +21,7 @@ struct VulkanCoreInfo
 	GLFWwindow* window;
 	VkSurfaceKHR surface;
 
-	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT; //default value
 };
 
 struct ImageInfo
@@ -44,4 +45,17 @@ struct SwapChainInfo
 
 	ImageInfo* colorImage;
 	ImageInfo* depthImage;
+};
+
+struct UniformBufferInfo
+{
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+	void* mappingPointer;
+};
+
+struct CameraUniformBufferObject {
+	alignas(16) glm::mat4 model;
+	alignas(16) glm::mat4 view;
+	alignas(16) glm::mat4 proj;
 };

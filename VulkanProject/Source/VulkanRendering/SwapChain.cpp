@@ -144,7 +144,9 @@ void createFramebuffers(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChain
     }
 }
 
-void createSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {
+SwapChainInfo* createSwapChain(VulkanCoreInfo* vulkanCoreInfo) {
+    SwapChainInfo* swapChainInfo;
+
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(vulkanCoreInfo);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -201,6 +203,8 @@ void createSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInf
     createColorResources(vulkanCoreInfo, swapChainInfo);
     createDepthResources(vulkanCoreInfo, swapChainInfo);
     createFramebuffers(vulkanCoreInfo, swapChainInfo);
+
+    return swapChainInfo;
 }
 
 void cleanupSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {
@@ -236,5 +240,5 @@ void recreateSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainI
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
-    createSwapChain(vulkanCoreInfo, swapChainInfo);
+    swapChainInfo = createSwapChain(vulkanCoreInfo);
 }
