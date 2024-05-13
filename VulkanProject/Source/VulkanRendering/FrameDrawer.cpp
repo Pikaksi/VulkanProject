@@ -1,15 +1,17 @@
 #include <stdexcept>
 #include <vector>
+#include <array>
 
 #include "FrameDrawer.hpp"
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
 
 
-void createSyncObjects(VulkanCoreInfo* vulkanCoreInfo,
-                       std::vector<VkSemaphore> imageAvailableSemaphores, 
-                       std::vector<VkSemaphore> renderFinishedSemaphores, 
-                       std::vector<VkFence> inFlightFences)
+void createSyncObjects(
+    VulkanCoreInfo* vulkanCoreInfo,
+    std::vector<VkSemaphore> imageAvailableSemaphores, 
+    std::vector<VkSemaphore> renderFinishedSemaphores, 
+    std::vector<VkFence> inFlightFences)
 {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -37,7 +39,13 @@ void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo> u
     memcpy(uniformBufferInfos[currentFrame].mappingPointer, &ubo, sizeof(ubo));
 }
 
-void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void recordCommandBuffer(
+    SwapChainInfo* swapChainInfo,
+    VkCommandBuffer commandBuffer, 
+    uint32_t imageIndex,
+    VkRenderPass renderPass,
+    VkPipeline graphicsPipeline)
+{
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -48,9 +56,9 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderPass;
-    renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
+    renderPassInfo.framebuffer = swapChainInfo->swapChainFramebuffers[imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = swapChainExtent;
+    renderPassInfo.renderArea.extent = swapChainInfo->swapChainExtent;
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
@@ -66,15 +74,15 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)swapChainExtent.width;
-    viewport.height = (float)swapChainExtent.height;
+    viewport.width = (float)swapChainInfo->swapChainExtent.width;
+    viewport.height = (float)swapChainInfo->swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
-    scissor.extent = swapChainExtent;
+    scissor.extent = swapChainInfo->swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     /*static std::vector<Vertex> vTest = {
@@ -125,7 +133,10 @@ void drawFrame(
     std::vector<UniformBufferInfo> uniformBufferInfos,
     CameraHandler cameraHandler,
     VkExtent2D swapChainExtent,
-    std::vector<VkCommandBuffer> commandBuffers)
+    std::vector<VkCommandBuffer> commandBuffers,
+    VkRenderPass renderPass,
+    VkPipeline graphicsPipeline,
+    bool& framebufferResized)
 {
     vkWaitForFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -145,7 +156,12 @@ void drawFrame(
     vkResetFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame]);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+    recordCommandBuffer(
+        swapChainInfo, 
+        commandBuffers[currentFrame], 
+        imageIndex,
+        renderPass,
+        graphicsPipeline);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -183,7 +199,7 @@ void drawFrame(
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
         framebufferResized = false;
-        recreateSwapChain();
+        recreateSwapChain(vulkanCoreInfo, swapChainInfo);
     }
     else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");

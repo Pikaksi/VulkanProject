@@ -30,7 +30,6 @@ void Application::initGame()
 
 void Application::initVulkan() {
     createDevice(vulkanCoreInfo);
-
     createSwapChain(vulkanCoreInfo, swapChainInfo);
 
     //createTextureImage();
