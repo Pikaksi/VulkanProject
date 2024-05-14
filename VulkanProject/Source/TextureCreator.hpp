@@ -2,10 +2,4 @@
 
 #include "Application.hpp"
 
-class TextureCreator
-{
-public:
-	void createTextureImage(Application application);
-	VkImageView createTextureImageView(Application application, VkImage image);
-	void createTextureSampler();
-};
+void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels);

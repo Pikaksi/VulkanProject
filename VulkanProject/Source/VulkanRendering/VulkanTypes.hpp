@@ -47,6 +47,12 @@ struct SwapChainInfo
 	ImageInfo* depthImage;
 };
 
+struct GraphicsPipelineInfo
+{
+	VkPipeline pipeline;
+	VkPipelineLayout layout;
+};
+
 struct UniformBufferInfo
 {
 	VkBuffer buffer;

@@ -76,7 +76,7 @@ void createSwapChainImageViews(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* sw
     swapChainInfo->swapChainImageViews.resize(swapChainInfo->swapChainImages.size());
 
     for (uint32_t i = 0; i < swapChainInfo->swapChainImages.size(); i++) {
-        swapChainInfo->swapChainImageViews[i] = createImageView(vulkanCoreInfo, swapChainInfo->swapChainImages[i], swapChainInfo->swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+        swapChainInfo->swapChainImageViews[i] = fillImageView(vulkanCoreInfo, swapChainInfo->swapChainImages[i], swapChainInfo->swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
     }
 }
 

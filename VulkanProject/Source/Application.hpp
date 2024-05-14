@@ -50,11 +50,6 @@ public:
     }
     void run();
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
-    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-
 private:
     Application()
     {
@@ -65,32 +60,22 @@ private:
 
     VertexBufferManager vertexBufferManager;
 
-    VkRenderPass renderPass;
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+    GraphicsPipelineInfo* graphicsPipelineInfo;
 
     VkCommandPool commandPool;
 
-    VkImage colorImage;
-    VkDeviceMemory colorImageMemory;
-    VkImageView colorImageView;
-
-    VkImage depthImage;
-    VkDeviceMemory depthImageMemory;
-    VkImageView depthImageView;
-
-    uint32_t mipLevels;
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    VkImageView textureImageView;
-
+    ImageInfo* textureImage;
     VkSampler textureSampler;
 
+    VkDescriptorSetLayout descriptorSetLayout;
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
+    std::vector<UniformBufferInfo*> uniformBuffers;
+
     std::vector<VkCommandBuffer> commandBuffers;
+
+    std::vector<UniformBufferInfo*> cameraUniformBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -109,9 +94,4 @@ private:
     void mainLoop();
     void gameMainLoop();
     void cleanup();
-    bool hasStencilComponent(VkFormat format);
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-    void createSyncObjects();
-    void updateUniformBuffer(uint32_t currentImage);
-    void drawFrame();
 };

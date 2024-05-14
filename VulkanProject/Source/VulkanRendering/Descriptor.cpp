@@ -62,7 +62,7 @@ VkDescriptorSetLayout createDescriptorSetLayout(VulkanCoreInfo* vulkanCoreInfo) 
     return descriptorSetLayout;
 }
 
-void createDescriptorPool(VulkanCoreInfo* vulkanCoreInfo, VkDescriptorPool descriptorPool) {
+VkDescriptorPool createDescriptorPool(VulkanCoreInfo* vulkanCoreInfo) {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -75,9 +75,11 @@ void createDescriptorPool(VulkanCoreInfo* vulkanCoreInfo, VkDescriptorPool descr
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
+    VkDescriptorPool descriptorPool;
     if (vkCreateDescriptorPool(vulkanCoreInfo->device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
     }
+    return descriptorPool;
 }
 
 std::vector<VkDescriptorSet> createDescriptorSets(VulkanCoreInfo* vulkanCoreInfo, 

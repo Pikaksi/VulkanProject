@@ -33,18 +33,18 @@ void createSyncObjects(
     }
 }
 
-void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo> uniformBufferInfos, CameraHandler cameraHandler, VkExtent2D swapChainExtent) {
+void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo*> uniformBufferInfos, CameraHandler cameraHandler, VkExtent2D swapChainExtent) {
     CameraUniformBufferObject ubo = cameraHandler.getCameraMatrix(swapChainExtent);
 
-    memcpy(uniformBufferInfos[currentFrame].mappingPointer, &ubo, sizeof(ubo));
+    memcpy(uniformBufferInfos[currentFrame]->mappingPointer, &ubo, sizeof(ubo));
 }
 
 void recordCommandBuffer(
     SwapChainInfo* swapChainInfo,
+    GraphicsPipelineInfo* GraphicsPipelineInfo,
     VkCommandBuffer commandBuffer, 
-    uint32_t imageIndex,
-    VkRenderPass renderPass,
-    VkPipeline graphicsPipeline)
+    VkDescriptorSet descriptorSet,
+    uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -55,7 +55,7 @@ void recordCommandBuffer(
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass;
+    renderPassInfo.renderPass = swapChainInfo->renderPass;
     renderPassInfo.framebuffer = swapChainInfo->swapChainFramebuffers[imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent = swapChainInfo->swapChainExtent;
@@ -69,7 +69,7 @@ void recordCommandBuffer(
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineInfo->pipeline);
 
     VkViewport viewport{};
     viewport.x = 0.0f;
@@ -109,7 +109,7 @@ void recordCommandBuffer(
 
         vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.indexBuffers[i], 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineInfo->layout, 0, 1, &descriptorSet, 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, vertexBufferManager.indexCounts[i], 1, 0, 0, 0);
     }
@@ -125,18 +125,17 @@ void recordCommandBuffer(
 
 void drawFrame(
     VulkanCoreInfo* vulkanCoreInfo,
-    int& currentFrame,
+    SwapChainInfo* swapChainInfo,
+    GraphicsPipelineInfo* GraphicsPipelineInfo,
+    std::vector<UniformBufferInfo*> uniformBufferInfos,
+    uint32_t& currentFrame,
+    bool& framebufferResized,
+    std::vector<VkCommandBuffer> commandBuffers,
     std::vector<VkSemaphore> imageAvailableSemaphores,
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
-    SwapChainInfo* swapChainInfo,
-    std::vector<UniformBufferInfo> uniformBufferInfos,
-    CameraHandler cameraHandler,
-    VkExtent2D swapChainExtent,
-    std::vector<VkCommandBuffer> commandBuffers,
-    VkRenderPass renderPass,
-    VkPipeline graphicsPipeline,
-    bool& framebufferResized)
+    std::vector<VkDescriptorSet> descriptorSets,
+    CameraHandler cameraHandler)
 {
     vkWaitForFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -151,17 +150,17 @@ void drawFrame(
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainExtent);
+    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo->swapChainExtent);
 
     vkResetFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame]);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
     recordCommandBuffer(
-        swapChainInfo, 
-        commandBuffers[currentFrame], 
-        imageIndex,
-        renderPass,
-        graphicsPipeline);
+        swapChainInfo,
+        GraphicsPipelineInfo,
+        commandBuffers[currentFrame],
+        descriptorSets[currentFrame],
+        imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
