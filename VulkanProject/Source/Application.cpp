@@ -71,7 +71,8 @@ void Application::mainLoop()
             imageAvailableSemaphores,
             renderFinishedSemaphores,
             inFlightFences,
-            cameraHandler);
+            cameraHandler,
+            vertexBufferManager);
     }
 
     vkDeviceWaitIdle(vulkanCoreInfo->device);

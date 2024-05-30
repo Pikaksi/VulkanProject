@@ -44,7 +44,8 @@ void recordCommandBuffer(
     GraphicsPipelineInfo* GraphicsPipelineInfo,
     VkCommandBuffer commandBuffer, 
     VkDescriptorSet descriptorSet,
-    uint32_t imageIndex)
+    uint32_t imageIndex,
+    VertexBufferManager vertexBufferManager)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -135,7 +136,8 @@ void drawFrame(
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
     std::vector<VkDescriptorSet> descriptorSets,
-    CameraHandler cameraHandler)
+    CameraHandler cameraHandler,
+    VertexBufferManager vertexBufferManager)
 {
     vkWaitForFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -160,7 +162,8 @@ void drawFrame(
         GraphicsPipelineInfo,
         commandBuffers[currentFrame],
         descriptorSets[currentFrame],
-        imageIndex);
+        imageIndex,
+        vertexBufferManager);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -5,6 +5,8 @@
 
 #include <chrono>
 
+#include "VulkanRendering/Buffers.hpp"
+
 class CameraHandler
 {
 public:

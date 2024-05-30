@@ -2,6 +2,7 @@
 
 #include "VulkanTypes.hpp"
 #include "Constants.hpp"
+#include "Rendering/VertexBufferManager.hpp"
 
 void drawFrame(
     VulkanCoreInfo* vulkanCoreInfo,
@@ -14,7 +15,8 @@ void drawFrame(
     std::vector<VkSemaphore> imageAvailableSemaphores,
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
-    CameraHandler cameraHandler);
+    CameraHandler cameraHandler,
+    VertexBufferManager vertexBufferManager);
 
 void createSyncObjects(
     VulkanCoreInfo* vulkanCoreInfo,
