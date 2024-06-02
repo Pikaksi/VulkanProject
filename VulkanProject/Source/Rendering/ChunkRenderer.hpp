@@ -11,6 +11,7 @@
 #include "Vertex.hpp"
 #include "World/WorldManager.hpp"
 #include "VertexCreator.hpp"
+#include "VulkanRendering/VulkanTypes.hpp"
 
 class VertexBufferManager;
 
@@ -25,22 +26,12 @@ public:
 
 	ChunkRenderer()
 	{
-		/*
-		chunksToRender.push_back(glm::i32vec3(0, 0, 0));
-		chunksToRender.push_back(glm::i32vec3(1, 0, 0));
-		chunksToRender.push_back(glm::i32vec3(0, 0, 1));
-		chunksToRender.push_back(glm::i32vec3(1, 0, 1));
-		chunksToRender.push_back(glm::i32vec3(0, 1, 0));
-		chunksToRender.push_back(glm::i32vec3(1, 1, 0));
-		chunksToRender.push_back(glm::i32vec3(0, 1, 1));
-		chunksToRender.push_back(glm::i32vec3(-1, 0, 0));
-		chunksToRender.push_back(glm::i32vec3(-1, 1, -1));
-		*/
+
 	}
 
 	void tryAddChunksToRender(glm::i32vec3 chunkLocation);
 	void addChunksToBeRendered(glm::i32vec3 position);
-	void renderNewChunks(WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
-	void renderChunk(glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
+	void renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
+	void renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager);
 };
 #include "VertexBufferManager.hpp"

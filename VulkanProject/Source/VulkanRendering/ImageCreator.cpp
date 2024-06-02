@@ -1,14 +1,16 @@
-#include <stdexcept>
-
 #include "ImageCreator.hpp"
+
+#include <stdexcept>
+#include <iostream>
+
 #include "VulkanUtilities.hpp"
 #include "Commands.hpp"
 
-void fillImageView(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+void fillImageView(VulkanCoreInfo* vulkanCoreInfo, VkImage image, VkImageView& imageView, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image = imageInfo->image;
+    viewInfo.image = image;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format = format;
     viewInfo.subresourceRange.aspectMask = aspectFlags;
@@ -17,7 +19,7 @@ void fillImageView(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkForma
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if (vkCreateImageView(vulkanCoreInfo->device, &viewInfo, nullptr, &imageInfo->view) != VK_SUCCESS) {
+    if (vkCreateImageView(vulkanCoreInfo->device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture image view!");
     }
 }
@@ -58,20 +60,21 @@ void createImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, uint32_t 
     vkBindImageMemory(vulkanCoreInfo->device, imageInfo->image, imageInfo->memory, 0);
 }
 
-void createImageInfo(VulkanCoreInfo* vulkanCoreInfo, 
-                     ImageInfo* imageInfo, 
-                     uint32_t width,
-                     uint32_t height, 
-                     uint32_t mipLevels, 
-                     VkSampleCountFlagBits numSamples, 
-                     VkFormat format, 
-                     VkImageTiling tiling, 
-                     VkImageUsageFlags usage, 
-                     VkMemoryPropertyFlags properties, 
-                     VkImageAspectFlags aspectFlags)
+void createImageInfo(
+    VulkanCoreInfo* vulkanCoreInfo,
+    ImageInfo* imageInfo,
+    uint32_t width,
+    uint32_t height,
+    uint32_t mipLevels,
+    VkSampleCountFlagBits numSamples,
+    VkFormat format,
+    VkImageTiling tiling,
+    VkImageUsageFlags usage,
+    VkMemoryPropertyFlags properties,
+    VkImageAspectFlags aspectFlags)
 {
     createImage(vulkanCoreInfo, imageInfo, width, height, mipLevels, numSamples, format, tiling, usage, properties);
-    fillImageView(vulkanCoreInfo, imageInfo, format, aspectFlags, mipLevels);
+    fillImageView(vulkanCoreInfo, imageInfo->image, imageInfo->view, format, aspectFlags, mipLevels);
 }
 
 void generateMipmaps(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {

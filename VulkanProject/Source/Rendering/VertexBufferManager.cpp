@@ -1,14 +1,14 @@
 #include "VertexBufferManager.hpp"
 
-void VertexBufferManager::addChunkVertices(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+void VertexBufferManager::addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
     VkBuffer vertexBuffer, indexBuffer;
     VkDeviceMemory vertexBufferMemory, indexBufferMemory;
 
     //std::cout << "vertex buffer size = " << vertices.size() << "\n";
 
-    createVertexBuffer(vertexBuffer, vertexBufferMemory, vertices);
-    createIndexBuffer(indexBuffer, indexBufferMemory, indices);
+    createVertexBuffer(vulkanCoreInfo, commandPool, vertexBuffer, vertexBufferMemory, vertices);
+    createIndexBuffer(vulkanCoreInfo, commandPool, indexBuffer, indexBufferMemory, indices);
 
     vertexCounts.push_back(vertices.size());
     vertexBuffers.push_back(vertexBuffer);
@@ -19,64 +19,64 @@ void VertexBufferManager::addChunkVertices(std::vector<Vertex>& vertices, std::v
     indexBufferMemories.push_back(indexBufferMemory);
 }
 
-void VertexBufferManager::createVertexBuffer(VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices) {
+void VertexBufferManager::createVertexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices) {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    Application::getInstance().createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(Application::getInstance().device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, vertices.data(), (size_t)bufferSize);
-    vkUnmapMemory(Application::getInstance().device, stagingBufferMemory);
+    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
 
-    Application::getInstance().createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
 
-    Application::getInstance().copyBuffer(stagingBuffer, buffer, bufferSize);
+    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize);
 
-    vkDestroyBuffer(Application::getInstance().device, stagingBuffer, nullptr);
-    vkFreeMemory(Application::getInstance().device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
 }
 
-void VertexBufferManager::createIndexBuffer(VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices) {
+void VertexBufferManager::createIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices) {
 
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    Application::getInstance().createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(Application::getInstance().device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, indices.data(), (size_t)bufferSize);
-    vkUnmapMemory(Application::getInstance().device, stagingBufferMemory);
+    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
 
-    Application::getInstance().createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
     //auto startTime = std::chrono::high_resolution_clock::now();
 
-    Application::getInstance().copyBuffer(stagingBuffer, buffer, bufferSize);
+    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize);
 
     //auto endTime = std::chrono::high_resolution_clock::now();
     //float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
     //std::cout << "Creating index buffer took " << timePassed << " seconds.\n";
-    vkDestroyBuffer(Application::getInstance().device, stagingBuffer, nullptr);
-    vkFreeMemory(Application::getInstance().device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
 }
 
-void VertexBufferManager::cleanUpBuffers()
+void VertexBufferManager::cleanUpBuffers(VulkanCoreInfo* vulkanCoreInfo)
 {
     for (VkBuffer vertexBuffer : vertexBuffers) {
-        vkDestroyBuffer(Application::getInstance().device, vertexBuffer, nullptr);
+        vkDestroyBuffer(vulkanCoreInfo->device, vertexBuffer, nullptr);
     }
     for (VkDeviceMemory vertexBufferMemory : vertexBufferMemories) {
-        vkFreeMemory(Application::getInstance().device, vertexBufferMemory, nullptr);
+        vkFreeMemory(vulkanCoreInfo->device, vertexBufferMemory, nullptr);
     }
 
     for (VkBuffer indexBuffer : indexBuffers) {
-        vkDestroyBuffer(Application::getInstance().device, indexBuffer, nullptr);
+        vkDestroyBuffer(vulkanCoreInfo->device, indexBuffer, nullptr);
     }
     for (VkDeviceMemory indexBufferMemory : indexBufferMemories) {
-        vkFreeMemory(Application::getInstance().device, indexBufferMemory, nullptr);
+        vkFreeMemory(vulkanCoreInfo->device, indexBufferMemory, nullptr);
     }
 }

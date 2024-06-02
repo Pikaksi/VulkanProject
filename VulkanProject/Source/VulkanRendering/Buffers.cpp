@@ -72,11 +72,12 @@ void createUniformBuffer(VulkanCoreInfo* vulkanCoreInfo, UniformBufferInfo* unif
     vkMapMemory(vulkanCoreInfo->device, uniformBufferInfo->memory, 0, bufferSize, 0, &uniformBufferInfo->mappingPointer);
 }
 
-void createCameraUniformBuffers(VulkanCoreInfo* vulkanCoreInfo, std::vector<UniformBufferInfo*> cameraUBOs)
+void createCameraUniformBuffers(VulkanCoreInfo* vulkanCoreInfo, std::vector<UniformBufferInfo*>& cameraUBOs)
 {
     cameraUBOs.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        cameraUBOs[i] = new UniformBufferInfo;
         createUniformBuffer(vulkanCoreInfo, cameraUBOs[i]);
     }
 }

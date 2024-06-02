@@ -3,6 +3,7 @@
 
 #include "Commands.hpp"
 #include "DeviceCreator.hpp"
+#include "Constants.hpp"
 
 VkCommandBuffer beginSingleTimeCommands(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool) {
     VkCommandBufferAllocateInfo allocInfo{};
@@ -53,10 +54,10 @@ VkCommandPool createCommandPool(VulkanCoreInfo* vulkanCoreInfo)
     return commandPool;
 }
 
-std::vector<VkCommandBuffer> createCommandBuffers(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, int allocationCount)
+std::vector<VkCommandBuffer> createCommandBuffers(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool)
 {
     std::vector<VkCommandBuffer> commandBuffers;
-    commandBuffers.resize(allocationCount);
+    commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

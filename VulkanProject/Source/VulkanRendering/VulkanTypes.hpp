@@ -35,16 +35,16 @@ struct ImageInfo
 struct SwapChainInfo
 {
 	VkSwapchainKHR swapChain;
-	std::vector<VkImage> swapChainImages;
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
-	std::vector<VkImageView> swapChainImageViews;
-	std::vector<VkFramebuffer> swapChainFramebuffers;
+	VkFormat imageFormat;
+	VkExtent2D extent;
+	std::vector<VkImageView> imageViews;
+	std::vector<VkImage> images;
+	std::vector<VkFramebuffer> framebuffers;
 
 	VkRenderPass renderPass;
 
-	ImageInfo* colorImage;
-	ImageInfo* depthImage;
+	ImageInfo* colorImage = new ImageInfo;
+	ImageInfo* depthImage = new ImageInfo;
 };
 
 struct GraphicsPipelineInfo

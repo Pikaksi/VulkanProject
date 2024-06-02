@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "Vertex.hpp"
+#include "VulkanRendering/VulkanTypes.hpp"
+#include "VulkanRendering/Buffers.hpp"
 
 class VertexBufferManager
 {
@@ -22,11 +24,11 @@ public:
     {
     }
 
-    void addChunkVertices(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
-    void createVertexBuffer(VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices);
-    void createIndexBuffer(VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices);
+    void addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+    void createVertexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices);
+    void createIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices);
 
-    void cleanUpBuffers();
+    void cleanUpBuffers(VulkanCoreInfo* vulkanCoreInfo);
 
 };
 

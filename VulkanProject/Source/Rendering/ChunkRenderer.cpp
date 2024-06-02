@@ -65,17 +65,17 @@ void ChunkRenderer::tryAddChunksToRender(glm::i32vec3 chunkLocation)
 	}
 }
 
-void ChunkRenderer::renderNewChunks(WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
+void ChunkRenderer::renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
 {
 	if (chunksToRender.size() == 0) {
 		return;
 	}
 	glm::i32vec3 chunkLocation = chunksToRender.front();
-	renderChunk(chunkLocation, worldManager, vertexBufferManager);
+	renderChunk(vulkanCoreInfo, commandPool, chunkLocation, worldManager, vertexBufferManager);
 	chunksToRender.pop();
 }
 
-void ChunkRenderer::renderChunk(glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
+void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
 {
 	worldManager.tryGeneratingNewChunk(chunkLocation);
 	// generate adjacent chunks so that we dont have to rerender this chunk when they are generated
@@ -105,7 +105,7 @@ void ChunkRenderer::renderChunk(glm::i32vec3 chunkLocation, WorldManager& worldM
 	if (vertices.size() == 0) {
 		return;
 	}
-	vertexBufferManager.addChunkVertices(vertices, indices);
+	vertexBufferManager.addChunkVertices(vulkanCoreInfo, commandPool, vertices, indices);
 
 	renderedChunks.insert(chunkLocation);
 }

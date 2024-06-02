@@ -15,11 +15,12 @@ void drawFrame(
     std::vector<VkSemaphore> imageAvailableSemaphores,
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
+    std::vector<VkDescriptorSet> descriptorSets,
     CameraHandler cameraHandler,
     VertexBufferManager vertexBufferManager);
 
 void createSyncObjects(
     VulkanCoreInfo* vulkanCoreInfo,
-    std::vector<VkSemaphore> imageAvailableSemaphores,
-    std::vector<VkSemaphore> renderFinishedSemaphores,
-    std::vector<VkFence> inFlightFences);
+    std::vector<VkSemaphore>& imageAvailableSemaphores,
+    std::vector<VkSemaphore>& renderFinishedSemaphores,
+    std::vector<VkFence>& inFlightFences);

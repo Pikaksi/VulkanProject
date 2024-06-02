@@ -11,7 +11,7 @@
 #include <glm/gtx/hash.hpp>
 
 // #define STB_IMAGE_IMPLEMENTATION in main.cpp
-#include <stb_image.h>
+//#include <stb_image.h>
 
 #include <iostream>
 #include <fstream>
@@ -28,9 +28,9 @@
 #include <unordered_map>
 #include <chrono>
 
+#include "VulkanRendering/VulkanTypes.hpp"
 #include "VulkanRendering/DeviceCreator.hpp"
 #include "VulkanRendering/SwapChain.hpp"
-#include "VulkanRendering/VulkanTypes.hpp"
 #include "Rendering/VertexBufferManager.hpp"
 #include "Rendering/ChunkRenderer.hpp"
 #include "Rendering/VertexCreator.hpp"
@@ -55,27 +55,25 @@ private:
     {
     }
 
-    VulkanCoreInfo* vulkanCoreInfo;
-    SwapChainInfo* swapChainInfo;
+    VulkanCoreInfo* vulkanCoreInfo = new VulkanCoreInfo;
+    SwapChainInfo* swapChainInfo = new SwapChainInfo;
 
     VertexBufferManager vertexBufferManager;
 
-    GraphicsPipelineInfo* graphicsPipelineInfo;
+    GraphicsPipelineInfo* graphicsPipelineInfo = new GraphicsPipelineInfo;
 
     VkCommandPool commandPool;
 
-    ImageInfo* textureImage;
+    ImageInfo* textureImage = new ImageInfo;
     VkSampler textureSampler;
 
     VkDescriptorSetLayout descriptorSetLayout;
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    std::vector<UniformBufferInfo*> uniformBuffers;
+    std::vector<UniformBufferInfo*> cameraUniformBuffers;
 
     std::vector<VkCommandBuffer> commandBuffers;
-
-    std::vector<UniformBufferInfo*> cameraUniformBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;

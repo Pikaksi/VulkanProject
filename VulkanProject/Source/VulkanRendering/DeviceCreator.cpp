@@ -130,6 +130,8 @@ void initWindow(VulkanCoreInfo* vulkanCoreInfo)
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    //todo: remove
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     vulkanCoreInfo->window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
@@ -249,8 +251,10 @@ void pickPhysicalDevice(VulkanCoreInfo* vulkanCoreInfo) {
     vkEnumeratePhysicalDevices(vulkanCoreInfo->instance, &deviceCount, devices.data());
 
     for (const auto& device : devices) {
+        // set device and check if it valid. The device is replaced if not
+        // done this way for ease of use for later
+        vulkanCoreInfo->physicalDevice = device;
         if (isDeviceSuitable(vulkanCoreInfo)) {
-            vulkanCoreInfo->physicalDevice = device;
             vulkanCoreInfo->msaaSamples = getMaxUsableSampleCount(vulkanCoreInfo->physicalDevice);
             break;
         }
@@ -309,9 +313,10 @@ void createLogicalDevice(VulkanCoreInfo* vulkanCoreInfo) {
 
 void createDevice(VulkanCoreInfo* vulkanCoreInfo)
 {
-    createInstance(vulkanCoreInfo);
     initWindow(vulkanCoreInfo);
-    createSurface(vulkanCoreInfo);
+    createInstance(vulkanCoreInfo);
     setupDebugMessenger(vulkanCoreInfo);
+    createSurface(vulkanCoreInfo);
     pickPhysicalDevice(vulkanCoreInfo);
+    createLogicalDevice(vulkanCoreInfo);
 }

@@ -3,6 +3,7 @@
 #include "VulkanRendering/FrameDrawer.hpp"
 #include "VulkanRendering/GraphicsPipeline.hpp"
 #include "VulkanRendering/Buffers.hpp"
+#include "VulkanRendering/Commands.hpp"
 #include "VulkanRendering/Descriptor.hpp"
 #include "VulkanRendering/ImageCreator.hpp"
 #include "TextureCreator.hpp"
@@ -39,15 +40,18 @@ void Application::initVulkan() {
     createDevice(vulkanCoreInfo);
     createSwapChain(vulkanCoreInfo, swapChainInfo);
     createGraphicsPipeline(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo);
+    commandPool = createCommandPool(vulkanCoreInfo);
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
 
     createTextureImage(vulkanCoreInfo, textureImage, commandPool, false);
+    textureSampler = createTextureSampler(vulkanCoreInfo);
 
     descriptorSetLayout = createDescriptorSetLayout(vulkanCoreInfo);
     descriptorPool = createDescriptorPool(vulkanCoreInfo);
     descriptorSets = createDescriptorSets(vulkanCoreInfo, descriptorPool, descriptorSetLayout, cameraUniformBuffers, textureImage, textureSampler);
 
+    commandBuffers = createCommandBuffers(vulkanCoreInfo, commandPool);
     createSyncObjects(vulkanCoreInfo, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences);
 }
 
@@ -64,13 +68,14 @@ void Application::mainLoop()
             vulkanCoreInfo,
             swapChainInfo,
             graphicsPipelineInfo,
-            uniformBuffers,
+            cameraUniformBuffers,
             currentFrame,
             framebufferResized,
             commandBuffers,
             imageAvailableSemaphores,
             renderFinishedSemaphores,
             inFlightFences,
+            descriptorSets,
             cameraHandler,
             vertexBufferManager);
     }
@@ -89,7 +94,7 @@ void Application::gameMainLoop()
     //std::cout << "camera location = " << cameraHandler.position.x << " " << cameraHandler.position.y << " " << cameraHandler.position.z << "\n";
     chunkRenderer.addChunksToBeRendered(chunkLocation);
 
-    chunkRenderer.renderNewChunks(worldManager, vertexBufferManager);
+    chunkRenderer.renderNewChunks(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager);
 }
 
 void Application::cleanup() {
@@ -100,8 +105,8 @@ void Application::cleanup() {
     vkDestroyRenderPass(vulkanCoreInfo->device, swapChainInfo->renderPass, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(vulkanCoreInfo->device, uniformBuffers[i]->buffer, nullptr);
-        vkFreeMemory(vulkanCoreInfo->device, uniformBuffers[i]->memory, nullptr);
+        vkDestroyBuffer(vulkanCoreInfo->device, cameraUniformBuffers[i]->buffer, nullptr);
+        vkFreeMemory(vulkanCoreInfo->device, cameraUniformBuffers[i]->memory, nullptr);
     }
 
     vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool, nullptr);
@@ -112,7 +117,7 @@ void Application::cleanup() {
     vkDestroyImage(vulkanCoreInfo->device, textureImage->image, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, textureImage->memory, nullptr);
 
-    vertexBufferManager.cleanUpBuffers();
+    vertexBufferManager.cleanUpBuffers(vulkanCoreInfo);
 
     vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout, nullptr);
 

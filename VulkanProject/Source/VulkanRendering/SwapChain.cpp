@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <array>
+#include <iostream>
 
 #include "SwapChain.hpp"
 #include "DeviceCreator.hpp"
@@ -73,10 +74,10 @@ VkExtent2D chooseSwapExtent(VulkanCoreInfo* vulkanCoreInfo, const VkSurfaceCapab
 }
 
 void createSwapChainImageViews(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {
-    swapChainInfo->swapChainImageViews.resize(swapChainInfo->swapChainImages.size());
+    swapChainInfo->imageViews.resize(swapChainInfo->images.size());
 
-    for (uint32_t i = 0; i < swapChainInfo->swapChainImages.size(); i++) {
-        swapChainInfo->swapChainImageViews[i] = fillImageView(vulkanCoreInfo, swapChainInfo->swapChainImages[i], swapChainInfo->swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+    for (uint32_t i = 0; i < swapChainInfo->images.size(); i++) {
+        fillImageView(vulkanCoreInfo, swapChainInfo->images[i], swapChainInfo->imageViews[i], swapChainInfo->imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
     }
 }
 
@@ -84,14 +85,14 @@ void createColorResources(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapCha
     createImageInfo(
         vulkanCoreInfo, 
         swapChainInfo->colorImage, 
-        swapChainInfo->swapChainExtent.width, 
-        swapChainInfo->swapChainExtent.height, 
+        swapChainInfo->extent.width, 
+        swapChainInfo->extent.height, 
         1, 
         vulkanCoreInfo->msaaSamples, 
-        swapChainInfo->swapChainImageFormat,
+        swapChainInfo->imageFormat,
         VK_IMAGE_TILING_OPTIMAL, 
         VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
@@ -107,9 +108,9 @@ VkFormat findDepthFormat(VulkanCoreInfo* vulkanCoreInfo) {
 void createDepthResources(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {
     createImageInfo(
         vulkanCoreInfo,
-        swapChainInfo->colorImage, 
-        swapChainInfo->swapChainExtent.width, 
-        swapChainInfo->swapChainExtent.height, 
+        swapChainInfo->depthImage, 
+        swapChainInfo->extent.width, 
+        swapChainInfo->extent.height, 
         1, 
         vulkanCoreInfo->msaaSamples, 
         findDepthFormat(vulkanCoreInfo),
@@ -120,13 +121,13 @@ void createDepthResources(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapCha
 }
 
 void createFramebuffers(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {
-    swapChainInfo->swapChainFramebuffers.resize(swapChainInfo->swapChainImageViews.size());
+    swapChainInfo->framebuffers.resize(swapChainInfo->imageViews.size());
 
-    for (size_t i = 0; i < swapChainInfo->swapChainImageViews.size(); i++) {
+    for (size_t i = 0; i < swapChainInfo->imageViews.size(); i++) {
         std::array<VkImageView, 3> attachments = {
             swapChainInfo->colorImage->view,
             swapChainInfo->depthImage->view,
-            swapChainInfo->swapChainImageViews[i]
+            swapChainInfo->imageViews[i]
         };
 
         VkFramebufferCreateInfo framebufferInfo{};
@@ -134,19 +135,18 @@ void createFramebuffers(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChain
         framebufferInfo.renderPass = swapChainInfo->renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = swapChainInfo->swapChainExtent.width;
-        framebufferInfo.height = swapChainInfo->swapChainExtent.height;
+        framebufferInfo.width = swapChainInfo->extent.width;
+        framebufferInfo.height = swapChainInfo->extent.height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(vulkanCoreInfo->device, &framebufferInfo, nullptr, &swapChainInfo->swapChainFramebuffers[i]) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(vulkanCoreInfo->device, &framebufferInfo, nullptr, &swapChainInfo->framebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
     }
 }
 
-SwapChainInfo* createSwapChain(VulkanCoreInfo* vulkanCoreInfo) {
-    SwapChainInfo* swapChainInfo;
-
+void createSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo)
+{
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(vulkanCoreInfo);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -191,11 +191,11 @@ SwapChainInfo* createSwapChain(VulkanCoreInfo* vulkanCoreInfo) {
     }
 
     vkGetSwapchainImagesKHR(vulkanCoreInfo->device, swapChainInfo->swapChain, &imageCount, nullptr);
-    swapChainInfo->swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(vulkanCoreInfo->device, swapChainInfo->swapChain, &imageCount, swapChainInfo->swapChainImages.data());
+    swapChainInfo->images.resize(imageCount);
+    vkGetSwapchainImagesKHR(vulkanCoreInfo->device, swapChainInfo->swapChain, &imageCount, swapChainInfo->images.data());
 
-    swapChainInfo->swapChainImageFormat = surfaceFormat.format;
-    swapChainInfo->swapChainExtent = extent;
+    swapChainInfo->imageFormat = surfaceFormat.format;
+    swapChainInfo->extent = extent;
 
     swapChainInfo->renderPass = createRenderPass(vulkanCoreInfo, swapChainInfo);
 
@@ -203,8 +203,6 @@ SwapChainInfo* createSwapChain(VulkanCoreInfo* vulkanCoreInfo) {
     createColorResources(vulkanCoreInfo, swapChainInfo);
     createDepthResources(vulkanCoreInfo, swapChainInfo);
     createFramebuffers(vulkanCoreInfo, swapChainInfo);
-
-    return swapChainInfo;
 }
 
 void cleanupSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {
@@ -217,11 +215,11 @@ void cleanupSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainIn
     vkDestroyImage(vulkanCoreInfo->device, swapChainInfo->depthImage->image, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, swapChainInfo->depthImage->memory, nullptr);
 
-    for (auto framebuffer : swapChainInfo->swapChainFramebuffers) {
+    for (auto framebuffer : swapChainInfo->framebuffers) {
         vkDestroyFramebuffer(vulkanCoreInfo->device, framebuffer, nullptr);
     }
 
-    for (auto imageView : swapChainInfo->swapChainImageViews) {
+    for (auto imageView : swapChainInfo->imageViews) {
         vkDestroyImageView(vulkanCoreInfo->device, imageView, nullptr);
     }
 
@@ -240,5 +238,5 @@ void recreateSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainI
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
-    swapChainInfo = createSwapChain(vulkanCoreInfo);
+    createSwapChain(vulkanCoreInfo, swapChainInfo);
 }

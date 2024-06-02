@@ -9,9 +9,9 @@
 
 void createSyncObjects(
     VulkanCoreInfo* vulkanCoreInfo,
-    std::vector<VkSemaphore> imageAvailableSemaphores, 
-    std::vector<VkSemaphore> renderFinishedSemaphores, 
-    std::vector<VkFence> inFlightFences)
+    std::vector<VkSemaphore>& imageAvailableSemaphores, 
+    std::vector<VkSemaphore>& renderFinishedSemaphores, 
+    std::vector<VkFence>& inFlightFences)
 {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -33,7 +33,7 @@ void createSyncObjects(
     }
 }
 
-void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo*> uniformBufferInfos, CameraHandler cameraHandler, VkExtent2D swapChainExtent) {
+void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo*>& uniformBufferInfos, CameraHandler cameraHandler, VkExtent2D swapChainExtent) {
     CameraUniformBufferObject ubo = cameraHandler.getCameraMatrix(swapChainExtent);
 
     memcpy(uniformBufferInfos[currentFrame]->mappingPointer, &ubo, sizeof(ubo));
@@ -57,9 +57,9 @@ void recordCommandBuffer(
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = swapChainInfo->renderPass;
-    renderPassInfo.framebuffer = swapChainInfo->swapChainFramebuffers[imageIndex];
+    renderPassInfo.framebuffer = swapChainInfo->framebuffers[imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = swapChainInfo->swapChainExtent;
+    renderPassInfo.renderArea.extent = swapChainInfo->extent;
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
@@ -75,15 +75,15 @@ void recordCommandBuffer(
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)swapChainInfo->swapChainExtent.width;
-    viewport.height = (float)swapChainInfo->swapChainExtent.height;
+    viewport.width = (float)swapChainInfo->extent.width;
+    viewport.height = (float)swapChainInfo->extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
-    scissor.extent = swapChainInfo->swapChainExtent;
+    scissor.extent = swapChainInfo->extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     /*static std::vector<Vertex> vTest = {
@@ -151,8 +151,7 @@ void drawFrame(
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
-
-    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo->swapChainExtent);
+    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo->extent);
 
     vkResetFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame]);
 
