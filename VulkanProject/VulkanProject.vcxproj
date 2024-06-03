@@ -58,12 +58,14 @@
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <None Include="Shaders\compile.bat" />
-    <None Include="Shaders\frag.spv" />
+    <None Include="Shaders\frag2d.spv" />
+    <None Include="Shaders\frag3d.spv" />
     <None Include="Shaders\shader2d.frag" />
     <None Include="Shaders\shader2d.vert" />
     <None Include="Shaders\shader3d.frag" />
     <None Include="Shaders\shader3d.vert" />
-    <None Include="Shaders\vert.spv" />
+    <None Include="Shaders\vert2d.spv" />
+    <None Include="Shaders\vert3d.spv" />
     <None Include="Textures\TextSpriteSheetGimp.xcf" />
   </ItemGroup>
   <ItemGroup>

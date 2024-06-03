@@ -41,9 +41,11 @@ void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo*>&
 
 void recordCommandBuffer(
     SwapChainInfo* swapChainInfo,
-    GraphicsPipelineInfo* GraphicsPipelineInfo,
+    GraphicsPipelineInfo* graphicsPipelineInfo3d,
+    GraphicsPipelineInfo* graphicsPipelineInfo2d,
+    VkDescriptorSet descriptorSet3d,
+    VkDescriptorSet descriptorSet2d,
     VkCommandBuffer commandBuffer, 
-    VkDescriptorSet descriptorSet,
     uint32_t imageIndex,
     VertexBufferManager vertexBufferManager)
 {
@@ -70,8 +72,6 @@ void recordCommandBuffer(
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineInfo->pipeline);
-
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -79,41 +79,47 @@ void recordCommandBuffer(
     viewport.height = (float)swapChainInfo->extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
     scissor.extent = swapChainInfo->extent;
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    /*static std::vector<Vertex> vTest = {
-        Vertex{ {-1, -1, 2}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
-        Vertex{ {1, -1, 2}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f} },
-        Vertex{ {-1, 1, 2}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f} },
-        Vertex{ {1, 1, 2}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f} }
-    };
-    static std::vector<uint32_t> testIndexBuffer = { 0, 1, 2, 1, 2, 3 };
-    static VkBuffer vbufferTest;
-    static VkDeviceMemory vtestvkDeviceMemory;
-    vertexBufferManager.createVertexBuffer(vbufferTest, vtestvkDeviceMemory, vTest);
-    static VkBuffer ibufferTest;
-    static VkDeviceMemory itestvkDeviceMemory;
-    vertexBufferManager.createIndexBuffer(ibufferTest, itestvkDeviceMemory, testIndexBuffer);*/
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->pipeline);
+
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     for (int i = 0; i < vertexBufferManager.vertexBuffers.size(); i++) {
 
         VkBuffer vertexBuffers[] = { vertexBufferManager.vertexBuffers[i] };
-        //VkBuffer vertexBuffers[] = { vbufferTest };
 
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.indexBuffers[i], 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipelineInfo->layout, 0, 1, &descriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, vertexBufferManager.indexCounts[i], 1, 0, 0, 0);
     }
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
+
+    for (int i = 0; i < 1; i++) {
+
+        VkBuffer vertexBuffers[] = { vertexBufferManager.testVertexbuffer };
+
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.testIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
+
+        vkCmdDrawIndexed(commandBuffer, 12, 1, 0, 0, 0);
+    }
+
 
 
     vkCmdEndRenderPass(commandBuffer);
@@ -127,7 +133,10 @@ void recordCommandBuffer(
 void drawFrame(
     VulkanCoreInfo* vulkanCoreInfo,
     SwapChainInfo* swapChainInfo,
-    GraphicsPipelineInfo* GraphicsPipelineInfo,
+    GraphicsPipelineInfo* graphicsPipelineInfo3d,
+    GraphicsPipelineInfo* graphicsPipelineInfo2d,
+    std::vector<VkDescriptorSet> descriptorSets3d,
+    std::vector<VkDescriptorSet> descriptorSets2d,
     std::vector<UniformBufferInfo*> uniformBufferInfos,
     uint32_t& currentFrame,
     bool& framebufferResized,
@@ -135,7 +144,6 @@ void drawFrame(
     std::vector<VkSemaphore> imageAvailableSemaphores,
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
-    std::vector<VkDescriptorSet> descriptorSets,
     CameraHandler cameraHandler,
     VertexBufferManager vertexBufferManager)
 {
@@ -158,9 +166,11 @@ void drawFrame(
     vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
     recordCommandBuffer(
         swapChainInfo,
-        GraphicsPipelineInfo,
+        graphicsPipelineInfo3d,
+        graphicsPipelineInfo2d,
+        descriptorSets3d[currentFrame],
+        descriptorSets2d[currentFrame],
         commandBuffers[currentFrame],
-        descriptorSets[currentFrame],
         imageIndex,
         vertexBufferManager);
 

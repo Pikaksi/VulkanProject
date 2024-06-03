@@ -7,7 +7,10 @@
 void drawFrame(
     VulkanCoreInfo* vulkanCoreInfo,
     SwapChainInfo* swapChainInfo,
-    GraphicsPipelineInfo* GraphicsPipelineInfo,
+    GraphicsPipelineInfo* graphicsPipelineInfo3d,
+    GraphicsPipelineInfo* graphicsPipelineInfo2d,
+    std::vector<VkDescriptorSet> descriptorSets3d,
+    std::vector<VkDescriptorSet> descriptorSets2d,
     std::vector<UniformBufferInfo*> uniformBufferInfos,
     uint32_t& currentFrame,
     bool& framebufferResized,
@@ -15,7 +18,6 @@ void drawFrame(
     std::vector<VkSemaphore> imageAvailableSemaphores,
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
-    std::vector<VkDescriptorSet> descriptorSets,
     CameraHandler cameraHandler,
     VertexBufferManager vertexBufferManager);
 

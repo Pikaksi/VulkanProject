@@ -104,12 +104,6 @@
     <None Include="Shaders\shader3d.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="Shaders\frag.spv">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="Shaders\vert.spv">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="Shaders\compile.bat">
       <Filter>shaders</Filter>
     </None>
@@ -120,6 +114,10 @@
     <None Include="Shaders\shader2d.frag">
       <Filter>shaders</Filter>
     </None>
+    <None Include="Shaders\frag2d.spv" />
+    <None Include="Shaders\frag3d.spv" />
+    <None Include="Shaders\vert2d.spv" />
+    <None Include="Shaders\vert3d.spv" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\VertexCreator.hpp">

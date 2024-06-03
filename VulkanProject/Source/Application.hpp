@@ -60,16 +60,22 @@ private:
 
     VertexBufferManager vertexBufferManager;
 
-    GraphicsPipelineInfo* graphicsPipelineInfo = new GraphicsPipelineInfo;
+    GraphicsPipelineInfo* graphicsPipelineInfo3d = new GraphicsPipelineInfo;
+    GraphicsPipelineInfo* graphicsPipelineInfo2d = new GraphicsPipelineInfo;
 
     VkCommandPool commandPool;
 
     ImageInfo* textureImage = new ImageInfo;
     VkSampler textureSampler;
 
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkDescriptorPool descriptorPool;
-    std::vector<VkDescriptorSet> descriptorSets;
+    VkDescriptorSetLayout descriptorSetLayout3d;
+    VkDescriptorSetLayout descriptorSetLayout2d;
+
+    VkDescriptorPool descriptorPool3d;
+    VkDescriptorPool descriptorPool2d;
+
+    std::vector<VkDescriptorSet> descriptorSets3d;
+    std::vector<VkDescriptorSet> descriptorSets2d;
 
     std::vector<UniformBufferInfo*> cameraUniformBuffers;
 
