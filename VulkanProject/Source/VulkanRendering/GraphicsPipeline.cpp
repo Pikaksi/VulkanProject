@@ -20,7 +20,7 @@ VkShaderModule createShaderModule(VulkanCoreInfo* vulkanCoreInfo, const std::vec
     return shaderModule;
 }
 
-void createGraphicsPipeline(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo, GraphicsPipelineInfo* graphicsPipelineInfo) {
+void createGraphicsPipeline(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo, GraphicsPipelineInfo* graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
     auto vertShaderCode = readFile(GetShaderDirPath() + "\\vert.spv");
     auto fragShaderCode = readFile(GetShaderDirPath() + "\\frag.spv");
 
@@ -112,7 +112,6 @@ void createGraphicsPipeline(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapC
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
-    VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(vulkanCoreInfo);
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
     VkPipelineLayout pipelineLayout;

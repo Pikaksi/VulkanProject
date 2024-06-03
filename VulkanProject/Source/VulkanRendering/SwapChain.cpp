@@ -211,9 +211,9 @@ void cleanupSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainIn
     vkDestroyImage(vulkanCoreInfo->device, swapChainInfo->depthImage->image, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, swapChainInfo->depthImage->memory, nullptr);
 
-    vkDestroyImageView(vulkanCoreInfo->device, swapChainInfo->depthImage->view, nullptr);
-    vkDestroyImage(vulkanCoreInfo->device, swapChainInfo->depthImage->image, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, swapChainInfo->depthImage->memory, nullptr);
+    vkDestroyImageView(vulkanCoreInfo->device, swapChainInfo->colorImage->view, nullptr);
+    vkDestroyImage(vulkanCoreInfo->device, swapChainInfo->colorImage->image, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, swapChainInfo->colorImage->memory, nullptr);
 
     for (auto framebuffer : swapChainInfo->framebuffers) {
         vkDestroyFramebuffer(vulkanCoreInfo->device, framebuffer, nullptr);

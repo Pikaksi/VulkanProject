@@ -130,14 +130,9 @@ void initWindow(VulkanCoreInfo* vulkanCoreInfo)
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    //todo: remove
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     vulkanCoreInfo->window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-
-    //todo: get working
-    //glfwSetWindowUserPointer(vulkanCoreInfo->window, this);
-    //glfwSetFramebufferSizeCallback(vulkanCoreInfo->window, framebufferResizeCallback);
 }
 
 void createSurface(VulkanCoreInfo* vulkanCoreInfo) {

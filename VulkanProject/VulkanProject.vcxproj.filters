@@ -98,10 +98,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\shader.vert">
+    <None Include="Shaders\shader3d.vert">
       <Filter>shaders</Filter>
     </None>
-    <None Include="Shaders\shader.frag">
+    <None Include="Shaders\shader3d.frag">
       <Filter>shaders</Filter>
     </None>
     <None Include="Shaders\frag.spv">
@@ -114,6 +114,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="Textures\TextSpriteSheetGimp.xcf" />
+    <None Include="Shaders\shader2d.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="Shaders\shader2d.frag">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Rendering\VertexCreator.hpp">

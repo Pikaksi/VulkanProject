@@ -38,8 +38,14 @@ void Application::initGame()
 
 void Application::initVulkan() {
     createDevice(vulkanCoreInfo);
+    glfwSetWindowUserPointer(vulkanCoreInfo->window, this);
+    glfwSetFramebufferSizeCallback(vulkanCoreInfo->window, framebufferResizeCallback);
+
     createSwapChain(vulkanCoreInfo, swapChainInfo);
-    createGraphicsPipeline(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo);
+
+    descriptorSetLayout = createDescriptorSetLayout(vulkanCoreInfo);
+    createGraphicsPipeline(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo, descriptorSetLayout);
+
     commandPool = createCommandPool(vulkanCoreInfo);
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
@@ -47,7 +53,6 @@ void Application::initVulkan() {
     createTextureImage(vulkanCoreInfo, textureImage, commandPool, false);
     textureSampler = createTextureSampler(vulkanCoreInfo);
 
-    descriptorSetLayout = createDescriptorSetLayout(vulkanCoreInfo);
     descriptorPool = createDescriptorPool(vulkanCoreInfo);
     descriptorSets = createDescriptorSets(vulkanCoreInfo, descriptorPool, descriptorSetLayout, cameraUniformBuffers, textureImage, textureSampler);
 
@@ -98,6 +103,12 @@ void Application::gameMainLoop()
 }
 
 void Application::cleanup() {
+    // VulkanCoreInfo
+    // ImageInfo
+    // SwapChainInfo
+    // GraphicsPipelineInfo
+    // UniformBufferInfo
+    // CameraUniformBufferObject
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
     vkDestroyPipeline(vulkanCoreInfo->device, graphicsPipelineInfo->pipeline, nullptr);

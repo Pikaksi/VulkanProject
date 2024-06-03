@@ -15,7 +15,7 @@ public:
 		timeLastFrame = std::chrono::high_resolution_clock::now();
 	}
 
-	float sensitivity = 0.01f;
+	float sensitivity = 0.004f;
 	float speedNormal = 4.0f;
 	float slowerSpeedMultiplier = 5.0f;
 	float fasterSpeedMultiplier = 20.0f;
