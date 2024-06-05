@@ -5,6 +5,51 @@
 #include "Constants.hpp"
 #include "Commands.hpp"
 
+void createVertexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices) {
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
+    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
+
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
+
+    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize);
+
+    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
+}
+
+void createIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices) {
+
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), (size_t)bufferSize);
+    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
+
+    createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
+    //auto startTime = std::chrono::high_resolution_clock::now();
+
+    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize);
+
+    //auto endTime = std::chrono::high_resolution_clock::now();
+    //float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
+    //std::cout << "Creating index buffer took " << timePassed << " seconds.\n";
+    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
+}
+
 void createBuffer(VulkanCoreInfo* vulkanCoreInfo, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

@@ -31,10 +31,11 @@
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "VulkanRendering/DeviceCreator.hpp"
 #include "VulkanRendering/SwapChain.hpp"
-#include "Rendering/VertexBufferManager.hpp"
-#include "Rendering/ChunkRenderer.hpp"
-#include "Rendering/VertexCreator.hpp"
-#include "Rendering/Vertex.hpp"
+#include "3dRendering/VertexBufferManager.hpp"
+#include "3dRendering/ChunkRenderer.hpp"
+#include "3dRendering/VertexCreator.hpp"
+#include "3dRendering/Vertex.hpp"
+#include "2dRendering/UIManager.hpp"
 #include "FilePathHandler.hpp"
 #include "PlayerInputHandler.hpp"
 #include "CameraHandler.hpp"
@@ -55,6 +56,9 @@ private:
     {
     }
 
+    int frameCounter = 0;
+    std::chrono::steady_clock::time_point fpsTimer;
+
     VulkanCoreInfo* vulkanCoreInfo = new VulkanCoreInfo;
     SwapChainInfo* swapChainInfo = new SwapChainInfo;
 
@@ -65,8 +69,11 @@ private:
 
     VkCommandPool commandPool;
 
-    ImageInfo* textureImage = new ImageInfo;
-    VkSampler textureSampler;
+    ImageInfo* blockTextureImage = new ImageInfo;
+    VkSampler blockTextureSampler;
+
+    ImageInfo* textTextureImage = new ImageInfo;
+    VkSampler textTextureSampler;
 
     VkDescriptorSetLayout descriptorSetLayout3d;
     VkDescriptorSetLayout descriptorSetLayout2d;
@@ -89,9 +96,11 @@ private:
     ChunkRenderer chunkRenderer;
     CameraHandler cameraHandler;
     WorldManager worldManager;
+    UIManager uIManager;
 
     bool framebufferResized = false;
 
+    void fpsDebug();
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     void initGame();
     void initVulkan();

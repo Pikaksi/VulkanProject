@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\2dRendering\UIManager.cpp" />
+    <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
     <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
@@ -26,8 +28,8 @@
     <ClCompile Include="Source\VulkanRendering\ImageCreator.hpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\CameraHandler.cpp" />
-    <ClCompile Include="Source\Rendering\ChunkRenderer.cpp" />
-    <ClCompile Include="Source\Rendering\VertexBufferManager.cpp" />
+    <ClCompile Include="Source\3dRendering\ChunkRenderer.cpp" />
+    <ClCompile Include="Source\3dRendering\VertexBufferManager.cpp" />
     <ClCompile Include="Source\TextureCreator.cpp" />
     <ClCompile Include="Source\VulkanHelperFunctions.cpp" />
     <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp" />
@@ -41,8 +43,8 @@
     <ClCompile Include="Source\FilePathHandler.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\PlayerInputHandler.cpp" />
-    <ClCompile Include="Source\Rendering\Vertex.cpp" />
-    <ClCompile Include="Source\Rendering\VertexCreator.cpp" />
+    <ClCompile Include="Source\3dRendering\Vertex.cpp" />
+    <ClCompile Include="Source\3dRendering\VertexCreator.cpp" />
     <ClCompile Include="Source\World\WorldGeneration\ChunkGenerator.cpp" />
     <ClCompile Include="Source\World\WorldManager.cpp" />
   </ItemGroup>
@@ -79,25 +81,30 @@
     <ClInclude Include="Source\VulkanRendering\DeviceCreator.hpp" />
     <ClInclude Include="Source\World\BlockDataLookup.hpp" />
     <ClInclude Include="Source\Application.hpp" />
-    <ClInclude Include="Source\Rendering\ChunkRenderer.hpp" />
+    <ClInclude Include="Source\3dRendering\ChunkRenderer.hpp" />
     <ClInclude Include="Source\World\WorldGeneration\ChunkGenerator.hpp" />
     <ClInclude Include="Source\World\BlockType.hpp" />
     <ClInclude Include="Source\World\Chunk.hpp" />
     <ClInclude Include="Source\CameraHandler.hpp" />
     <ClInclude Include="Source\PlayerInputHandler.hpp" />
     <ClInclude Include="Source\FilePathHandler.hpp" />
-    <ClInclude Include="Source\Rendering\VertexCreator.hpp" />
-    <ClInclude Include="Source\Rendering\Vertex.hpp" />
+    <ClInclude Include="Source\3dRendering\VertexCreator.hpp" />
+    <ClInclude Include="Source\3dRendering\Vertex.hpp" />
     <ClInclude Include="Source\World\WorldManager.hpp" />
-    <ClInclude Include="Source\Rendering\VertexBufferManager.hpp" />
+    <ClInclude Include="Source\3dRendering\VertexBufferManager.hpp" />
     <ClInclude Include="Source\VulkanHelperFunctions.hpp" />
     <ClInclude Include="Source\TextureCreator.hpp" />
     <ClInclude Include="Source\VulkanRendering\VulkanTypes.hpp" />
     <ClInclude Include="Source\VulkanRendering\SwapChain.hpp" />
     <ClInclude Include="Source\VulkanRendering\VulkanUtilities.hpp" />
+    <ClInclude Include="Source\2dRendering\UIQuad.hpp" />
+    <ClInclude Include="Source\2dRendering\UIManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\TextSpriteSheet.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Todo.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

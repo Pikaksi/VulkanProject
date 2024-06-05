@@ -1,6 +1,9 @@
 #pragma once
 
+#include <string>
+
 #include "VulkanRendering/VulkanTypes.hpp"
 
-void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels);
-VkSampler createTextureSampler(VulkanCoreInfo* vulkanCoreInfo);
+void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string fileName);
+VkSampler createBlockTextureSampler(VulkanCoreInfo* vulkanCoreInfo);
+VkSampler createTextTextureSampler(VulkanCoreInfo* vulkanCoreInfo);

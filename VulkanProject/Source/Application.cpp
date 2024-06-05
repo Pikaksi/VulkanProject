@@ -1,4 +1,5 @@
 #include "Application.hpp"
+
 #include "Constants.hpp"
 #include "VulkanRendering/FrameDrawer.hpp"
 #include "VulkanRendering/GraphicsPipeline.hpp"
@@ -35,11 +36,13 @@ void Application::initGame()
     PlayerInputHandler::getInstance().window = vulkanCoreInfo->window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
 
-    vertexBufferManager.createVertexBuffer(vulkanCoreInfo, commandPool, vertexBufferManager.testVertexbuffer, vertexBufferManager.testVertexBufferMemory, vertexBufferManager.testVertices);
-    vertexBufferManager.createIndexBuffer(vulkanCoreInfo, commandPool, vertexBufferManager.testIndexBuffer, vertexBufferManager.testIndexBufferMemory, vertexBufferManager.testIndices);
+    uIManager.refreshUI(vulkanCoreInfo, commandPool, swapChainInfo->extent.width, swapChainInfo->extent.height);
+
+    fpsTimer = std::chrono::high_resolution_clock::now();
 }
 
-void Application::initVulkan() {
+void Application::initVulkan()
+{
     createDevice(vulkanCoreInfo);
     glfwSetWindowUserPointer(vulkanCoreInfo->window, this);
     glfwSetFramebufferSizeCallback(vulkanCoreInfo->window, framebufferResizeCallback);
@@ -55,21 +58,37 @@ void Application::initVulkan() {
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
 
-    createTextureImage(vulkanCoreInfo, textureImage, commandPool, false);
-    textureSampler = createTextureSampler(vulkanCoreInfo);
+    createTextureImage(vulkanCoreInfo, blockTextureImage, commandPool, false, "GrassTest.png");
+    blockTextureSampler = createBlockTextureSampler(vulkanCoreInfo);
+    createTextureImage(vulkanCoreInfo, textTextureImage, commandPool, false, "TextSpriteSheet.png");
+    textTextureSampler = createTextTextureSampler(vulkanCoreInfo);
 
     descriptorPool3d = createDescriptorPool3d(vulkanCoreInfo);
-    descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo, descriptorPool3d, descriptorSetLayout3d, cameraUniformBuffers, textureImage, textureSampler);
+    descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo, descriptorPool3d, descriptorSetLayout3d, cameraUniformBuffers, blockTextureImage, blockTextureSampler);
+
     descriptorPool2d = createDescriptorPool2d(vulkanCoreInfo);
-    descriptorSets2d = createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, textureImage, textureSampler);
+    descriptorSets2d = createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, textTextureImage, textTextureSampler);
 
     commandBuffers = createCommandBuffers(vulkanCoreInfo, commandPool);
     createSyncObjects(vulkanCoreInfo, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences);
 }
 
+void Application::fpsDebug()
+{
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    if (std::chrono::duration<float, std::chrono::seconds::period>(currentTime - fpsTimer).count() > 1) {
+        std::cout << "fps = " << frameCounter << "\n";
+        frameCounter = 0;
+        fpsTimer = currentTime;
+    }
+}
+
 void Application::mainLoop()
 {
     while (!glfwWindowShouldClose(vulkanCoreInfo->window)) {
+        frameCounter++;
+        fpsDebug();
+
         cameraHandler.updateCameraTransform();
 
         glfwPollEvents();
@@ -90,8 +109,10 @@ void Application::mainLoop()
             imageAvailableSemaphores,
             renderFinishedSemaphores,
             inFlightFences,
+            commandPool,
             cameraHandler,
-            vertexBufferManager);
+            vertexBufferManager,
+            uIManager);
     }
 
     vkDeviceWaitIdle(vulkanCoreInfo->device);
@@ -111,13 +132,11 @@ void Application::gameMainLoop()
     chunkRenderer.renderNewChunks(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager);
 }
 
-void Application::cleanup() {
-    // VulkanCoreInfo
-    // ImageInfo
-    // SwapChainInfo
-    // GraphicsPipelineInfo
-    // UniformBufferInfo
-    // CameraUniformBufferObject
+void Application::cleanup()
+{
+    vertexBufferManager.cleanUpBuffers(vulkanCoreInfo);
+    uIManager.cleanUpBuffers(vulkanCoreInfo);
+
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
     vkDestroyPipeline(vulkanCoreInfo->device, graphicsPipelineInfo3d->pipeline, nullptr);
@@ -134,13 +153,17 @@ void Application::cleanup() {
     vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool3d, nullptr);
     vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool2d, nullptr);
 
-    vkDestroySampler(vulkanCoreInfo->device, textureSampler, nullptr);
+    vkDestroySampler(vulkanCoreInfo->device, blockTextureSampler, nullptr);
+    vkDestroySampler(vulkanCoreInfo->device, textTextureSampler, nullptr);
 
-    vkDestroyImageView(vulkanCoreInfo->device, textureImage->view, nullptr);
-    vkDestroyImage(vulkanCoreInfo->device, textureImage->image, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, textureImage->memory, nullptr);
+    vkDestroyImageView(vulkanCoreInfo->device, blockTextureImage->view, nullptr);
+    vkDestroyImage(vulkanCoreInfo->device, blockTextureImage->image, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, blockTextureImage->memory, nullptr);
 
-    vertexBufferManager.cleanUpBuffers(vulkanCoreInfo);
+    vkDestroyImageView(vulkanCoreInfo->device, textTextureImage->view, nullptr);
+    vkDestroyImage(vulkanCoreInfo->device, textTextureImage->image, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, textTextureImage->memory, nullptr);
+
 
     vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout3d, nullptr);
     vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout2d, nullptr);

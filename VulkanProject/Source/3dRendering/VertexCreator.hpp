@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rendering/Vertex.hpp"
+#include "3dRendering/Vertex.hpp"
 #include "World/Chunk.hpp"
 #include "World/BlockDataLookup.hpp"
 #include "World/WorldManager.hpp"

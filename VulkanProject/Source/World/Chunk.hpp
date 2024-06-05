@@ -1,6 +1,6 @@
 #pragma once
 
-#include <World/BlockType.hpp>
+#include "BlockType.hpp"
 
 const int CHUNK_SIZE = 32;
 

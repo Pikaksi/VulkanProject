@@ -8,9 +8,9 @@
 #include "VulkanRendering/Buffers.hpp"
 
 
-void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels) {
+void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string fileName) {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("Textures/GrassTest.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(("Textures/" + fileName).c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     
     uint32_t mipLevels = 1;
@@ -56,7 +56,7 @@ void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, Vk
     generateMipmaps(vulkanCoreInfo, commandPool, imageInfo->image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 }
 
-VkSampler createTextureSampler(VulkanCoreInfo* vulkanCoreInfo) {
+VkSampler createBlockTextureSampler(VulkanCoreInfo* vulkanCoreInfo) {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(vulkanCoreInfo->physicalDevice, &properties);
 
@@ -64,6 +64,36 @@ VkSampler createTextureSampler(VulkanCoreInfo* vulkanCoreInfo) {
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_NEAREST;
     samplerInfo.minFilter = VK_FILTER_NEAREST;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = static_cast<float>(1);
+    samplerInfo.mipLodBias = 0.0f;
+
+    VkSampler textureSampler;
+    if (vkCreateSampler(vulkanCoreInfo->device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture sampler!");
+    }
+    return textureSampler;
+}
+
+VkSampler createTextTextureSampler(VulkanCoreInfo* vulkanCoreInfo)
+{
+    VkPhysicalDeviceProperties properties{};
+    vkGetPhysicalDeviceProperties(vulkanCoreInfo->physicalDevice, &properties);
+
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;

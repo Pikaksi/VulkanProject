@@ -25,8 +25,6 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 	int index = 0;
 
 	Chunk chunk;
-	std::cout << "chunk size = " << sizeof(chunk.blocks[0]) << "\n";
-
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 		for (int y = 0; y < CHUNK_SIZE; y++) {
 			for (int z = 0; z < CHUNK_SIZE; z++) {

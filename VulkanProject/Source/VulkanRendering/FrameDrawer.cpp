@@ -6,7 +6,6 @@
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
 
-
 void createSyncObjects(
     VulkanCoreInfo* vulkanCoreInfo,
     std::vector<VkSemaphore>& imageAvailableSemaphores, 
@@ -47,7 +46,8 @@ void recordCommandBuffer(
     VkDescriptorSet descriptorSet2d,
     VkCommandBuffer commandBuffer, 
     uint32_t imageIndex,
-    VertexBufferManager vertexBufferManager)
+    VertexBufferManager& vertexBufferManager,
+    UIManager& uIManager)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -106,19 +106,16 @@ void recordCommandBuffer(
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
 
-    for (int i = 0; i < 1; i++) {
+    VkBuffer vertexBuffers[] = { uIManager.vertexBuffer};
 
-        VkBuffer vertexBuffers[] = { vertexBufferManager.testVertexbuffer };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, uIManager.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.testIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
-
-        vkCmdDrawIndexed(commandBuffer, 12, 1, 0, 0, 0);
-    }
+    vkCmdDrawIndexed(commandBuffer, uIManager.indexCount, 1, 0, 0, 0);
 
 
 
@@ -144,8 +141,10 @@ void drawFrame(
     std::vector<VkSemaphore> imageAvailableSemaphores,
     std::vector<VkSemaphore> renderFinishedSemaphores,
     std::vector<VkFence> inFlightFences,
-    CameraHandler cameraHandler,
-    VertexBufferManager vertexBufferManager)
+    VkCommandPool commandPool,
+    CameraHandler& cameraHandler,
+    VertexBufferManager& vertexBufferManager,
+    UIManager& uIManager)
 {
     vkWaitForFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -172,7 +171,8 @@ void drawFrame(
         descriptorSets2d[currentFrame],
         commandBuffers[currentFrame],
         imageIndex,
-        vertexBufferManager);
+        vertexBufferManager,
+        uIManager);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -209,8 +209,13 @@ void drawFrame(
     result = vkQueuePresentKHR(vulkanCoreInfo->presentQueue, &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-        framebufferResized = false;
         recreateSwapChain(vulkanCoreInfo, swapChainInfo);
+
+        if (framebufferResized) {
+            uIManager.refreshUI(vulkanCoreInfo, commandPool, swapChainInfo->extent.width, swapChainInfo->extent.height);
+        }
+
+        framebufferResized = false;
     }
     else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
