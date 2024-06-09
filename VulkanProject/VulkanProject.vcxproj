@@ -19,8 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\2dRendering\DebugMenu.cpp" />
     <ClCompile Include="Source\2dRendering\UIManager.cpp" />
     <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
+    <ClCompile Include="Source\2dRendering\UIText.cpp" />
+    <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp" />
     <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
@@ -30,8 +33,7 @@
     <ClCompile Include="Source\CameraHandler.cpp" />
     <ClCompile Include="Source\3dRendering\ChunkRenderer.cpp" />
     <ClCompile Include="Source\3dRendering\VertexBufferManager.cpp" />
-    <ClCompile Include="Source\TextureCreator.cpp" />
-    <ClCompile Include="Source\VulkanHelperFunctions.cpp" />
+    <ClCompile Include="Source\Rendering\TextureCreator.cpp" />
     <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp" />
     <ClCompile Include="Source\VulkanRendering\ImageCreator.cpp" />
     <ClCompile Include="Source\VulkanRendering\GraphicsPipeline.cpp" />
@@ -71,6 +73,8 @@
     <None Include="Textures\TextSpriteSheetGimp.xcf" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Rendering\GPUMemoryBlock.hpp" />
+    <ClInclude Include="Source\2dRendering\DebugMenu.hpp" />
     <ClInclude Include="Source\VulkanRendering\FrameDrawer.hpp" />
     <ClInclude Include="Source\Constants.hpp" />
     <ClInclude Include="Source\VulkanRendering\Buffers.hpp" />
@@ -92,13 +96,13 @@
     <ClInclude Include="Source\3dRendering\Vertex.hpp" />
     <ClInclude Include="Source\World\WorldManager.hpp" />
     <ClInclude Include="Source\3dRendering\VertexBufferManager.hpp" />
-    <ClInclude Include="Source\VulkanHelperFunctions.hpp" />
-    <ClInclude Include="Source\TextureCreator.hpp" />
+    <ClInclude Include="Source\Rendering\TextureCreator.hpp" />
     <ClInclude Include="Source\VulkanRendering\VulkanTypes.hpp" />
     <ClInclude Include="Source\VulkanRendering\SwapChain.hpp" />
     <ClInclude Include="Source\VulkanRendering\VulkanUtilities.hpp" />
     <ClInclude Include="Source\2dRendering\UIQuad.hpp" />
     <ClInclude Include="Source\2dRendering\UIManager.hpp" />
+    <ClInclude Include="Source\2dRendering\UIText.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\TextSpriteSheet.png" />

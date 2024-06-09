@@ -23,27 +23,27 @@ void CameraHandler::updateCameraTransform()
     timeLastFrame = currentTime;
 
     float speed = speedNormal 
-        * (PlayerInputHandler::getInstance().shiftPressed ? slowerSpeedMultiplier : 1)
-        * (PlayerInputHandler::getInstance().ctrlPressed ? fasterSpeedMultiplier : 1);
+        * (PlayerInputHandler::getInstance().shiftHeld ? slowerSpeedMultiplier : 1)
+        * (PlayerInputHandler::getInstance().ctrlHeld ? fasterSpeedMultiplier : 1);
 
-    if (PlayerInputHandler::getInstance().wPressed) {
+    if (PlayerInputHandler::getInstance().wHeld) {
         position += cameraForwardDirection() * speed * timePassed;
     }
-    if (PlayerInputHandler::getInstance().sPressed) {
+    if (PlayerInputHandler::getInstance().sHeld) {
         position -= cameraForwardDirection() * speed * timePassed;
     }
 
-    if (PlayerInputHandler::getInstance().dPressed) {
+    if (PlayerInputHandler::getInstance().dHeld) {
         position += cameraRightDirection() * speed * timePassed;
     }
-    if (PlayerInputHandler::getInstance().aPressed) {
+    if (PlayerInputHandler::getInstance().aHeld) {
         position -= cameraRightDirection() * speed * timePassed;
     }
 
-    if (PlayerInputHandler::getInstance().ePressed) {
+    if (PlayerInputHandler::getInstance().eHeld) {
         position += cameraUpDirection() * speed * timePassed;
     }
-    if (PlayerInputHandler::getInstance().qPressed) {
+    if (PlayerInputHandler::getInstance().qHeld) {
         position -= cameraUpDirection() * speed * timePassed;
     }
 

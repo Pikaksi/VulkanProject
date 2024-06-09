@@ -10,14 +10,17 @@ class PlayerInputHandler
 public:
 	GLFWwindow* window;
 
-	bool wPressed = false;
-    bool aPressed = false;
-    bool sPressed = false;
-    bool dPressed = false;
-    bool qPressed = false;
-    bool ePressed = false;
-    bool shiftPressed = false;
-    bool ctrlPressed = false;
+	bool wHeld = false;
+    bool aHeld = false;
+    bool sHeld = false;
+    bool dHeld = false;
+    bool qHeld = false;
+    bool eHeld = false;
+    bool shiftHeld = false;
+    bool ctrlHeld = false;
+    bool f3Held = false;
+    bool f3HeldPreviousFrame = false;
+    bool f3Pressed = false;
 
     double mousePreviousLocationX = 0.0f;
     double mousePreviousLocationY = 0.0f;
@@ -25,9 +28,11 @@ public:
     double mouseMovementY = 0.0f;
 
 	void initGLFWControlCallbacks();
+    void update();
     void handleMouseMovement(GLFWwindow* window, double xpos, double ypos);
     void handleKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void toggleKey(int glfwKeyToCompare, bool& valueToModify, int key, int action);
+    void toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action);
+    void toggleKeyOnPress(int glfwKeyToCompare, bool& previousFrameValue, bool& currentValue, bool& valueToModify);
 
     static PlayerInputHandler& getInstance()
     {

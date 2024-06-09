@@ -18,7 +18,7 @@ class VertexBufferManager;
 class ChunkRenderer
 {
 private:
-	const int renderDistance = 4;
+	const int renderDistance = 6;
 	std::queue<glm::i32vec3> chunksToRender;
 	std::unordered_set<glm::i32vec3> renderedChunks;
 	glm::i32vec3 lastChunkRenderingLocation = glm::i32vec3(9999, 9999, 9999);

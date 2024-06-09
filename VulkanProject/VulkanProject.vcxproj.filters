@@ -51,16 +51,13 @@
     <ClCompile Include="Source\3dRendering\VertexBufferManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VulkanHelperFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\World\BlockDataLookup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\TextureCreator.cpp">
+    <ClCompile Include="Source\Rendering\TextureCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp">
@@ -100,6 +97,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\2dRendering\UIQuad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\2dRendering\UIText.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\2dRendering\DebugMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -159,16 +165,13 @@
     <ClInclude Include="Source\3dRendering\VertexBufferManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\VulkanHelperFunctions.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Application.hpp">
       <Filter>shaders</Filter>
     </ClInclude>
     <ClInclude Include="Source\World\BlockDataLookup.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\TextureCreator.hpp">
+    <ClInclude Include="Source\Rendering\TextureCreator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\VulkanRendering\VulkanTypes.hpp">
@@ -208,6 +211,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\UIManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\2dRendering\UIText.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\2dRendering\DebugMenu.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\GPUMemoryBlock.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -90,6 +90,7 @@ void recordCommandBuffer(
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    // render blocks
     for (int i = 0; i < vertexBufferManager.vertexBuffers.size(); i++) {
 
         VkBuffer vertexBuffers[] = { vertexBufferManager.vertexBuffers[i] };
@@ -104,20 +105,21 @@ void recordCommandBuffer(
         vkCmdDrawIndexed(commandBuffer, vertexBufferManager.indexCounts[i], 1, 0, 0, 0);
     }
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
+    // render UI
+    if (uIManager.hasElementsToRender[uIManager.updatedUIIndex]) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
 
-    VkBuffer vertexBuffers[] = { uIManager.vertexBuffer};
+        VkBuffer vertexBuffers[] = { uIManager.vertexBuffer[uIManager.updatedUIIndex] };
 
-    VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdBindIndexBuffer(commandBuffer, uIManager.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffer, uIManager.indexBuffer[uIManager.updatedUIIndex], 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
 
-    vkCmdDrawIndexed(commandBuffer, uIManager.indexCount, 1, 0, 0, 0);
-
-
+        vkCmdDrawIndexed(commandBuffer, uIManager.indexCount[uIManager.updatedUIIndex], 1, 0, 0, 0);
+    }
 
     vkCmdEndRenderPass(commandBuffer);
 
@@ -159,6 +161,8 @@ void drawFrame(
         throw std::runtime_error("failed to acquire swap chain image!");
     }
     updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo->extent);
+
+    uIManager.refreshUI(vulkanCoreInfo, commandPool, swapChainInfo->extent.width, swapChainInfo->extent.height);
 
     vkResetFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame]);
 

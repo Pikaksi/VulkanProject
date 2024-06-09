@@ -1,1 +1,13 @@
 do UI rendering before world rendering and write depthbuffer to save resources
+
+
+
+
+
+
+
+
+- allocate X1 amount of memory.
+- do vertex buffer and index bufdfer seperately
+- divide into X2 large chunks
+- insert vertices into there

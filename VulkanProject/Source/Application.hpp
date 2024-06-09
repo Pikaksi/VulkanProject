@@ -27,6 +27,7 @@
 #include <set>
 #include <unordered_map>
 #include <chrono>
+#include <string>
 
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "VulkanRendering/DeviceCreator.hpp"
@@ -36,6 +37,7 @@
 #include "3dRendering/VertexCreator.hpp"
 #include "3dRendering/Vertex.hpp"
 #include "2dRendering/UIManager.hpp"
+#include "2dRendering/DebugMenu.hpp"
 #include "FilePathHandler.hpp"
 #include "PlayerInputHandler.hpp"
 #include "CameraHandler.hpp"
@@ -55,9 +57,6 @@ private:
     Application()
     {
     }
-
-    int frameCounter = 0;
-    std::chrono::steady_clock::time_point fpsTimer;
 
     VulkanCoreInfo* vulkanCoreInfo = new VulkanCoreInfo;
     SwapChainInfo* swapChainInfo = new SwapChainInfo;
@@ -97,10 +96,10 @@ private:
     CameraHandler cameraHandler;
     WorldManager worldManager;
     UIManager uIManager;
+    DebugMenu debugMenu;
 
     bool framebufferResized = false;
 
-    void fpsDebug();
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     void initGame();
     void initVulkan();

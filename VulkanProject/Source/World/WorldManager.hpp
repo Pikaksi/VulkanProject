@@ -17,7 +17,7 @@ public:
 
 	WorldManager()
 	{
-		
+
 	}
 
 	void tryGeneratingNewChunk(glm::i32vec3 chunkLocation);

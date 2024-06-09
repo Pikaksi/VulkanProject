@@ -222,7 +222,7 @@ void cleanupSwapChain(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainIn
     for (auto imageView : swapChainInfo->imageViews) {
         vkDestroyImageView(vulkanCoreInfo->device, imageView, nullptr);
     }
-
+    vkDestroyRenderPass(vulkanCoreInfo->device, swapChainInfo->renderPass, nullptr);
     vkDestroySwapchainKHR(vulkanCoreInfo->device, swapChainInfo->swapChain, nullptr);
 }
 

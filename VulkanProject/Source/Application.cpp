@@ -7,7 +7,7 @@
 #include "VulkanRendering/Commands.hpp"
 #include "VulkanRendering/Descriptor.hpp"
 #include "VulkanRendering/ImageCreator.hpp"
-#include "TextureCreator.hpp"
+#include "Rendering/TextureCreator.hpp"
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -36,9 +36,7 @@ void Application::initGame()
     PlayerInputHandler::getInstance().window = vulkanCoreInfo->window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
 
-    uIManager.refreshUI(vulkanCoreInfo, commandPool, swapChainInfo->extent.width, swapChainInfo->extent.height);
-
-    fpsTimer = std::chrono::high_resolution_clock::now();
+    debugMenu = DebugMenu(0.25f);
 }
 
 void Application::initVulkan()
@@ -73,25 +71,15 @@ void Application::initVulkan()
     createSyncObjects(vulkanCoreInfo, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences);
 }
 
-void Application::fpsDebug()
-{
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    if (std::chrono::duration<float, std::chrono::seconds::period>(currentTime - fpsTimer).count() > 1) {
-        std::cout << "fps = " << frameCounter << "\n";
-        frameCounter = 0;
-        fpsTimer = currentTime;
-    }
-}
-
 void Application::mainLoop()
 {
     while (!glfwWindowShouldClose(vulkanCoreInfo->window)) {
-        frameCounter++;
-        fpsDebug();
+        glfwPollEvents();
+        PlayerInputHandler::getInstance().update();
 
         cameraHandler.updateCameraTransform();
 
-        glfwPollEvents();
+        debugMenu.update(uIManager, worldManager, cameraHandler);
 
         gameMainLoop();
         
@@ -120,6 +108,7 @@ void Application::mainLoop()
 
 void Application::gameMainLoop()
 {
+
     glm::i32vec3 chunkLocation = glm::i32vec3(
         std::floor(cameraHandler.position.x / (float)CHUNK_SIZE), 
         std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
@@ -135,7 +124,7 @@ void Application::gameMainLoop()
 void Application::cleanup()
 {
     vertexBufferManager.cleanUpBuffers(vulkanCoreInfo);
-    uIManager.cleanUpBuffers(vulkanCoreInfo);
+    uIManager.cleanUpAll(vulkanCoreInfo);
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
@@ -143,7 +132,6 @@ void Application::cleanup()
     vkDestroyPipelineLayout(vulkanCoreInfo->device, graphicsPipelineInfo3d->layout, nullptr);
     vkDestroyPipeline(vulkanCoreInfo->device, graphicsPipelineInfo2d->pipeline, nullptr);
     vkDestroyPipelineLayout(vulkanCoreInfo->device, graphicsPipelineInfo2d->layout, nullptr);
-    vkDestroyRenderPass(vulkanCoreInfo->device, swapChainInfo->renderPass, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(vulkanCoreInfo->device, cameraUniformBuffers[i]->buffer, nullptr);

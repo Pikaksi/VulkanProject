@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void UIQuad::addMeshData(int screenWidth, int screenHeight, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+void UIQuad::addMeshData(int screenWidth, int screenHeight, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const
 {
     float xScale = 1.0f;
     float yScale = 1.0f;
@@ -28,8 +28,8 @@ void UIQuad::addMeshData(int screenWidth, int screenHeight, std::vector<Vertex>&
         << "x = " << x << " y = " << y + (height * yScale) << "\n"
         << "x = " << x + (width * xScale) << " y = " << y + (height * yScale) << "\n"
         << "x = " << x + (width * xScale) << " y = " << y << "\n";*/
-    vertices.push_back(Vertex{ {x,                    y,                     0}, {1.0f, 1.0f, 0.0f}, {0.0f, 0.0f} });
-    vertices.push_back(Vertex{ {x,                    y + (height * yScale), 0}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f / 8.0f} });
-    vertices.push_back(Vertex{ {x + (width * xScale), y + (height * yScale), 0}, {1.0f, 0.0f, 1.0f}, {1.0f / 16.0f, 1.0f / 8.0f} });
-    vertices.push_back(Vertex{ {x + (width * xScale), y,                     0}, {0.0f, 1.0f, 1.0f}, {1.0f / 16.0f, 0.0f} });
+    vertices.push_back(Vertex{ {x,                    y,                     0}, {1.0f, 1.0f, 1.0f}, {texX, texY} });
+    vertices.push_back(Vertex{ {x,                    y + (height * yScale), 0}, {1.0f, 1.0f, 1.0f}, {texX, texY + texHeight} });
+    vertices.push_back(Vertex{ {x + (width * xScale), y + (height * yScale), 0}, {1.0f, 1.0f, 1.0f}, {texX + texWidth, texY + texHeight} });
+    vertices.push_back(Vertex{ {x + (width * xScale), y,                     0}, {1.0f, 1.0f, 1.0f}, {texX + texWidth, texY} });
 }
