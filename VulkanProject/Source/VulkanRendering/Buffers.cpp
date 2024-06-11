@@ -19,7 +19,7 @@ void createVertexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPoo
 
     createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
 
-    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize);
+    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize, 0, 0);
 
     vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
@@ -41,7 +41,7 @@ void createIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool
     createBuffer(vulkanCoreInfo, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
     //auto startTime = std::chrono::high_resolution_clock::now();
 
-    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize);
+    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, bufferSize, 0, 0);
 
     //auto endTime = std::chrono::high_resolution_clock::now();
     //float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(endTime - startTime).count();
@@ -76,11 +76,13 @@ void createBuffer(VulkanCoreInfo* vulkanCoreInfo, VkDeviceSize size, VkBufferUsa
     vkBindBufferMemory(vulkanCoreInfo->device, buffer, bufferMemory, 0);
 }
 
-void copyBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+void copyBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset, VkDeviceSize dstOffset) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(vulkanCoreInfo, commandPool);
 
     VkBufferCopy copyRegion{};
     copyRegion.size = size;
+    copyRegion.srcOffset = srcOffset;
+    copyRegion.dstOffset = dstOffset;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
     endSingleTimeCommands(vulkanCoreInfo, commandPool, commandBuffer);

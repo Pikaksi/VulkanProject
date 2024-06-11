@@ -5,6 +5,7 @@
 #include "Vertex.hpp"
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "VulkanRendering/Buffers.hpp"
+#include "Rendering/GPUMemoryBlock.hpp"
 
 class VertexBufferManager
 {
@@ -18,6 +19,14 @@ public:
     std::vector<VkBuffer> indexBuffers;
     std::vector<VkDeviceMemory> indexBufferMemories;
 
+    // One buffer with a large amount of quad strip indices is created and looked at by all vertice lists which render quads only
+    uint32_t quadStripIndexBufferQuadAmount = 500000;
+    uint32_t quadStripIndexBufferIndexCount = 6 * quadStripIndexBufferQuadAmount;
+    VkBuffer quadStripIndexBuffer;
+    VkDeviceMemory quadStripIndexBufferMemory;
+
+    GPUMemoryBlock worldGPUMemoryBlock;
+
     /*std::vector<Vertex> testVertices;
     VkBuffer testVertexbuffer;
     VkDeviceMemory testVertexBufferMemory;
@@ -25,18 +34,11 @@ public:
     VkBuffer testIndexBuffer;
     VkDeviceMemory testIndexBufferMemory;*/
 
-    VertexBufferManager()
-    {
-        /*testVertices = {
-            Vertex{ {-0.9f * 600 / 800, -0.9f, 0}, {1.0f, 1.0f, 0.0f}, {0.0f, 0.0f} },
-            Vertex{ {-0.9f * 600 / 800, 0.9f, 0}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f} },
-            Vertex{ {0.9f * 600 / 800, 0.9f, 0}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f} },
-            Vertex{ {0.9f * 600 / 800, -0.9f, 0}, {0.0f, 1.0f, 1.0f}, {1.0f, 0.0f} }
-        };
-        testIndices = { 0, 1, 2, 2, 3, 0};*/
-    }
+    VertexBufferManager() {}
 
     void addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+    void fillLargeQuadStripIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool);
+    void createGPUMemoryBlocks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool);
 
     void cleanUpBuffers(VulkanCoreInfo* vulkanCoreInfo);
 

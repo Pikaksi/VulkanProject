@@ -46,6 +46,7 @@ void recordCommandBuffer(
     VkDescriptorSet descriptorSet2d,
     VkCommandBuffer commandBuffer, 
     uint32_t imageIndex,
+    uint32_t& maxVertexInputBindings,
     VertexBufferManager& vertexBufferManager,
     UIManager& uIManager)
 {
@@ -90,11 +91,58 @@ void recordCommandBuffer(
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    // render world from GPUMemoryBlocks
+    VkBuffer vertexBuffer;
+    std::vector<VkDeviceSize> vertexOffsets;
+    std::vector<uint32_t> batchIndexCounts;
+    vertexBufferManager.worldGPUMemoryBlock.getVerticesToRender(
+        vertexBuffer,
+        vertexOffsets,
+        batchIndexCounts);
+
+    unsigned long long testIndexCount = 0;
+
+    for (int i = 0; i < vertexOffsets.size(); i++) {
+
+        VkBuffer vertexBuffers[] = { vertexBuffer };
+
+        VkDeviceSize offsets[] = { vertexOffsets[i] };
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.quadStripIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
+
+        vkCmdDrawIndexed(commandBuffer, batchIndexCounts[i], 1, 0, 0, 0);
+        testIndexCount += batchIndexCounts[i];
+    }
+
+    //std::cout << "rendered " << (double)testIndexCount / (double)1000000 << " million indices\n";
+
+    /*for (int i = 0; i < batchBindingCounts.size(); i++) {
+
+        std::cout << batchBindingCounts[i] << "\n"
+            << batchBindingCounts.size() << "\n"
+            << batchVertexBuffers.size() << "\n"
+            << batchVertexOffsets.size() << "\n"
+            << batchVertexSizes.size() << "\n"
+            << batchVertexStrides.size() << "\n";
+
+        vkCmdBindVertexBuffers2(commandBuffer, 0, batchBindingCounts[i], batchVertexBuffers[i], batchVertexOffsets[i], batchVertexSizes[i], batchVertexStrides[i]);
+
+        vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.quadStripIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
+
+        vkCmdDrawIndexed(commandBuffer, batchIndexCounts[i], 1, 0, 0, 0);
+        std::cout << "drew " << batchIndexCounts[i] << " indices\n";
+    }*/
+
     // render blocks
     for (int i = 0; i < vertexBufferManager.vertexBuffers.size(); i++) {
 
         VkBuffer vertexBuffers[] = { vertexBufferManager.vertexBuffers[i] };
-
+        
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
@@ -138,6 +186,7 @@ void drawFrame(
     std::vector<VkDescriptorSet> descriptorSets2d,
     std::vector<UniformBufferInfo*> uniformBufferInfos,
     uint32_t& currentFrame,
+    uint32_t& maxVertexInputBindings,
     bool& framebufferResized,
     std::vector<VkCommandBuffer> commandBuffers,
     std::vector<VkSemaphore> imageAvailableSemaphores,
@@ -175,6 +224,7 @@ void drawFrame(
         descriptorSets2d[currentFrame],
         commandBuffers[currentFrame],
         imageIndex,
+        maxVertexInputBindings,
         vertexBufferManager,
         uIManager);
 

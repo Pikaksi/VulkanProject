@@ -1,6 +1,8 @@
 do UI rendering before world rendering and write depthbuffer to save resources
 
+convert MemoryLocation to use startOffset and size (performance)
 
+add checks so that the quad strip index buffer is never short enough
 
 
 

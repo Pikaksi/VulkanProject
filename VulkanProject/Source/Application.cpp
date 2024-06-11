@@ -37,6 +37,9 @@ void Application::initGame()
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
 
     debugMenu = DebugMenu(0.25f);
+
+    vertexBufferManager.createGPUMemoryBlocks(vulkanCoreInfo, commandPool);
+    vertexBufferManager.fillLargeQuadStripIndexBuffer(vulkanCoreInfo, commandPool);
 }
 
 void Application::initVulkan()
@@ -44,6 +47,10 @@ void Application::initVulkan()
     createDevice(vulkanCoreInfo);
     glfwSetWindowUserPointer(vulkanCoreInfo->window, this);
     glfwSetFramebufferSizeCallback(vulkanCoreInfo->window, framebufferResizeCallback);
+
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(vulkanCoreInfo->physicalDevice, &physicalDeviceProperties);
+    maxVertexInputBindings = physicalDeviceProperties.limits.maxVertexInputBindings;
 
     createSwapChain(vulkanCoreInfo, swapChainInfo);
 
@@ -79,7 +86,7 @@ void Application::mainLoop()
 
         cameraHandler.updateCameraTransform();
 
-        debugMenu.update(uIManager, worldManager, cameraHandler);
+        debugMenu.update(uIManager, worldManager, cameraHandler, vertexBufferManager.worldGPUMemoryBlock);
 
         gameMainLoop();
         
@@ -92,6 +99,7 @@ void Application::mainLoop()
             descriptorSets2d,
             cameraUniformBuffers,
             currentFrame,
+            maxVertexInputBindings,
             framebufferResized,
             commandBuffers,
             imageAvailableSemaphores,

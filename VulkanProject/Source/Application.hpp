@@ -91,6 +91,7 @@ private:
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
+    uint32_t maxVertexInputBindings;
 
     ChunkRenderer chunkRenderer;
     CameraHandler cameraHandler;

@@ -3,7 +3,7 @@
 #include "GraphicsPipeline.hpp"
 #include "VulkanUtilities.hpp"
 #include "FilePathHandler.hpp"
-#include "Rendering/Vertex.hpp"
+#include "3dRendering/Vertex.hpp"
 #include "Descriptor.hpp"
 
 VkShaderModule createShaderModule(VulkanCoreInfo* vulkanCoreInfo, const std::vector<char>& code) {
@@ -103,6 +103,7 @@ void createGraphicsPipeline3d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     std::vector<VkDynamicState> dynamicStates = {
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR
+        //,VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE
     };
     VkPipelineDynamicStateCreateInfo dynamicState{};
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

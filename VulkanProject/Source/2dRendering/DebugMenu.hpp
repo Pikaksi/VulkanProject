@@ -6,6 +6,7 @@
 #include "World/WorldManager.hpp"
 #include "PlayerInputHandler.hpp"
 #include "CameraHandler.hpp"
+#include "Rendering/GPUMemoryBlock.hpp"
 
 class DebugMenu
 {
@@ -25,11 +26,11 @@ public:
 		this->refreshInterval = refreshInterval;
 	}
 
-	void update(UIManager& uIManager, WorldManager& worldManager, CameraHandler& cameraHandler);
+	void update(UIManager& uIManager, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock);
 
 private:
 	void enableMenu(UIManager& uIManager);
 	void disableMenu(UIManager& uIManager);
 	void checkIfEnabledStatus(UIManager& uIManager);
-	void updateUI(UIManager& uIManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler);
+	void updateUI(UIManager& uIManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock);
 };

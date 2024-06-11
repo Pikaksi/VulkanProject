@@ -14,6 +14,7 @@ void drawFrame(
     std::vector<VkDescriptorSet> descriptorSets2d,
     std::vector<UniformBufferInfo*> uniformBufferInfos,
     uint32_t& currentFrame,
+    uint32_t& maxVertexInputBindings,
     bool& framebufferResized,
     std::vector<VkCommandBuffer> commandBuffers,
     std::vector<VkSemaphore> imageAvailableSemaphores,
