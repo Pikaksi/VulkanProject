@@ -41,10 +41,10 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 				noise += std::max(xValue, zValue) * heightNoiseMultiplier * (chunkLocation.y * CHUNK_SIZE + y);
 				
 				if (noise < 0.0f) {
-					chunk.blocks[chunkLocationToIndex(x, y, z)] = stone;
+					chunk.blocks[chunkLocationToIndex(x, y, z)] = BlockType::dirt;
 				}
 				else {
-					chunk.blocks[chunkLocationToIndex(x, y, z)] = air;
+					chunk.blocks[chunkLocationToIndex(x, y, z)] = BlockType::air;
 				}
 			}
 		}

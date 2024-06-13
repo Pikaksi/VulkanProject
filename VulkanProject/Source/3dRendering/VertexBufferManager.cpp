@@ -30,8 +30,8 @@ void VertexBufferManager::fillLargeQuadStripIndexBuffer(VulkanCoreInfo* vulkanCo
         indices.push_back(i * 4 + 1);
         indices.push_back(i * 4 + 2);
         indices.push_back(i * 4 + 2);
-        indices.push_back(i * 4 + 1);
         indices.push_back(i * 4 + 3);
+        indices.push_back(i * 4);
     }
 
     createIndexBuffer(vulkanCoreInfo, commandPool, quadStripIndexBuffer, quadStripIndexBufferMemory, indices);

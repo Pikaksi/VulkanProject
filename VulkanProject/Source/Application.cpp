@@ -63,7 +63,7 @@ void Application::initVulkan()
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
 
-    createTextureImage(vulkanCoreInfo, blockTextureImage, commandPool, false, "GrassTest.png");
+    createTextureImage(vulkanCoreInfo, blockTextureImage, commandPool, false, "BlockTextures.png");
     blockTextureSampler = createBlockTextureSampler(vulkanCoreInfo);
     createTextureImage(vulkanCoreInfo, textTextureImage, commandPool, false, "TextSpriteSheet.png");
     textTextureSampler = createTextTextureSampler(vulkanCoreInfo);

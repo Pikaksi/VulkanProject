@@ -23,6 +23,7 @@
     <ClCompile Include="Source\2dRendering\UIManager.cpp" />
     <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
     <ClCompile Include="Source\2dRendering\UIText.cpp" />
+    <ClCompile Include="Source\3dRendering\BlockTexCoordinateLookup.cpp" />
     <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp" />
     <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
@@ -73,6 +74,7 @@
     <None Include="Textures\TextSpriteSheetGimp.xcf" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\3dRendering\BlockTexCoordinateLookup.hpp" />
     <ClInclude Include="Source\Rendering\GPUMemoryBlock.hpp" />
     <ClInclude Include="Source\2dRendering\DebugMenu.hpp" />
     <ClInclude Include="Source\VulkanRendering\FrameDrawer.hpp" />

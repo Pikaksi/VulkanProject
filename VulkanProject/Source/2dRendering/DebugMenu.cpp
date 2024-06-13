@@ -25,7 +25,10 @@ void DebugMenu::update(UIManager& uIManager, WorldManager& worldManager, CameraH
 
 void DebugMenu::updateUI(UIManager& uIManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock)
 {
-    std::cout << "fps = " << fps << "\n";
+    std::vector<glm::vec2> test = blockToTexCoordinate.at(BlockType::dirt);
+    for (int i = 0; i < 6; i++) {
+        std::cout << std::setprecision(15) << " tex at " << i << " is " << test[i].x + BLOCK_TEX_SIZE - PIXEL_SIZE << " " << test[i].y + BLOCK_TEX_SIZE - PIXEL_SIZE << '\n';
+    }
 
     leftUpCornerText->setText(
         "Fps: " + std::to_string(fps) + '\n' +

@@ -218,6 +218,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice) {
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
     std::cout << "max vertex input bindings: " << physicalDeviceProperties.limits.maxVertexInputBindings << "\n";
     std::cout << "max gpu memory allocations: " << physicalDeviceProperties.limits.maxMemoryAllocationCount << "\n";
+    return VK_SAMPLE_COUNT_1_BIT; // only returning sample count 1, because otherwise block texture atlas UV ccoordinates bleed over heavily.
 
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
