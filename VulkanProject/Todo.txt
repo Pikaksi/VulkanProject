@@ -4,6 +4,9 @@ convert MemoryLocation to use startOffset and size (performance)
 
 add checks so that the quad strip index buffer is never short enough
 
+optimize vertex size
+
+make 2d vertices
 
 
 

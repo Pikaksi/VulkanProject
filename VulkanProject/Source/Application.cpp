@@ -8,6 +8,7 @@
 #include "VulkanRendering/Descriptor.hpp"
 #include "VulkanRendering/ImageCreator.hpp"
 #include "Rendering/TextureCreator.hpp"
+#include "3dRendering/BlockTexCoordinateLookup.hpp"
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -40,6 +41,8 @@ void Application::initGame()
 
     vertexBufferManager.createGPUMemoryBlocks(vulkanCoreInfo, commandPool);
     vertexBufferManager.fillLargeQuadStripIndexBuffer(vulkanCoreInfo, commandPool);
+
+    generateBlockTexLayerLookupTable();
 }
 
 void Application::initVulkan()
@@ -63,13 +66,15 @@ void Application::initVulkan()
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
 
-    createTextureImage(vulkanCoreInfo, blockTextureImage, commandPool, false, "BlockTextures.png");
-    blockTextureSampler = createBlockTextureSampler(vulkanCoreInfo);
+    createBlockTextureArray(vulkanCoreInfo, blockTextureImageArray, commandPool, false);
+    blockTextureArraySampler = createBlockTextureSampler(vulkanCoreInfo);
+    //createTextureImage(vulkanCoreInfo, blockTextureImage, commandPool, false, "BlockTextures.png");
+    //blockTextureSampler = createBlockTextureSampler(vulkanCoreInfo);
     createTextureImage(vulkanCoreInfo, textTextureImage, commandPool, false, "TextSpriteSheet.png");
     textTextureSampler = createTextTextureSampler(vulkanCoreInfo);
 
     descriptorPool3d = createDescriptorPool3d(vulkanCoreInfo);
-    descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo, descriptorPool3d, descriptorSetLayout3d, cameraUniformBuffers, blockTextureImage, blockTextureSampler);
+    descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo, descriptorPool3d, descriptorSetLayout3d, cameraUniformBuffers, blockTextureImageArray, blockTextureArraySampler);
 
     descriptorPool2d = createDescriptorPool2d(vulkanCoreInfo);
     descriptorSets2d = createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, textTextureImage, textTextureSampler);
@@ -149,17 +154,20 @@ void Application::cleanup()
     vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool3d, nullptr);
     vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool2d, nullptr);
 
-    vkDestroySampler(vulkanCoreInfo->device, blockTextureSampler, nullptr);
-    vkDestroySampler(vulkanCoreInfo->device, textTextureSampler, nullptr);
+    vkDestroyImageView(vulkanCoreInfo->device, blockTextureImageArray->view, nullptr);
+    vkDestroyImage(vulkanCoreInfo->device, blockTextureImageArray->image, nullptr);
+    vkFreeMemory(vulkanCoreInfo->device, blockTextureImageArray->memory, nullptr);
+    vkDestroySampler(vulkanCoreInfo->device, blockTextureArraySampler, nullptr);
 
-    vkDestroyImageView(vulkanCoreInfo->device, blockTextureImage->view, nullptr);
+    /*vkDestroyImageView(vulkanCoreInfo->device, blockTextureImage->view, nullptr);
     vkDestroyImage(vulkanCoreInfo->device, blockTextureImage->image, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, blockTextureImage->memory, nullptr);
+    vkDestroySampler(vulkanCoreInfo->device, blockTextureSampler, nullptr);*/
 
     vkDestroyImageView(vulkanCoreInfo->device, textTextureImage->view, nullptr);
     vkDestroyImage(vulkanCoreInfo->device, textTextureImage->image, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, textTextureImage->memory, nullptr);
-
+    vkDestroySampler(vulkanCoreInfo->device, textTextureSampler, nullptr);
 
     vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout3d, nullptr);
     vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout2d, nullptr);

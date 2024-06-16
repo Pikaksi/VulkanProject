@@ -18,3 +18,8 @@ std::string GetTexturesDirPath()
 {
     return GetProjectPath() + "\\Textures";
 }
+
+std::string GetBlockTexturesDirPath()
+{
+    return GetTexturesDirPath() + "\\BlockTextures";
+}

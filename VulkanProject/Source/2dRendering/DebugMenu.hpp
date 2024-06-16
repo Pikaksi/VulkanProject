@@ -8,8 +8,6 @@
 #include "CameraHandler.hpp"
 #include "Rendering/GPUMemoryBlock.hpp"
 
-#include "3dRendering/BlockTexCoordinateLookup.hpp"
-
 class DebugMenu
 {
 private:

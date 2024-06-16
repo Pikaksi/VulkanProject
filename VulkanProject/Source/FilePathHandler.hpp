@@ -2,3 +2,4 @@
 
 std::string GetShaderDirPath();
 std::string GetTexturesDirPath();
+std::string GetBlockTexturesDirPath();

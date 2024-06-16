@@ -88,7 +88,7 @@ void copyBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuf
     endSingleTimeCommands(vulkanCoreInfo, commandPool, commandBuffer);
 }
 
-void copyBufferToImage(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+void copyBufferToImage(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(vulkanCoreInfo, commandPool);
 
     VkBufferImageCopy region{};
@@ -98,7 +98,7 @@ void copyBufferToImage(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool
     region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     region.imageSubresource.mipLevel = 0;
     region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount = 1;
+    region.imageSubresource.layerCount = layerCount;
     region.imageOffset = { 0, 0, 0 };
     region.imageExtent = {
         width,

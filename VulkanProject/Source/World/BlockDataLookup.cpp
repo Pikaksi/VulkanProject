@@ -1,7 +1,8 @@
 #include "BlockDataLookup.hpp"
 
-bool isSolidBlock[3] {
+bool isSolidBlock[4] {
 	false,
+	true,
 	true,
 	true
 };

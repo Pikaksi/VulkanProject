@@ -77,7 +77,7 @@ void createSwapChainImageViews(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* sw
     swapChainInfo->imageViews.resize(swapChainInfo->images.size());
 
     for (uint32_t i = 0; i < swapChainInfo->images.size(); i++) {
-        fillImageView(vulkanCoreInfo, swapChainInfo->images[i], swapChainInfo->imageViews[i], swapChainInfo->imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+        fillImageView(vulkanCoreInfo, swapChainInfo->images[i], swapChainInfo->imageViews[i], swapChainInfo->imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1, VK_IMAGE_VIEW_TYPE_2D);
     }
 }
 
@@ -93,7 +93,9 @@ void createColorResources(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapCha
         VK_IMAGE_TILING_OPTIMAL, 
         VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_IMAGE_ASPECT_COLOR_BIT);
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        1,
+        VK_IMAGE_VIEW_TYPE_2D);
 }
 
 VkFormat findDepthFormat(VulkanCoreInfo* vulkanCoreInfo) {
@@ -117,7 +119,9 @@ void createDepthResources(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapCha
         VK_IMAGE_TILING_OPTIMAL, 
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_IMAGE_ASPECT_DEPTH_BIT);
+        VK_IMAGE_ASPECT_DEPTH_BIT,
+        1,
+        VK_IMAGE_VIEW_TYPE_2D);
 }
 
 void createFramebuffers(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo) {

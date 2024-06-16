@@ -82,7 +82,7 @@ void createInstance(VulkanCoreInfo* vulkanCoreInfo) {
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_MAKE_VERSION(1, 3, 0);
+    appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -218,7 +218,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice) {
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
     std::cout << "max vertex input bindings: " << physicalDeviceProperties.limits.maxVertexInputBindings << "\n";
     std::cout << "max gpu memory allocations: " << physicalDeviceProperties.limits.maxMemoryAllocationCount << "\n";
-    return VK_SAMPLE_COUNT_1_BIT; // only returning sample count 1, because otherwise block texture atlas UV ccoordinates bleed over heavily.
+    //return VK_SAMPLE_COUNT_1_BIT;
 
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }

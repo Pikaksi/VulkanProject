@@ -68,6 +68,9 @@ private:
 
     VkCommandPool commandPool;
 
+    ImageInfo* blockTextureImageArray = new ImageInfo;
+    VkSampler blockTextureArraySampler;
+
     ImageInfo* blockTextureImage = new ImageInfo;
     VkSampler blockTextureSampler;
 

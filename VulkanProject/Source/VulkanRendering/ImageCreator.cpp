@@ -6,26 +6,26 @@
 #include "VulkanUtilities.hpp"
 #include "Commands.hpp"
 
-void fillImageView(VulkanCoreInfo* vulkanCoreInfo, VkImage image, VkImageView& imageView, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
+void fillImageView(VulkanCoreInfo* vulkanCoreInfo, VkImage image, VkImageView& imageView, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, uint32_t arrayLayers, VkImageViewType imageViewType)
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.viewType = imageViewType;
     viewInfo.format = format;
     viewInfo.subresourceRange.aspectMask = aspectFlags;
     viewInfo.subresourceRange.baseMipLevel = 0;
     viewInfo.subresourceRange.levelCount = mipLevels;
     viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
+    viewInfo.subresourceRange.layerCount = arrayLayers;
 
     if (vkCreateImageView(vulkanCoreInfo->device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture image view!");
     }
 }
 
-void createImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties)
-{    
+void createImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t arrayLayers)
+{
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -33,7 +33,7 @@ void createImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, uint32_t 
     imageCreateInfo.extent.height = height;
     imageCreateInfo.extent.depth = 1;
     imageCreateInfo.mipLevels = mipLevels;
-    imageCreateInfo.arrayLayers = 1;
+    imageCreateInfo.arrayLayers = arrayLayers;
     imageCreateInfo.format = format;
     imageCreateInfo.tiling = tiling;
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -71,13 +71,15 @@ void createImageInfo(
     VkImageTiling tiling,
     VkImageUsageFlags usage,
     VkMemoryPropertyFlags properties,
-    VkImageAspectFlags aspectFlags)
+    VkImageAspectFlags aspectFlags,
+    uint32_t arrayLayers,
+    VkImageViewType imageViewType)
 {
-    createImage(vulkanCoreInfo, imageInfo, width, height, mipLevels, numSamples, format, tiling, usage, properties);
-    fillImageView(vulkanCoreInfo, imageInfo->image, imageInfo->view, format, aspectFlags, mipLevels);
+    createImage(vulkanCoreInfo, imageInfo, width, height, mipLevels, numSamples, format, tiling, usage, properties, arrayLayers);
+    fillImageView(vulkanCoreInfo, imageInfo->image, imageInfo->view, format, aspectFlags, mipLevels, arrayLayers, imageViewType);
 }
 
-void generateMipmaps(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
+void generateMipmaps(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, uint32_t layerCount) {
     // Check if image format supports linear blitting
     VkFormatProperties formatProperties;
     vkGetPhysicalDeviceFormatProperties(vulkanCoreInfo->physicalDevice, imageFormat, &formatProperties);
@@ -95,7 +97,7 @@ void generateMipmaps(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, 
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.layerCount = layerCount;
     barrier.subresourceRange.levelCount = 1;
 
     int32_t mipWidth = texWidth;
@@ -164,7 +166,7 @@ void generateMipmaps(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, 
     endSingleTimeCommands(vulkanCoreInfo, commandPool, commandBuffer);
 }
 
-void transitionImageLayout(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+void transitionImageLayout(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels, uint32_t layerCount) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(vulkanCoreInfo, commandPool);
 
     VkImageMemoryBarrier barrier{};
@@ -178,7 +180,7 @@ void transitionImageLayout(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool command
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = mipLevels;
     barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.layerCount = layerCount;
 
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;

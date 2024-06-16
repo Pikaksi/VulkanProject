@@ -18,18 +18,6 @@ namespace std {
 #include "glm/vec3.hpp"
 
 int main() {
-    /*for (int x = 0; x < 4; x++) {
-        for (int y = 0; y < 4; y++) { 
-            for (int z = 0; z < 4; z++) {
-                int index = chunkLocationToIndex(x, y, z);
-                int newx, newy, newz;
-                chunkIndexToLocation(index, newx, newy, newz);
-                std::cout << x << " " << y << " " << z << " " << index << " " << newx << " " << newy << " " << newz << "\n";
-            }
-        }
-    }
-    return 0;*/
-
     try {
         Application::getInstance().run();
     }
