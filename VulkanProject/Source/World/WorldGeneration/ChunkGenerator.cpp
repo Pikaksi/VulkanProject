@@ -19,14 +19,8 @@ int noiseChunkLocationToIndex(const int x, const int y, const int z)
 
 Chunk generateChunk(glm::i32vec3 chunkLocation)
 {
-	auto fnSimplex = FastNoise::New<FastNoise::Simplex>();
-	auto fnFractal = FastNoise::New<FastNoise::FractalFBm>();
-
-	fnFractal->SetSource(fnSimplex);
-	fnFractal->SetOctaveCount(5);
-
 	// The string is generated with the FastNoise2 noisetool.
-	FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("CAA=");
+	FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("GQANAAQAAAAAAABACAAAAAAAPwAAAAAAAQQAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
 
 	std::vector<float> noiseOutput(CHUNK_SIZE * (CHUNK_SIZE + grassDirtLayerHeight) * CHUNK_SIZE);
 
@@ -37,22 +31,8 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 		CHUNK_SIZE, CHUNK_SIZE + grassDirtLayerHeight, CHUNK_SIZE,
 		frequency, 1337);
 
-	for (int x = 0; x < CHUNK_SIZE; x++) {
-		for (int y = 0; y < CHUNK_SIZE + grassDirtLayerHeight; y++) {
-			for (int z = 0; z < CHUNK_SIZE; z++) {
+	Chunk chunk(true);
 
-				int xLocation = (chunkLocation.x * CHUNK_SIZE + x);
-				int zLocation = (chunkLocation.z * CHUNK_SIZE + z);
-
-				float xValue = std::pow(1 / (1 + std::pow(100, -std::abs(0.02f * xLocation))) * 2 - 1, 8);
-				float zValue = std::pow(1 / (1 + std::pow(100, -std::abs(0.02f * zLocation))) * 2 - 1, 8);
-
-				noiseOutput[noiseChunkLocationToIndex(x, y, z)] += std::max(xValue, zValue) * heightNoiseMultiplier * (chunkLocation.y * CHUNK_SIZE + y);
-			}
-		}
-	}
-
-	Chunk chunk;
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 
 		for (int y = 0; y < CHUNK_SIZE; y++) {
@@ -60,7 +40,7 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 			for (int z = 0; z < CHUNK_SIZE; z++) {
 
 				float noise = noiseOutput[noiseChunkLocationToIndex(x, y, z)];
-				
+
 				if (noise >= airNoiseMinValue) {
 					chunk.blocks[chunkLocationToIndex(x, y, z)] = BlockType::air;
 					continue;
@@ -81,7 +61,20 @@ Chunk generateChunk(glm::i32vec3 chunkLocation)
 			}
 		}
 	}
+	
+	bool containsDifferentBlocks = false;
+	BlockType previousBlockType = chunk.blocks[0];
 
+	for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; i++) {
+		if (previousBlockType != chunk.blocks[i]) {
+			containsDifferentBlocks = true;
+			break;
+		}
+	}
+	if (!containsDifferentBlocks) {
+		chunk = Chunk(false); // contains only one element in block array to reduce space by CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE amount.
+		chunk.blocks[0] = previousBlockType;
+	}
 	return chunk;
 }
 

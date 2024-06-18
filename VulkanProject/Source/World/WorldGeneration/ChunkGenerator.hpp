@@ -5,7 +5,7 @@
 
 #include "World/Chunk.hpp"
 
-const float frequency = 0.03f;
+const float frequency = 0.005;
 const float heightNoiseMultiplier = 0.1f;
 
 Chunk generateChunk(glm::i32vec3);

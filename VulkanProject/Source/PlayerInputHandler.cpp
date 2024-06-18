@@ -1,9 +1,6 @@
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "PlayerInputHandler.hpp"
 
 #include <iostream>
-
-#include "PlayerInputHandler.hpp"
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {

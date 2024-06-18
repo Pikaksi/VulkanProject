@@ -1,8 +1,6 @@
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <stdexcept>
+
 #include "Application.hpp"
 
 
@@ -13,9 +11,6 @@ namespace std {
         }
     };
 }
-
-#include "World/Chunk.hpp"
-#include "glm/vec3.hpp"
 
 int main() {
     try {

@@ -29,7 +29,7 @@
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
-    <ClCompile Include="Source\VulkanRendering\ImageCreator.hpp" />
+    <ClInclude Include="Source\VulkanRendering\ImageCreator.hpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\CameraHandler.cpp" />
     <ClCompile Include="Source\3dRendering\ChunkRenderer.cpp" />

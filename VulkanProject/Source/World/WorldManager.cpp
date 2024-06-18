@@ -11,6 +11,5 @@ void WorldManager::tryGeneratingNewChunk(glm::i32vec3 chunkLocation)
 	if (chunks.contains(chunkLocation)) {
 		return;
 	}
-
 	chunks[chunkLocation] = generateChunk(chunkLocation);
 }

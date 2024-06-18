@@ -1,25 +1,14 @@
 #include "VertexBufferManager.hpp"
 
-void VertexBufferManager::addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+uint32_t VertexBufferManager::addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
     VkBuffer vertexBuffer, indexBuffer;
     VkDeviceMemory vertexBufferMemory, indexBufferMemory;
 
     //std::cout << "vertex buffer size = " << vertices.size() << "\n";
-
-    worldGPUMemoryBlock.addVertices(vulkanCoreInfo, commandPool, vertices);
-    return;
-
-    createVertexBuffer(vulkanCoreInfo, commandPool, vertexBuffer, vertexBufferMemory, vertices);
-    createIndexBuffer(vulkanCoreInfo, commandPool, indexBuffer, indexBufferMemory, indices);
-
-    vertexCounts.push_back(vertices.size());
-    vertexBuffers.push_back(vertexBuffer);
-    vertexBufferMemories.push_back(vertexBufferMemory);
-
-    indexCounts.push_back(indices.size());
-    indexBuffers.push_back(indexBuffer);
-    indexBufferMemories.push_back(indexBufferMemory);
+    uint32_t memoryLocation;
+    worldGPUMemoryBlock.addVertices(vulkanCoreInfo, commandPool, memoryLocation, vertices);
+    return memoryLocation;
 }
 
 void VertexBufferManager::fillLargeQuadStripIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool)
@@ -37,9 +26,20 @@ void VertexBufferManager::fillLargeQuadStripIndexBuffer(VulkanCoreInfo* vulkanCo
     createIndexBuffer(vulkanCoreInfo, commandPool, quadStripIndexBuffer, quadStripIndexBufferMemory, indices);
 }
 
+void VertexBufferManager::derenderChunk(uint32_t memoryBlockLocation)
+{
+    /*std::cout << "---------------------------\n";
+    worldGPUMemoryBlock.debugPrint();
+    std::cout << "---------------------------\n";*/
+    worldGPUMemoryBlock.freeMemory(memoryBlockLocation);
+    /*std::cout << "---------------------------\n";
+    worldGPUMemoryBlock.debugPrint();
+    std::cout << "---------------------------\n";*/
+}
+
 void VertexBufferManager::createGPUMemoryBlocks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool)
 {
-    worldGPUMemoryBlock = GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex) * 10000000, quadStripIndexBufferIndexCount);
+    worldGPUMemoryBlock = GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex) * 40000000, quadStripIndexBufferIndexCount);
     /*std::vector<Vertex> vertices;
     vertices.push_back(Vertex{ {0, 0, 0}, {1, 1, 1}, {0, 0} });
     vertices.push_back(Vertex{ {100, 0, 0}, {1, 0, 1}, {0, 1} });

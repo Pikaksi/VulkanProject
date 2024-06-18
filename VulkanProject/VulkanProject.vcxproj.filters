@@ -78,9 +78,6 @@
     <ClCompile Include="Source\VulkanRendering\ImageCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VulkanRendering\ImageCreator.hpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -227,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="Source\3dRendering\BlockTexCoordinateLookup.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\VulkanRendering\ImageCreator.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

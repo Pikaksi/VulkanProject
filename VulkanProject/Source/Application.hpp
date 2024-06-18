@@ -102,6 +102,8 @@ private:
     UIManager uIManager;
     DebugMenu debugMenu;
 
+    std::chrono::steady_clock::time_point fpsTimer;
+
     bool framebufferResized = false;
 
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);

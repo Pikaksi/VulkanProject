@@ -3,6 +3,7 @@
 #include "vulkan/vulkan.h"
 
 #include <vector>
+#include <unordered_map>
 #include <stdexcept>
 
 #include "VulkanRendering/VulkanTypes.hpp"
@@ -10,62 +11,49 @@
 
 struct MemoryLocation
 {
-	VkDeviceSize startOffset;
-	VkDeviceSize endOffset;
+	uint32_t startOffset;
+	uint32_t endOffset;
 
-	MemoryLocation(VkDeviceSize startOffset, VkDeviceSize endOffset) : startOffset(startOffset), endOffset(endOffset) {}
-	VkDeviceSize getSize()
+	MemoryLocation(uint32_t startOffset, uint32_t endOffset) : startOffset(startOffset), endOffset(endOffset) {}
+	uint32_t getSize()
 	{
 		return endOffset - startOffset + 1;
 	}
 };
 
+// has dictionaries to look up the starts and ends of used and unused memory locations
 class GPUMemoryBlock
 {
 public:
-	VkDeviceSize blockSize;
-	VkBuffer buffer;
-	VkDeviceMemory memory;
-
-	uint32_t maxSingleDrawCallIndexCount;
-
-	std::vector<MemoryLocation> usedDataLocations;
-	std::vector<MemoryLocation> emptyDataLocations;
-
 	GPUMemoryBlock() {}
+	GPUMemoryBlock(VulkanCoreInfo* vulkanCoreInfo, VkDeviceSize size, uint32_t maxSingleDrawCallIndexAmount);
 
-	GPUMemoryBlock(VulkanCoreInfo* vulkanCoreInfo, VkDeviceSize size, uint32_t maxSingleDrawCallIndexAmount)
-	{
-		if (size - 1 > UINT32_MAX) {
-			throw std::runtime_error("GPUMemoryBlock is too large!");
-		}
-
-		this->maxSingleDrawCallIndexCount = maxSingleDrawCallIndexAmount;
-
-		blockSize = size;
-		createBuffer(vulkanCoreInfo, size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
-		emptyDataLocations.push_back(MemoryLocation(0, size - 1));
-	}
-
-	void addVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices);
-	void trackAddedMemoryLocation(VkDeviceSize memoryOffsetStart, VkDeviceSize size);
+	bool addVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t& memoryLocation, std::vector<Vertex>& vertices);
+	void freeMemory(uint32_t& allocationStartOffset);
 	void getVerticesToRender(
 		VkBuffer& vertexBuffer,
 		std::vector<VkDeviceSize>& vertexOffsets,
 		std::vector<uint32_t>& batchIndexCounts);
-	void getVerticesToRender2(
-		VkDeviceSize maxVertexInputBindings,
-		std::vector<uint32_t>& batchBindingCounts,
-		std::vector<VkBuffer*>& batchVertexBuffers,
-		std::vector<VkDeviceSize*>& batchVertexOffsets,
-		std::vector<VkDeviceSize*>& batchVertexSizes,
-		std::vector<VkDeviceSize*>& batchVertexStrides,
-		std::vector<uint32_t>& batchIndexCounts);
-	void debugPrint();
-	uint32_t getVertexCount();
 	void cleanup(VulkanCoreInfo* vulkanCoreInfo);
 
+	void debugPrint();
+	uint32_t getVertexCount();
+
+	VkBuffer buffer;
+
 private:
-	bool findBestVertexLocation(VkDeviceSize size, VkDeviceSize& location);
-	void copyVerticesToLocation(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkDeviceSize memoryOffsetStart, VkDeviceSize size, std::vector<Vertex>& vertices);
+	uint32_t blockSize;
+	VkDeviceMemory memory;
+
+	uint32_t maxSingleDrawCallIndexCount;
+
+	std::unordered_map<uint32_t, MemoryLocation> usedMemoryLocationsStartLookup;
+	std::unordered_map<uint32_t, MemoryLocation> usedMemoryLocationsEndLookup;
+	std::unordered_map<uint32_t, MemoryLocation> emptyMemoryLocationsStartLookup;
+	std::unordered_map<uint32_t, MemoryLocation> emptyMemoryLocationsEndLookup;
+
+
+	bool allocateMemory(uint32_t size, uint32_t& location);
+	void trackAddedMemoryLocation(uint32_t allocationStartOffset, uint32_t size);
+	void copyVerticesToLocation(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t memoryOffsetStart, uint32_t size, std::vector<Vertex>& vertices);
 };

@@ -19,3 +19,14 @@ void chunkIndexToLocation(const int index, int& x, int& y, int& z)
 	y = index / CHUNK_SIZE % CHUNK_SIZE;
 	z = index / (CHUNK_SIZE * CHUNK_SIZE);
 }
+
+BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk* chunk)
+{
+#ifndef NDEBUG
+	if (x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE || z < 0 || z >= CHUNK_SIZE) {
+		throw std::runtime_error("tried to access chunk out of range!");
+	}
+#endif
+
+	return chunk->blocks[chunk->containsDifferentBlocks * (x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE)];
+}

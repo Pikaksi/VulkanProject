@@ -2,35 +2,42 @@
 
 #include "ChunkRenderer.hpp"
 
-void ChunkRenderer::addChunksToBeRendered(glm::i32vec3 renderingChunkLocation)
+void ChunkRenderer::update(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
 {
+	renderNewChunks(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, playerChunkLocation);
+	
 	// dont rerender chunks rendering position did not move
-	if (lastChunkRenderingLocation == renderingChunkLocation) {
+	if (peviousPlayerChunkLocation == playerChunkLocation) {
 		return;
 	}
-	int minDistanceToNewChunk = std::max(
-		abs(lastChunkRenderingLocation.x - renderingChunkLocation.x),
-		std::max(
-		abs(lastChunkRenderingLocation.y - renderingChunkLocation.y),
-		abs(lastChunkRenderingLocation.z - renderingChunkLocation.z))
-	);
-	int startingDistance = std::max(0, renderDistance - minDistanceToNewChunk);
+	derenderChunks(playerChunkLocation, vertexBufferManager);
 
-	lastChunkRenderingLocation = renderingChunkLocation;
+	int minDistanceToNewChunk = 
+		std::max(abs(peviousPlayerChunkLocation.x - playerChunkLocation.x),
+				 std::max(abs(peviousPlayerChunkLocation.y - playerChunkLocation.y),
+						  abs(peviousPlayerChunkLocation.z - playerChunkLocation.z)));
+	int newChunkMinDistance = std::max(0, renderDistance - minDistanceToNewChunk);
 
+	addChunksToBeRendered(playerChunkLocation, newChunkMinDistance);
+
+	peviousPlayerChunkLocation = playerChunkLocation;
+}
+
+void ChunkRenderer::addChunksToBeRendered(glm::i32vec3 playerChunkLocation, int newChunkMinDistance)
+{
 	int cubesChecked = 0;
-	std::cout << "min distance for new chunk = " << startingDistance << "\n";
+	//std::cout << "min distance for new chunk = " << newChunkMinDistance << "\n";
 
 	// Render close by chunks first.
 	// Checks a hollow box for each distance starting from the smallest.
-	for (int distance = startingDistance; distance < renderDistance; distance++) {
+	for (int distance = newChunkMinDistance; distance < renderDistance; distance++) {
 		// x direction with all edges
 		for (int z = -distance; z <= distance; z++) {
 			for (int y = -distance; y <= distance; y++) {
 
 				cubesChecked += 2;
-				tryAddChunksToRender(glm::i32vec3(distance, y, z) + renderingChunkLocation);
-				tryAddChunksToRender(glm::i32vec3(-distance, y, z) + renderingChunkLocation);
+				tryAddChunksToRender(glm::i32vec3(distance, y, z) + playerChunkLocation);
+				tryAddChunksToRender(glm::i32vec3(-distance, y, z) + playerChunkLocation);
 			}
 		}
 
@@ -39,8 +46,8 @@ void ChunkRenderer::addChunksToBeRendered(glm::i32vec3 renderingChunkLocation)
 			for (int y = -distance; y <= distance; y++) {
 
 				cubesChecked += 2;
-				tryAddChunksToRender(glm::i32vec3(x, y, distance) + renderingChunkLocation);
-				tryAddChunksToRender(glm::i32vec3(x, y, -distance) + renderingChunkLocation);
+				tryAddChunksToRender(glm::i32vec3(x, y, distance) + playerChunkLocation);
+				tryAddChunksToRender(glm::i32vec3(x, y, -distance) + playerChunkLocation);
 			}
 		}
 
@@ -49,30 +56,72 @@ void ChunkRenderer::addChunksToBeRendered(glm::i32vec3 renderingChunkLocation)
 			for (int z = -distance + 1; z <= distance - 1; z++) {
 
 				cubesChecked += 2;
-				tryAddChunksToRender(glm::i32vec3(x, distance, z) + renderingChunkLocation);
-				tryAddChunksToRender(glm::i32vec3(x, -distance, z) + renderingChunkLocation);
+				tryAddChunksToRender(glm::i32vec3(x, distance, z) + playerChunkLocation);
+				tryAddChunksToRender(glm::i32vec3(x, -distance, z) + playerChunkLocation);
 			}
 		}
 	}
-	std::cout << "checked " << cubesChecked << " chunks to be rendered\n";
+}
+
+void ChunkRenderer::derenderChunks(glm::i32vec3 playerChunkLocation, VertexBufferManager& vertexBufferManager)
+{
+	int minX = playerChunkLocation.x - renderDistance - extraRangeToDerenderChunk;
+	int maxX = playerChunkLocation.x + renderDistance + extraRangeToDerenderChunk;
+	int minY = playerChunkLocation.y - renderDistance - extraRangeToDerenderChunk;
+	int maxY = playerChunkLocation.y + renderDistance + extraRangeToDerenderChunk;
+	int minZ = playerChunkLocation.z - renderDistance - extraRangeToDerenderChunk;
+	int maxZ = playerChunkLocation.z + renderDistance + extraRangeToDerenderChunk;
+
+	std::vector<glm::i32vec3> chunksToDerender;
+
+	for (const auto& pair : renderedChunks) {
+		if (pair.first.x <= minX || pair.first.x >= maxX ||
+			pair.first.y <= minY || pair.first.y >= maxY ||
+			pair.first.z <= minZ || pair.first.z >= maxZ)
+		{
+			//std::cout << "derendered chunk at " << pair.first.x << " " << pair.first.y << " " << pair.first.z << "\n";
+			vertexBufferManager.derenderChunk(pair.second);
+			chunksToDerender.push_back(pair.first);
+		}
+	}
+
+	for (const auto& chunkLocation : chunksToDerender) {
+		renderedChunks.erase(chunkLocation);
+	}
 }
 
 void ChunkRenderer::tryAddChunksToRender(glm::i32vec3 chunkLocation)
 {
 	if (!renderedChunks.contains(chunkLocation)) {
 		chunksToRender.push(chunkLocation);
-		//std::cout << "added chunk to render " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
 	}
 }
 
-void ChunkRenderer::renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
+void ChunkRenderer::renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
 {
 	if (chunksToRender.size() == 0) {
 		return;
 	}
 	glm::i32vec3 chunkLocation = chunksToRender.front();
-	renderChunk(vulkanCoreInfo, commandPool, chunkLocation, worldManager, vertexBufferManager);
 	chunksToRender.pop();
+
+	if (renderedChunks.contains(chunkLocation)) {
+		return;
+	}
+
+	int minX = playerChunkLocation.x - renderDistance - extraRangeToDerenderChunk;
+	int maxX = playerChunkLocation.x + renderDistance + extraRangeToDerenderChunk;
+	int minY = playerChunkLocation.y - renderDistance - extraRangeToDerenderChunk;
+	int maxY = playerChunkLocation.y + renderDistance + extraRangeToDerenderChunk;
+	int minZ = playerChunkLocation.z - renderDistance - extraRangeToDerenderChunk;
+	int maxZ = playerChunkLocation.z + renderDistance + extraRangeToDerenderChunk;
+
+	if (chunkLocation.x > minX && chunkLocation.x < maxX &&
+		chunkLocation.y > minY && chunkLocation.y < maxY &&
+		chunkLocation.z > minZ && chunkLocation.z < maxZ)
+	{
+		renderChunk(vulkanCoreInfo, commandPool, chunkLocation, worldManager, vertexBufferManager);
+	}
 }
 
 void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
@@ -105,7 +154,8 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool co
 	if (vertices.size() == 0) {
 		return;
 	}
-	vertexBufferManager.addChunkVertices(vulkanCoreInfo, commandPool, vertices, indices);
+	uint32_t memoryBlockPointer = vertexBufferManager.addChunkVertices(vulkanCoreInfo, commandPool, vertices, indices);
 
-	renderedChunks.insert(chunkLocation);
+	renderedChunks.insert(std::make_pair(chunkLocation, memoryBlockPointer));
+
 }

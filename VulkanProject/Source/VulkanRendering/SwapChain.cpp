@@ -1,9 +1,10 @@
+#include "SwapChain.hpp"
+
 #include <algorithm>
 #include <stdexcept>
 #include <array>
 #include <iostream>
 
-#include "SwapChain.hpp"
 #include "DeviceCreator.hpp"
 #include "ImageCreator.hpp"
 #include "VulkanUtilities.hpp"

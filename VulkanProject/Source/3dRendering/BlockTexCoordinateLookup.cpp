@@ -17,7 +17,7 @@ int findTexLayerFromTable(std::string fileName, std::unordered_map<std::string, 
 	if (fileNameIndexTable.contains(fileName)) {
 		return fileNameIndexTable.at(fileName);
 	}
-	std::cout << "Block texture not found!\n";
+	throw std::runtime_error("Could not find texture from texture table while constructing texture2dArray!\n");
 	return 0;
 }
 
@@ -70,7 +70,7 @@ void generateBlockTexLayerLookupTable()
 			throw std::runtime_error("Bad lenght in blockTypeToFileNames table!\n");
 		}
 		int8_t test = (int8_t)blockTypeFiles.first;
-		std::cout << "inserted with " << test << "\n";
+		//std::cout << "inserted with " << test << "\n";
 		for (int i = 0; i < 6; i++) {
 			std::cout << texLayers[i] << "\n";
 		}

@@ -6,9 +6,10 @@
 #include "VulkanRendering/Buffers.hpp"
 #include "VulkanRendering/Commands.hpp"
 #include "VulkanRendering/Descriptor.hpp"
-#include "VulkanRendering/ImageCreator.hpp"
 #include "Rendering/TextureCreator.hpp"
 #include "3dRendering/BlockTexCoordinateLookup.hpp"
+
+#include <thread>
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -85,7 +86,19 @@ void Application::initVulkan()
 
 void Application::mainLoop()
 {
+    //fpsTimer = std::chrono::high_resolution_clock::now();
+
     while (!glfwWindowShouldClose(vulkanCoreInfo->window)) {
+
+        /*auto currentTime = std::chrono::high_resolution_clock::now();
+        float timePassed = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - fpsTimer).count();
+        fpsTimer = currentTime;
+        
+        std::cout << "time passed " << timePassed << "\n";
+        if (timePassed < 1000.0f / (float)MAX_FPS) {
+            std::this_thread::sleep_for(std::chrono::milliseconds((int)timePassed));
+        }*/
+
         glfwPollEvents();
         PlayerInputHandler::getInstance().update();
 
@@ -127,11 +140,7 @@ void Application::gameMainLoop()
         std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
         std::floor(cameraHandler.position.z / (float)CHUNK_SIZE)
     );
-    //std::cout << "location = " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
-    //std::cout << "camera location = " << cameraHandler.position.x << " " << cameraHandler.position.y << " " << cameraHandler.position.z << "\n";
-    chunkRenderer.addChunksToBeRendered(chunkLocation);
-
-    chunkRenderer.renderNewChunks(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager);
+    chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
 }
 
 void Application::cleanup()

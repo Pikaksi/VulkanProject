@@ -65,7 +65,7 @@ void recordCommandBuffer(
     renderPassInfo.renderArea.extent = swapChainInfo->extent;
 
     std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+    clearValues[0].color = { {0.3f, 0.7f, 0.9f, 1.0f} };
     clearValues[1].depthStencil = { 1.0f, 0 };
 
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
@@ -119,27 +119,8 @@ void recordCommandBuffer(
 
     //std::cout << "rendered " << (double)testIndexCount / (double)1000000 << " million indices\n";
 
-    /*for (int i = 0; i < batchBindingCounts.size(); i++) {
-
-        std::cout << batchBindingCounts[i] << "\n"
-            << batchBindingCounts.size() << "\n"
-            << batchVertexBuffers.size() << "\n"
-            << batchVertexOffsets.size() << "\n"
-            << batchVertexSizes.size() << "\n"
-            << batchVertexStrides.size() << "\n";
-
-        vkCmdBindVertexBuffers2(commandBuffer, 0, batchBindingCounts[i], batchVertexBuffers[i], batchVertexOffsets[i], batchVertexSizes[i], batchVertexStrides[i]);
-
-        vkCmdBindIndexBuffer(commandBuffer, vertexBufferManager.quadStripIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
-
-        vkCmdDrawIndexed(commandBuffer, batchIndexCounts[i], 1, 0, 0, 0);
-        std::cout << "drew " << batchIndexCounts[i] << " indices\n";
-    }*/
-
     // render blocks
-    for (int i = 0; i < vertexBufferManager.vertexBuffers.size(); i++) {
+    /*for (int i = 0; i < vertexBufferManager.vertexBuffers.size(); i++) {
 
         VkBuffer vertexBuffers[] = { vertexBufferManager.vertexBuffers[i] };
         
@@ -151,7 +132,7 @@ void recordCommandBuffer(
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, vertexBufferManager.indexCounts[i], 1, 0, 0, 0);
-    }
+    }*/
 
     // render UI
     if (uIManager.hasElementsToRender[uIManager.updatedUIIndex]) {
