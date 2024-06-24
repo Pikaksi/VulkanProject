@@ -70,9 +70,9 @@ VkSampler createBlockTextureSampler(VulkanCoreInfo* vulkanCoreInfo) {
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_NEAREST;
     samplerInfo.minFilter = VK_FILTER_NEAREST;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable = VK_TRUE;
     samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -143,10 +143,14 @@ void createBlockTextureArray(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInf
     }
     uint32_t imageCount = imagePixels.size();
 
+
     for (int i = 0; i < texWidths.size() - 1; i++) {
         if (texWidths[i] != texWidths[i + 1] || texHeights[i] != texHeights[i + 1]) {
             throw std::runtime_error("Block texture images are different sizes!");
         }
+    }
+    if (texWidths[0] != BLOCK_TEXTURE_PIXEL_COUNT || texHeights[0] != BLOCK_TEXTURE_PIXEL_COUNT) {
+        throw std::runtime_error("BLOCK_TEXTURE_PIXEL_COUNT constant has wrong value!");
     }
 
     int texWidth = texWidths[0];

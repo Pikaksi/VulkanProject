@@ -74,7 +74,7 @@ void createGraphicsPipeline3d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable = VK_FALSE;
+    multisampling.sampleShadingEnable = VK_TRUE;
     multisampling.rasterizationSamples = vulkanCoreInfo->msaaSamples;
 
     VkPipelineDepthStencilStateCreateInfo depthStencil{};

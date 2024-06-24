@@ -69,11 +69,6 @@ void generateBlockTexLayerLookupTable()
 		else {
 			throw std::runtime_error("Bad lenght in blockTypeToFileNames table!\n");
 		}
-		int8_t test = (int8_t)blockTypeFiles.first;
-		//std::cout << "inserted with " << test << "\n";
-		for (int i = 0; i < 6; i++) {
-			std::cout << texLayers[i] << "\n";
-		}
 		blockTypeToTexLayer.insert(std::make_pair(blockTypeFiles.first, texLayers));
 	}
 }

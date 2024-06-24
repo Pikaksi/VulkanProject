@@ -1,8 +1,8 @@
 #include "BlockDataLookup.hpp"
 
-bool isSolidBlock[4] {
-	false,
-	true,
-	true,
-	true
+uint8_t isSolidBlock[4] {
+	0,
+	1,
+	1,
+	1
 };

@@ -23,7 +23,7 @@ struct Chunk
 		}
 	}
 };
-
 BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk* chunk);
+BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk& chunk);
 int chunkLocationToIndex(const int x, const int y, const int z);
 void chunkIndexToLocation(const int index, int& x, int& y, int& z);

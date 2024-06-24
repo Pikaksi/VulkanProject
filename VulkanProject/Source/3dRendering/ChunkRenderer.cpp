@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "ChunkRenderer.hpp"
+#include "BinaryGreedyMesher.hpp"
 
 void ChunkRenderer::update(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
 {
@@ -150,7 +151,8 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool co
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
-	generateChunkMeshData(worldManager, chunkLocation, vertices, indices);
+	//generateChunkMeshData(worldManager, chunkLocation, vertices, indices);
+	binaryGreedyMeshChunk(worldManager, chunkLocation, vertices);
 	if (vertices.size() == 0) {
 		return;
 	}

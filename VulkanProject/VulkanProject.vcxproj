@@ -23,12 +23,14 @@
     <ClCompile Include="Source\2dRendering\UIManager.cpp" />
     <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
     <ClCompile Include="Source\2dRendering\UIText.cpp" />
+    <ClCompile Include="Source\3dRendering\BinaryGreedyMesher.cpp" />
     <ClCompile Include="Source\3dRendering\BlockTexCoordinateLookup.cpp" />
     <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp" />
     <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClInclude Include="Source\3dRendering\BinaryGreedyMesher.hpp" />
     <ClInclude Include="Source\VulkanRendering\ImageCreator.hpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\CameraHandler.cpp" />

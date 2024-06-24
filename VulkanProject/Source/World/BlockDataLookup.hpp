@@ -1,5 +1,7 @@
 #pragma once
 
+#include <numbers>
+
 #include "BlockType.hpp"
 
-bool isSolidBlock[];
+uint8_t isSolidBlock[];

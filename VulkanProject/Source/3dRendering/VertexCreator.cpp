@@ -64,15 +64,15 @@ void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, BlockType blockType,
 	Chunk* chunk, Chunk* chunkPX, Chunk* chunkNX, Chunk* chunkPY, Chunk* chunkNY, Chunk* chunkPZ, Chunk* chunkNZ)
 {
-	std::array<float, 6> texCoordinates = blockTypeToTexLayer.at(blockType);
+	std::array<float, 6> textureArrayIndices = blockTypeToTexLayer.at(blockType);
 	// right
 	if ((x != CHUNK_SIZE - 1 && !isSolidBlock[chunkGetBlockAtLocation(x + 1, y, z, chunk)])
 		|| (x == CHUNK_SIZE - 1 && chunkPX != nullptr && !isSolidBlock[chunkGetBlockAtLocation(0, y, z, chunkPX)])) {
 
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 1.0f}, texCoordinates[0] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 1.0f}, texCoordinates[0] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 0.0f}, texCoordinates[0] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 0.0f}, texCoordinates[0] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 1.0f}, textureArrayIndices[0] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 1.0f}, textureArrayIndices[0] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 0.0f}, textureArrayIndices[0] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 0.0f}, textureArrayIndices[0] });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -80,10 +80,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((x != 0 && !isSolidBlock[chunkGetBlockAtLocation(x - 1, y, z, chunk)])
 		|| (x == 0 && chunkNX != nullptr && !isSolidBlock[chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX)])) {
 
-		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}, texCoordinates[1] });
-		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}, texCoordinates[1] });
-		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}, texCoordinates[1] });
-		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}, texCoordinates[1] });
+		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}, textureArrayIndices[1] });
+		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}, textureArrayIndices[1] });
+		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}, textureArrayIndices[1] });
+		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}, textureArrayIndices[1] });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -91,10 +91,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((y != CHUNK_SIZE - 1 && !isSolidBlock[chunkGetBlockAtLocation(x, y + 1, z, chunk)])
 		|| (y == CHUNK_SIZE - 1 && chunkPY != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, 0, z, chunkPY)])) {
 
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, texCoordinates[2] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, texCoordinates[2] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, texCoordinates[2] });
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, texCoordinates[2] });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, textureArrayIndices[2] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, textureArrayIndices[2] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, textureArrayIndices[2] });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, textureArrayIndices[2] });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -102,10 +102,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((y != 0 && !isSolidBlock[chunkGetBlockAtLocation(x, y - 1, z, chunk)])
 		|| (y == 0 && chunkNY != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY)])) {
 
-		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {0.0f, 1.0f}, texCoordinates[3] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {1.0f, 1.0f}, texCoordinates[3] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {1.0f, 0.0f}, texCoordinates[3] });
-		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {0.0f, 0.0f}, texCoordinates[3] });
+		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {0.0f, 1.0f}, textureArrayIndices[3] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {1.0f, 1.0f}, textureArrayIndices[3] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {1.0f, 0.0f}, textureArrayIndices[3] });
+		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {0.0f, 0.0f}, textureArrayIndices[3] });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -113,10 +113,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((z != CHUNK_SIZE - 1 && !isSolidBlock[chunkGetBlockAtLocation(x, y, z + 1, chunk)])
 		|| (z == CHUNK_SIZE - 1 && chunkPZ != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, y, 0, chunkPZ)])) {
 
-		vertices.push_back(Vertex{ {locationX + 1, locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 1.0f}, texCoordinates[4] });
-		vertices.push_back(Vertex{ {locationX    , locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 1.0f}, texCoordinates[4] });
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 0.0f}, texCoordinates[4] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 0.0f}, texCoordinates[4] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 1.0f}, textureArrayIndices[4] });
+		vertices.push_back(Vertex{ {locationX    , locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 1.0f}, textureArrayIndices[4] });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 0.0f}, textureArrayIndices[4] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 0.0f}, textureArrayIndices[4] });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
@@ -124,10 +124,10 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	if ((z != 0 && !isSolidBlock[chunkGetBlockAtLocation(x, y, z - 1, chunk)])
 		|| (z == 0 && chunkNZ != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ)])) {
 
-		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 1.0f}, texCoordinates[5] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 1.0f}, texCoordinates[5] });
-		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 0.0f}, texCoordinates[5] });
-		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 0.0f}, texCoordinates[5] });
+		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 1.0f}, textureArrayIndices[5] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 1.0f}, textureArrayIndices[5] });
+		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 0.0f}, textureArrayIndices[5] });
+		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 0.0f}, textureArrayIndices[5] });
 		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 }
