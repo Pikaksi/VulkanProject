@@ -2,10 +2,6 @@
 
 uint32_t VertexBufferManager::addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
-    VkBuffer vertexBuffer, indexBuffer;
-    VkDeviceMemory vertexBufferMemory, indexBufferMemory;
-
-    //std::cout << "vertex buffer size = " << vertices.size() << "\n";
     uint32_t memoryLocation;
     worldGPUMemoryBlock.addVertices(vulkanCoreInfo, commandPool, memoryLocation, vertices);
     return memoryLocation;
