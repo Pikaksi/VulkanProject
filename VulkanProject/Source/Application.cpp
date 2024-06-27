@@ -69,8 +69,6 @@ void Application::initVulkan()
 
     createBlockTextureArray(vulkanCoreInfo, blockTextureImageArray, commandPool, false);
     blockTextureArraySampler = createBlockTextureSampler(vulkanCoreInfo);
-    //createTextureImage(vulkanCoreInfo, blockTextureImage, commandPool, false, "BlockTextures.png");
-    //blockTextureSampler = createBlockTextureSampler(vulkanCoreInfo);
     createTextureImage(vulkanCoreInfo, textTextureImage, commandPool, false, "TextSpriteSheet.png");
     textTextureSampler = createTextTextureSampler(vulkanCoreInfo);
 

@@ -35,37 +35,7 @@ void VertexBufferManager::derenderChunk(uint32_t memoryBlockLocation)
 
 void VertexBufferManager::createGPUMemoryBlocks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool)
 {
-    worldGPUMemoryBlock = GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex) * 40000000, quadStripIndexBufferIndexCount);
-    /*std::vector<Vertex> vertices;
-    vertices.push_back(Vertex{ {0, 0, 0}, {1, 1, 1}, {0, 0} });
-    vertices.push_back(Vertex{ {100, 0, 0}, {1, 0, 1}, {0, 1} });
-    vertices.push_back(Vertex{ {0, 100, 0}, {1, 1, 0}, {1, 0} });
-    vertices.push_back(Vertex{ {100, 100, 0}, {0, 0, 1}, {1, 1} });
-    vertices.push_back(Vertex{ {0, 0, 10}, {1, 1, 1}, {0, 0} });
-    vertices.push_back(Vertex{ {100, 0, 10}, {1, 0, 1}, {0, 1} });
-    vertices.push_back(Vertex{ {0, 100, 10}, {0, 0, 0}, {1, 0} });
-    vertices.push_back(Vertex{ {100, 100, 10}, {0, 0, 1}, {1, 1} });
-    worldGPUMemoryBlock.addVertices(vulkanCoreInfo, commandPool, vertices);
-    for (int i = 0; i < 16; i++) {
-        std::vector<Vertex> vertices2;
-        vertices2.push_back(Vertex{ {0, 0, 30}, {1, 1, 1}, {0, 0} });
-        vertices2.push_back(Vertex{ {100, 0, 30}, {1, 0, 1}, {0, 1} });
-        vertices2.push_back(Vertex{ {0, 100, 30}, {0, 0, 0}, {1, 0} });
-        vertices2.push_back(Vertex{ {100, 100, 30}, {0, 0, 1}, {1, 1} });
-        worldGPUMemoryBlock.addVertices(vulkanCoreInfo, commandPool, vertices2);
-
-    }
-    std::cout << "------------------------------------------------------\n";
-    worldGPUMemoryBlock.debugPrint();
-    std::cout << "------------------------------------------------------\n";
-    gPUMemoryBlock.trackAddedMemoryLocation(0, 2);
-    std::cout << "------------------------------------------------------\n";
-    gPUMemoryBlock.trackAddedMemoryLocation(5, 1);
-    std::cout << "------------------------------------------------------\n";
-    gPUMemoryBlock.trackAddedMemoryLocation(8, 2);
-    std::cout << "------------------------------------------------------\n";
-    gPUMemoryBlock.trackAddedMemoryLocation(1, 2);
-    std::cout << "------------------------------------------------------\n";*/
+    worldGPUMemoryBlock = GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex) * 100000, quadStripIndexBufferIndexCount);
 }
 
 void VertexBufferManager::cleanUpBuffers(VulkanCoreInfo* vulkanCoreInfo)
