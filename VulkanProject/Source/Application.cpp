@@ -40,8 +40,7 @@ void Application::initGame()
 
     debugMenu = DebugMenu(0.25f);
 
-    vertexBufferManager.createGPUMemoryBlocks(vulkanCoreInfo, commandPool);
-    vertexBufferManager.fillLargeQuadStripIndexBuffer(vulkanCoreInfo, commandPool);
+    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, sizeof(Vertex) * 100000);
 
     generateBlockTexLayerLookupTable();
 }
@@ -143,7 +142,7 @@ void Application::gameMainLoop()
 
 void Application::cleanup()
 {
-    vertexBufferManager.cleanUpBuffers(vulkanCoreInfo);
+    vertexBufferManager.cleanUp(vulkanCoreInfo);
     uIManager.cleanUpAll(vulkanCoreInfo);
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);

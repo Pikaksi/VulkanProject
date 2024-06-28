@@ -12,6 +12,7 @@ typedef uint64_t BlockBitMask;
 
 void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive);
 void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive);
+void zDirectionMergeFaces(int x, int y, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive);
 
 const uint64_t debruijn64 = 0x03f79d71b4cb0a89;
 const int index64[64] = {
@@ -144,14 +145,14 @@ void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation
 		for (int z = 0; z < CHUNK_SIZE; z++) {
 
 			BlockBitMask blockBitMask = 0;
-			if (chunkNX != nullptr) {
-				blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNX)];
+			if (chunkNY != nullptr) {
+				blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY)];
 			}
 			for (int y = 0; y < CHUNK_SIZE; y++) {
 				blockBitMask |= (BlockBitMask)isSolidBlock[chunk->blocks[chunkLocationToIndex(x, y, z)]] << (y + 1);
 			}
-			if (chunkPX != nullptr) {
-				blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, 0, z, chunkPX)] << CHUNK_SIZE + 1;
+			if (chunkPY != nullptr) {
+				blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, 0, z, chunkPY)] << CHUNK_SIZE + 1;
 			}
 			ryBlockFaceBitMask[chunk2dLocationToIndex(x, z)] = getBlockFacesLeftShift(blockBitMask);
 			lyBlockFaceBitMask[chunk2dLocationToIndex(x, z)] = getBlockFacesRightShift(blockBitMask);
@@ -165,34 +166,30 @@ void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation
 
 			BlockBitMask blockBitMask = 0;
 
-			if (chunkNX != nullptr) {
-				blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNX)];
+			if (chunkNZ != nullptr) {
+				blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ)];
 			}
 			for (int z = 0; z < CHUNK_SIZE; z++) {
+				if (x == 21 && y == 27 && z == 24) {
+					std::cout << (int)chunk->blocks[chunkLocationToIndex(x, y, z)] << "\n";
+					std::cout << "index is " << (z + 1) << "\n";
+					std::cout << "block is " << ((int)chunk->blocks[chunkLocationToIndex(x, y, z)]) << "\n";
+				}
 				blockBitMask |= (BlockBitMask)isSolidBlock[chunk->blocks[chunkLocationToIndex(x, y, z)]] << (z + 1);
 			}
-			if (chunkPX != nullptr) {
-				blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, 0, chunkPX)] << CHUNK_SIZE + 1;
+			if (chunkPZ != nullptr) {
+				blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, 0, chunkPZ)] << CHUNK_SIZE + 1;
 			}
 			rzBlockFaceBitMask[chunk2dLocationToIndex(x, y)] = getBlockFacesLeftShift(blockBitMask);
 			lzBlockFaceBitMask[chunk2dLocationToIndex(x, y)] = getBlockFacesRightShift(blockBitMask);
+			if (x == 21 && y == 27) {
+				printBitMask(rzBlockFaceBitMask[chunk2dLocationToIndex(x, y)]);
+				std::cout << "\n";
+				printBitMask(lzBlockFaceBitMask[chunk2dLocationToIndex(x, y)]);
+				std::cout << "\n";
+			}
 		}
 	}
-	/*std::cout << "face rx\n";
-	for (int y = 0; y < CHUNK_SIZE; y++) {
-		for (int z = 0; z < CHUNK_SIZE; z++) {
-			std::cout << "y = " << y << " z = " << z << " ";
-			printBitMask(rxBlockFaceBitMask[y][z]);
-			std::cout << "\n";
-		}
-		std::cout << "\n";
-	}
-	std::cout << "\n";
-	for (int x = 0; x < CHUNK_SIZE; x++) {
-		std::cout << "chunk layer at x: " << x << "\n";
-		printChunkLayerX(chunk, x);
-	}
-	std::cout << "\n";*/
 
 	glm::i32vec3 chunkBlockLocationOffset = chunkLocation * CHUNK_SIZE;
 
@@ -205,6 +202,9 @@ void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation
 
 			yDirectionMergeFaces(i, k, chunk, ryBlockFaceBitMask, vertices, chunkBlockLocationOffset, true);
 			yDirectionMergeFaces(i, k, chunk, lyBlockFaceBitMask, vertices, chunkBlockLocationOffset, false);
+
+			zDirectionMergeFaces(i, k, chunk, rzBlockFaceBitMask, vertices, chunkBlockLocationOffset, true);
+			zDirectionMergeFaces(i, k, chunk, lzBlockFaceBitMask, vertices, chunkBlockLocationOffset, false);
 		}
 	}
 }
@@ -263,9 +263,9 @@ inline void addVerticesBackward(BlockType blockType, glm::i32vec3 blockLocation,
 	vertices.push_back(Vertex{ {blockLocation.x,         blockLocation.y + height, blockLocation.z}, {0.9f, 0.9f, 0.9f}, {0.0f + UV_EDGE_CORRECTION,		 0.0f + UV_EDGE_CORRECTION},		  textureArrayIndex });
 }
 
-void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
+void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* xBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
 {
-	BlockBitMask blockBitMask = rxBlockFaceBitMask[chunk2dLocationToIndex(y, z)];
+	BlockBitMask blockBitMask = xBlockFaceBitMask[chunk2dLocationToIndex(y, z)];
 	while (blockBitMask != 0)
 	{
 		int height = 1;
@@ -279,19 +279,19 @@ void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* rxBlockFaceB
 
 		for (int yExpansion = 1; yExpansion < CHUNK_SIZE - y; yExpansion++) {
 
-			if (((blockBitMask & rxBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z)]) == 0)
+			if (((blockBitMask & xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z)]) == 0)
 				|| (originalBlockType != chunk->blocks[chunkLocationToIndex(x - 1, y + yExpansion, z)])) {
 				break;
 			}
 			// Turn off blocks that can be merged.
-			rxBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z)] ^= startingBlock;
+			xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z)] ^= startingBlock;
 			height++;
 		}
 
 		for (int zExpansion = 1; zExpansion < CHUNK_SIZE - z; zExpansion++) {
 			bool cantExpand = false;
 			for (int yExpansion = 0; yExpansion < height; yExpansion++) {
-				if ((blockBitMask & rxBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z + zExpansion)]) == 0
+				if ((blockBitMask & xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z + zExpansion)]) == 0
 					|| originalBlockType != chunk->blocks[chunkLocationToIndex(x - 1, y + yExpansion, z + zExpansion)])
 				{
 					cantExpand = true;
@@ -303,7 +303,7 @@ void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* rxBlockFaceB
 			}
 			// Turn off blocks that can be merged.
 			for (int yExpansion = 0; yExpansion < height; yExpansion++) {
-				rxBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z + zExpansion)] ^= startingBlock;
+				xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z + zExpansion)] ^= startingBlock;
 			}
 			lenght++;
 		}
@@ -319,9 +319,9 @@ void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* rxBlockFaceB
 	}
 }
 
-void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
+void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* yBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
 {
-	BlockBitMask blockBitMask = rxBlockFaceBitMask[chunk2dLocationToIndex(x, z)];
+	BlockBitMask blockBitMask = yBlockFaceBitMask[chunk2dLocationToIndex(x, z)];
 	while (blockBitMask != 0)
 	{
 		int width = 1;
@@ -329,25 +329,25 @@ void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* rxBlockFaceB
 		BlockBitMask startingBlock = blockBitMask & (0 - blockBitMask); // get least significant bit
 
 		// The location takes into account that the neighboring chunk block is at index 0.
-		// The first block in this chunk has the value x = 1.
+		// The first block in this chunk has the value y = 1.
 		int y = LovestSignificantBitIndex(startingBlock);
 		BlockType originalBlockType = chunk->blocks[chunkLocationToIndex(x, y - 1, z)];
 
 		for (int xExpansion = 1; xExpansion < CHUNK_SIZE - x; xExpansion++) {
 
-			if (((blockBitMask & rxBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z)]) == 0)
+			if (((blockBitMask & yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z)]) == 0)
 				|| (originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y - 1, z)])) {
 				break;
 			}
 			// Turn off blocks that can be merged.
-			rxBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z)] ^= startingBlock;
+			yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z)] ^= startingBlock;
 			width++;
 		}
 
 		for (int zExpansion = 1; zExpansion < CHUNK_SIZE - z; zExpansion++) {
 			bool cantExpand = false;
 			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
-				if ((blockBitMask & rxBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z + zExpansion)]) == 0
+				if ((blockBitMask & yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z + zExpansion)]) == 0
 					|| originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y - 1, z + zExpansion)])
 				{
 					cantExpand = true;
@@ -358,8 +358,8 @@ void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* rxBlockFaceB
 				break;
 			}
 			// Turn off blocks that can be merged.
-			for (int yExpansion = 0; yExpansion < width; yExpansion++) {
-				rxBlockFaceBitMask[chunk2dLocationToIndex(x + yExpansion, z + zExpansion)] ^= startingBlock;
+			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
+				yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z + zExpansion)] ^= startingBlock;
 			}
 			lenght++;
 		}
@@ -371,6 +371,70 @@ void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* rxBlockFaceB
 		}
 		else {
 			addVerticesDown(originalBlockType, glm::i32vec3(x, y - 1, z) + vertexOffset, width, lenght, vertices);
+		}
+	}
+}
+
+void zDirectionMergeFaces(int x, int y, Chunk* chunk, BlockBitMask* zBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
+{
+	BlockBitMask blockBitMask = zBlockFaceBitMask[chunk2dLocationToIndex(x, y)];
+	if (x == 21 && y == 27) {
+		printBitMask(zBlockFaceBitMask[chunk2dLocationToIndex(x, y)]);
+		std::cout << "\n";
+	}
+	while (blockBitMask != 0)
+	{
+		int width = 1;
+		int height = 1;
+		BlockBitMask startingBlock = blockBitMask & (0 - blockBitMask); // get least significant bit
+
+		// The location takes into account that the neighboring chunk block is at index 0.
+		// The first block in this chunk has the value z = 1.
+		int z = LovestSignificantBitIndex(startingBlock);
+		BlockType originalBlockType = chunk->blocks[chunkLocationToIndex(x, y, z - 1)];
+
+		if (originalBlockType == BlockType::air) {
+			int a = 1;
+		}
+
+		for (int xExpansion = 1; xExpansion < CHUNK_SIZE - x; xExpansion++) {
+
+			if (((blockBitMask & zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y)]) == 0)
+				|| (originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y, z - 1)])) {
+				break;
+			}
+			// Turn off blocks that can be merged.
+			zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y)] &= ~startingBlock;
+			width++;
+		}
+
+		for (int yExpansion = 1; yExpansion < CHUNK_SIZE - y; yExpansion++) {
+			bool cantExpand = false;
+			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
+				if ((blockBitMask & zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y + yExpansion)]) == 0
+					|| originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y + yExpansion, z - 1)])
+				{
+					cantExpand = true;
+					break;
+				}
+			}
+			if (cantExpand) {
+				break;
+			}
+			// Turn off blocks that can be merged.
+			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
+				zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y + xExpansion)] &= ~startingBlock;
+			}
+			height++;
+		}
+
+		blockBitMask &= ~startingBlock; // turn off the bit that was used
+
+		if (directionIsPositive) {
+			addVerticesForward(originalBlockType, glm::i32vec3(x, y, z - 1) + vertexOffset, width, height, vertices);
+		}
+		else {
+			addVerticesBackward(originalBlockType, glm::i32vec3(x, y, z - 1) + vertexOffset, width, height, vertices);
 		}
 	}
 }

@@ -81,7 +81,7 @@ void ChunkRenderer::derenderChunks(glm::i32vec3 playerChunkLocation, VertexBuffe
 			pair.first.z <= minZ || pair.first.z >= maxZ)
 		{
 			//std::cout << "derendered chunk at " << pair.first.x << " " << pair.first.y << " " << pair.first.z << "\n";
-			vertexBufferManager.derenderChunk(pair.second);
+			vertexBufferManager.freeChunkVerticesMemory(pair.second);
 			chunksToDerender.push_back(pair.first);
 		}
 	}

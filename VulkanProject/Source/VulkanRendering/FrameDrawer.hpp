@@ -4,6 +4,7 @@
 #include "Constants.hpp"
 #include "3dRendering/VertexBufferManager.hpp"
 #include "2dRendering/UIManager.hpp"
+#include "CameraHandler.hpp"
 
 void drawFrame(
     VulkanCoreInfo* vulkanCoreInfo,

@@ -111,6 +111,9 @@
     <ClCompile Include="Source\3dRendering\BinaryGreedyMesher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\3dRendering\QuadStripIndexBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader3d.vert">
@@ -232,6 +235,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\3dRendering\BinaryGreedyMesher.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\3dRendering\QuadStripIndexBuffer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

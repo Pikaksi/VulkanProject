@@ -6,44 +6,27 @@
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "VulkanRendering/Buffers.hpp"
 #include "Rendering/GPUMemoryBlock.hpp"
+#include "QuadStripIndexBuffer.hpp"
 
 class VertexBufferManager
 {
-
 public:
-    std::vector<uint32_t> vertexCounts;
-    std::vector<VkBuffer> vertexBuffers;
-    std::vector<VkDeviceMemory> vertexBufferMemories;
-
-    std::vector<uint32_t> indexCounts;
-    std::vector<VkBuffer> indexBuffers;
-    std::vector<VkDeviceMemory> indexBufferMemories;
-
-    // One buffer with a large amount of quad strip indices is created and looked at by all vertice lists which render quads only
-    uint32_t quadStripIndexBufferQuadAmount = 500000;
-    uint32_t quadStripIndexBufferIndexCount = 6 * quadStripIndexBufferQuadAmount;
-    VkBuffer quadStripIndexBuffer;
-    VkDeviceMemory quadStripIndexBufferMemory;
-
-    GPUMemoryBlock worldGPUMemoryBlock;
-
-    /*std::vector<Vertex> testVertices;
-    VkBuffer testVertexbuffer;
-    VkDeviceMemory testVertexBufferMemory;
-    std::vector<uint32_t> testIndices;
-    VkBuffer testIndexBuffer;
-    VkDeviceMemory testIndexBufferMemory;*/
-
     VertexBufferManager() {}
+    VertexBufferManager(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkDeviceSize size);
 
     uint32_t addChunkVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
-    void derenderChunk(uint32_t memoryBlockLocation);
+    void freeChunkVerticesMemory(uint32_t memoryBlockLocation);
+    void getWorldGeometryForRendering(
+        VkBuffer& vertexBuffer,
+        std::vector<VkDeviceSize>& vertexOffsets,
+        std::vector<uint32_t>& batchIndexCounts,
+        VkBuffer& quadStripIndexBuffer);
 
-    void fillLargeQuadStripIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool);
-    void createGPUMemoryBlocks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool);
+    void cleanUp(VulkanCoreInfo* vulkanCoreInfo);
 
-    void cleanUpBuffers(VulkanCoreInfo* vulkanCoreInfo);
-
+    GPUMemoryBlock worldGPUMemoryBlock;
+private:
+    void createGPUMemoryBlocks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkDeviceSize size);
+    
+    QuadStripIndexBuffer quadStripIndexBuffer;
 };
-
-#include "Application.hpp"

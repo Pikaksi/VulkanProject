@@ -29,14 +29,13 @@ public:
 
 	void initGLFWControlCallbacks();
     void update();
+
     void handleMouseMovement(GLFWwindow* window, double xpos, double ypos);
     void handleKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action);
-    void toggleKeyOnPress(int glfwKeyToCompare, bool& previousFrameValue, bool& currentValue, bool& valueToModify);
 
     static PlayerInputHandler& getInstance()
     {
-        static PlayerInputHandler    instance; // Guaranteed to be destroyed.
+        static PlayerInputHandler instance; // Guaranteed to be destroyed.
         // Instantiated on first use.
         return instance;
     }
@@ -46,4 +45,7 @@ public:
 
 private:
     PlayerInputHandler() {}
+
+    void toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action);
+    void toggleKeyOnPress(int glfwKeyToCompare, bool& previousFrameValue, bool& currentValue, bool& valueToModify);
 };
