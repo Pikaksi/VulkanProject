@@ -3,7 +3,7 @@
 layout(binding = 1) uniform sampler2DArray texSampler;
 
 layout(location = 0) in vec3 fragColor;
-layout(location = 1) in vec2 fragTexCoord;
+layout(location = 1) centroid in vec2 fragTexCoord;
 layout(location = 2) in float fragtexLayer;
 
 layout(location = 0) out vec4 outColor;

@@ -40,7 +40,7 @@ void Application::initGame()
 
     debugMenu = DebugMenu(0.25f);
 
-    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, sizeof(Vertex) * 100000);
+    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, sizeof(Vertex) * 10000000);
 
     generateBlockTexLayerLookupTable();
 }

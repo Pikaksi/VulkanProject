@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include "ChunkRenderer.hpp"
 #include "BinaryGreedyMesher.hpp"
@@ -150,13 +151,24 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool co
 	//std::cout << "rendering chunk " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
 
 	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
-	//generateChunkMeshData(worldManager, chunkLocation, vertices, indices);
+	auto startTime = std::chrono::high_resolution_clock::now();
+
+	//generateChunkMeshData(worldManager, chunkLocation, vertices);
 	binaryGreedyMeshChunk(worldManager, chunkLocation, vertices);
+
+	auto endTime = std::chrono::high_resolution_clock::now();
+	auto chunkGenerationTime = std::chrono::duration<float, std::chrono::microseconds::period>(endTime - startTime).count();
+	if (vertices.size() == 0) {
+		std::cout << "time in generating empty chunk is " << chunkGenerationTime << "\n";
+	}
+	else {
+		std::cout << "time in generating not empty chunk is " << chunkGenerationTime << "\n";
+	}
+	
 	if (vertices.size() == 0) {
 		return;
 	}
-	uint32_t memoryBlockPointer = vertexBufferManager.addChunkVertices(vulkanCoreInfo, commandPool, vertices, indices);
+	uint32_t memoryBlockPointer = vertexBufferManager.addChunkVertices(vulkanCoreInfo, commandPool, vertices);
 
 	renderedChunks.insert(std::make_pair(chunkLocation, memoryBlockPointer));
 

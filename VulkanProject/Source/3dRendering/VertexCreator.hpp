@@ -7,8 +7,8 @@
 
 #include <vector>
 
-void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
-void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, BlockType blockType,
+void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);
+void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, BlockType blockType,
 	Chunk* chunk, Chunk* chunkPX, Chunk* chunkNX, Chunk* chunkPY, Chunk* chunkNY, Chunk* chunkPZ, Chunk* chunkNZ);
 
 void addQuadToFourLastVertices(uint32_t verticesSize, std::vector<uint32_t>& indices);

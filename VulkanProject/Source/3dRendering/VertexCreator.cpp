@@ -8,7 +8,7 @@
 
 #include "BlockTexCoordinateLookup.hpp"
 
-void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
 {
 	Chunk* chunk = &worldManager.chunks[chunkLocation];
 	Chunk* chunkPX = nullptr;
@@ -53,7 +53,7 @@ void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 					continue;
 				}
 
-				addBlockMeshData(x, y, z, x + chunkLocation.x * CHUNK_SIZE, y + chunkLocation.y * CHUNK_SIZE, z + chunkLocation.z * CHUNK_SIZE, vertices, indices, blockType
+				addBlockMeshData(x, y, z, x + chunkLocation.x * CHUNK_SIZE, y + chunkLocation.y * CHUNK_SIZE, z + chunkLocation.z * CHUNK_SIZE, vertices, blockType
 					, chunk, chunkPX, chunkNX, chunkPY, chunkNY, chunkPZ, chunkNZ);
 			}
 		}
@@ -61,7 +61,7 @@ void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 }
 
 // chunkPX means chunk in Positive X direction
-void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, BlockType blockType,
+void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, BlockType blockType,
 	Chunk* chunk, Chunk* chunkPX, Chunk* chunkNX, Chunk* chunkPY, Chunk* chunkNY, Chunk* chunkPZ, Chunk* chunkNZ)
 {
 	std::array<float, 6> textureArrayIndices = blockTypeToTexLayer.at(blockType);
@@ -73,7 +73,6 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 1.0f}, textureArrayIndices[0] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 0.0f}, textureArrayIndices[0] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 0.0f}, textureArrayIndices[0] });
-		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
 	// left
@@ -84,7 +83,6 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}, textureArrayIndices[1] });
 		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}, textureArrayIndices[1] });
 		vertices.push_back(Vertex{ {locationX,     locationY + 1, locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}, textureArrayIndices[1] });
-		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
 	// up
@@ -95,7 +93,6 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, textureArrayIndices[2] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, textureArrayIndices[2] });
 		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, textureArrayIndices[2] });
-		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
 	// down
@@ -106,7 +103,6 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {1.0f, 1.0f}, textureArrayIndices[3] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {1.0f, 0.0f}, textureArrayIndices[3] });
 		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.4f, 0.4f, 0.4f}, {0.0f, 0.0f}, textureArrayIndices[3] });
-		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
 	// forward
@@ -117,7 +113,6 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX    , locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 1.0f}, textureArrayIndices[4] });
 		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 0.0f}, textureArrayIndices[4] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 0.0f}, textureArrayIndices[4] });
-		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 
 	// backward
@@ -128,7 +123,6 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 1.0f}, textureArrayIndices[5] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 0.0f}, textureArrayIndices[5] });
 		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 0.0f}, textureArrayIndices[5] });
-		addQuadToFourLastVertices(static_cast<uint32_t>(vertices.size()), indices);
 	}
 }
 
