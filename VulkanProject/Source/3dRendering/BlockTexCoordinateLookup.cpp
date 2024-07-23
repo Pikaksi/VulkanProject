@@ -1,16 +1,7 @@
-#include "BlockTexCoordinateLookup.hpp"
-
 #include <iostream>
 
-// Takes .png file names from Textures/BlockTextures directory
-// With 1 element in string vector means that all sides are that one image.
-// With 3 elements element [0] = top, [1] = side, [2] = bottom.
-// With 6 elements the order of the sides goes +x, -x, +y, -y, +z, -z.
-inline const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNames = {
-	{BlockType::stone, {"Stone"}},
-	{BlockType::grass, {"GrassTop", "GrassSide", "Dirt"}},
-	{BlockType::dirt, {"Dirt"}}
-};
+#include "BlockTexCoordinateLookup.hpp"
+#include "World/BlockDataLookup.hpp"
 
 int findTexLayerFromTable(std::string fileName, std::unordered_map<std::string, int>& fileNameIndexTable)
 {
@@ -43,6 +34,18 @@ void generateBlockTexLayerLookupTable()
 			for (int i = 0; i < 6; i++) {
 				texLayers[i] = imageTexLayer;
 			}
+		}
+		else if (blockTypeFiles.second.size() == 2) {
+
+			float topAndBottomImageTexLayer = findTexLayerFromTable(blockTypeFiles.second[0], fileNameIndexTable);
+			float sideImageTexLayer = findTexLayerFromTable(blockTypeFiles.second[1], fileNameIndexTable);
+
+			texLayers[0] = sideImageTexLayer;
+			texLayers[1] = sideImageTexLayer;
+			texLayers[2] = topAndBottomImageTexLayer;
+			texLayers[3] = topAndBottomImageTexLayer;
+			texLayers[4] = sideImageTexLayer;
+			texLayers[5] = sideImageTexLayer;
 		}
 		else if (blockTypeFiles.second.size() == 3) {
 

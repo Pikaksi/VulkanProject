@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "World/Chunk.hpp"
-#include "Vertex.hpp"
+#include "Rendering/Vertex.hpp"
 #include "World/WorldManager.hpp"
 
-void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);
+void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);

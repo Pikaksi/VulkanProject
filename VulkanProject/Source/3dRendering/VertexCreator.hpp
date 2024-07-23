@@ -1,11 +1,12 @@
 #pragma once
 
-#include "3dRendering/Vertex.hpp"
+#include <vector>
+
+#include "Rendering/Vertex.hpp"
 #include "World/Chunk.hpp"
 #include "World/BlockDataLookup.hpp"
 #include "World/WorldManager.hpp"
 
-#include <vector>
 
 void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);
 void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, BlockType blockType,

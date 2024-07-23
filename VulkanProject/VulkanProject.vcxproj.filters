@@ -24,7 +24,7 @@
     <ClCompile Include="Source\3dRendering\VertexCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\3dRendering\Vertex.cpp">
+    <ClCompile Include="Source\Rendering\Vertex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\FilePathHandler.cpp">
@@ -48,7 +48,7 @@
     <ClCompile Include="Source\3dRendering\ChunkRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\3dRendering\VertexBufferManager.cpp">
+    <ClCompile Include="Source\Rendering\VertexBufferManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Application.cpp">
@@ -141,7 +141,7 @@
     <ClInclude Include="Source\3dRendering\VertexCreator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\3dRendering\Vertex.hpp">
+    <ClInclude Include="Source\Rendering\Vertex.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\FilePathHandler.hpp">
@@ -168,7 +168,7 @@
     <ClInclude Include="Source\3dRendering\ChunkRenderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\3dRendering\VertexBufferManager.hpp">
+    <ClInclude Include="Source\Rendering\VertexBufferManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Application.hpp">
@@ -242,9 +242,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoiseD.dll">
-      <Filter>Resource Files</Filter>
-    </CopyFileToFolders>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">
       <Filter>Resource Files</Filter>
     </CopyFileToFolders>

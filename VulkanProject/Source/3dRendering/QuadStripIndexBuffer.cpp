@@ -36,3 +36,8 @@ uint32_t QuadStripIndexBuffer::getIndexCount()
 {
     return indexCount;
 }
+
+uint32_t QuadStripIndexBuffer::getVertexCount()
+{
+    return quadCount * 4;
+}

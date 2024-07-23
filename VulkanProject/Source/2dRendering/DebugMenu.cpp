@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-void DebugMenu::update(UIManager& uIManager, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock)
+void DebugMenu::update(UIManager& uIManager, VertexBufferManager& vertexBufferManager, WorldManager& worldManager, CameraHandler& cameraHandler)
 {
     checkIfEnabledStatus(uIManager);
     if (!isEnabled) {
@@ -19,27 +19,25 @@ void DebugMenu::update(UIManager& uIManager, WorldManager& worldManager, CameraH
         int lastRecordedFps = fpsCounter / refreshInterval;
         fpsCounter = 0;
 
-        updateUI(uIManager, lastRecordedFps, worldManager, cameraHandler, worldGPUMemoryBlock);
+        updateUI(uIManager, vertexBufferManager, lastRecordedFps, worldManager, cameraHandler);
     }
 }
 
-void DebugMenu::updateUI(UIManager& uIManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock)
+void DebugMenu::updateUI(UIManager& uiManager, VertexBufferManager& vertexBufferManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler)
 {
-    leftUpCornerText->setText(
+    debugMenuText->setText(
         "Fps: " + std::to_string(fps) + '\n' +
-        "vertex count: " + std::to_string(worldGPUMemoryBlock.getVertexCount()) + '\n' +
+        "vertex count: " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + '\n' +
         "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) + " z: " + std::to_string(cameraHandler.position.z) + '\n' +
-        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationY)
+        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX)
     );
-
-    uIManager.uIRefreshNeeded = true;
+    uiManager.updateUIText(debugMenuText);
 }
 
 void DebugMenu::checkIfEnabledStatus(UIManager& uIManager)
 {
     if (PlayerInputHandler::getInstance().f3Pressed) {
-        std::cout << "pressed f3\n";
         if (isEnabled) {
             disableMenu(uIManager);
         }
@@ -51,14 +49,14 @@ void DebugMenu::checkIfEnabledStatus(UIManager& uIManager)
 
 void DebugMenu::enableMenu(UIManager& uIManager)
 {
-    leftUpCornerText = uIManager.createUIText(-1, -1, textSize, "");
+    debugMenuText = uIManager.createUIText({-1.0f, -1.0f}, 0.05, "", UICenteringMode::TopLeft);
 
     isEnabled = true;
 }
 
 void DebugMenu::disableMenu(UIManager& uIManager)
 {
-    uIManager.deleteUIText(leftUpCornerText);
+    uIManager.deleteUIText(debugMenuText);
 
     isEnabled = false;
 }

@@ -3,7 +3,7 @@
 #include "glm/mat4x4.hpp"
 
 #include "VulkanTypes.hpp"
-#include "3dRendering/Vertex.hpp"
+#include "Rendering/Vertex.hpp"
 
 void createVertexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<Vertex>& vertices);
 void createIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkBuffer& buffer, VkDeviceMemory& memory, std::vector<uint32_t>& indices);

@@ -37,7 +37,7 @@
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\CameraHandler.cpp" />
     <ClCompile Include="Source\3dRendering\ChunkRenderer.cpp" />
-    <ClCompile Include="Source\3dRendering\VertexBufferManager.cpp" />
+    <ClCompile Include="Source\Rendering\VertexBufferManager.cpp" />
     <ClCompile Include="Source\Rendering\TextureCreator.cpp" />
     <ClCompile Include="Source\VulkanRendering\DeviceCreator.cpp" />
     <ClCompile Include="Source\VulkanRendering\ImageCreator.cpp" />
@@ -50,7 +50,7 @@
     <ClCompile Include="Source\FilePathHandler.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\PlayerInputHandler.cpp" />
-    <ClCompile Include="Source\3dRendering\Vertex.cpp" />
+    <ClCompile Include="Source\Rendering\Vertex.cpp" />
     <ClCompile Include="Source\3dRendering\VertexCreator.cpp" />
     <ClCompile Include="Source\World\WorldGeneration\ChunkGenerator.cpp" />
     <ClCompile Include="Source\World\WorldManager.cpp" />
@@ -59,11 +59,6 @@
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoiseD.dll">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <None Include="Shaders\compile.bat" />
@@ -99,9 +94,9 @@
     <ClInclude Include="Source\PlayerInputHandler.hpp" />
     <ClInclude Include="Source\FilePathHandler.hpp" />
     <ClInclude Include="Source\3dRendering\VertexCreator.hpp" />
-    <ClInclude Include="Source\3dRendering\Vertex.hpp" />
+    <ClInclude Include="Source\Rendering\Vertex.hpp" />
     <ClInclude Include="Source\World\WorldManager.hpp" />
-    <ClInclude Include="Source\3dRendering\VertexBufferManager.hpp" />
+    <ClInclude Include="Source\Rendering\VertexBufferManager.hpp" />
     <ClInclude Include="Source\Rendering\TextureCreator.hpp" />
     <ClInclude Include="Source\VulkanRendering\VulkanTypes.hpp" />
     <ClInclude Include="Source\VulkanRendering\SwapChain.hpp" />
@@ -205,11 +200,12 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\Vulkan\Include;$(SolutionDir)Dependencies\stbImages;$(SolutionDir)Dependencies\FastNoise2\include;$(SolutionDir)VulkanProject\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\Vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2019;$(SolutionDir)VulkanProject\Source;$(SolutionDir)Dependencies\FastNoise2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\Vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2022;$(SolutionDir)VulkanProject\Source;$(SolutionDir)Dependencies\FastNoise2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;FastNoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:msvcrt.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -224,15 +220,16 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\GLFW\include;$(SolutionDir)Dependencies\glm;$(SolutionDir)Dependencies\Vulkan\Include;$(SolutionDir)Dependencies\stbImages;$(SolutionDir)Dependencies\FastNoise2\include;$(SolutionDir)VulkanProject\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\Vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2019;$(SolutionDir)VulkanProject\Source;$(SolutionDir)Dependencies\FastNoise2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\Vulkan\Lib;$(SolutionDir)Dependencies\GLFW\lib-vc2022;$(SolutionDir)VulkanProject\Source;$(SolutionDir)Dependencies\FastNoise2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;FastNoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:msvcrt.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>

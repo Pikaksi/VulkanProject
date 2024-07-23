@@ -1,39 +1,49 @@
 #pragma once
 
 #include <vector>
-#include <array>
+#include <map>
+#include <set>
 
-#include "VulkanRendering/VulkanTypes.hpp"
-#include "VulkanRendering/Buffers.hpp"
 #include "UIQuad.hpp"
 #include "UIText.hpp"
-#include "Constants.hpp"
+#include "Rendering/VertexBufferManager.hpp"
 
+// Create a UI compotent with createUIObject. 
+// Make changes to set object.
+// Call updateUIObject. (Even if you change it right after creation.)
+// Destroy the object with destroyUIObject.
 class UIManager
 {
 public:
-	std::vector<UIQuad> currentUIElements;
-    std::vector<UIText> currentTextElements;
+	bool screenSizeChanged = false;
 
-    bool uIRefreshNeeded = false;
-    int updatedUIIndex = 0;
+	UIManager() {};
 
-    std::array<VkBuffer, MAX_FRAMES_IN_FLIGHT> vertexBuffer;
-    std::array<VkDeviceMemory, MAX_FRAMES_IN_FLIGHT> vertexBufferMemory;
-    std::array<VkBuffer, MAX_FRAMES_IN_FLIGHT> indexBuffer;
-    std::array<VkDeviceMemory, MAX_FRAMES_IN_FLIGHT> indexBufferMemory;
-    std::array<uint32_t, MAX_FRAMES_IN_FLIGHT> indexCount;
-    std::array<bool, MAX_FRAMES_IN_FLIGHT> hasElementsToRender;
+	void updateScreen(VkExtent2D extent, VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);
 
-    UIManager()
-    {
-        //currentUIElements.push_back(&UIQuad(-0.9, -0.9, 0.1f, 0.1f, 1.0f / 16.0f, 1.0f / 8.0f, 0.1, 0.2));
-        //currentTextElements.push_back(&UIText(0.0f, 0.0f, 0.1f, "1234567890"));
-    }
+	UIQuad* createUIQuad();
+	UIQuad* createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, float texLayer, glm::vec4 color, UICenteringMode uiCenteringMode);
+	void updateUIQuad(UIQuad* uiQuad);
+	void deleteUIQuad(UIQuad* uiQuad);
 
-    void refreshUI(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, int screenWidth, int screenHeight);
-    UIText* createUIText(float x, float y, float letterHeight, std::string text);
-    void deleteUIText(UIText* uIText);
-    void cleanUpSingleFrame(VulkanCoreInfo* vulkanCoreInfo, int index);
-    void cleanUpAll(VulkanCoreInfo* vulkanCoreInfo);
+	UIText* createUIText();
+	UIText* createUIText(glm::vec2 location, float letterHeight, std::string text, UICenteringMode letterCenteringMode);
+	void updateUIText(UIText* uiText);
+	void deleteUIText(UIText* uiText);
+
+	void cleanup();
+
+private:
+	void removeUIQuad(UIQuad* uiQuad);
+	void removeUIText(UIText* uiText);
+
+	std::set<UIQuad*> quadsAllocated;
+	std::vector<UIQuad*> quadsToRender;
+	std::map<UIQuad*, uint32_t> quadsRendered;
+	std::vector<uint32_t> quadsToDerender;
+
+	std::set<UIText*> textAllocated;
+	std::vector<UIText*> textToRender;
+	std::map<UIText*, uint32_t> textRendered;
+	std::vector<uint32_t> textToDerender;
 };

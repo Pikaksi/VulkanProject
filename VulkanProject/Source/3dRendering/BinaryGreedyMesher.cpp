@@ -13,6 +13,8 @@ typedef uint64_t BlockBitMask;
 void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive);
 void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive);
 void zDirectionMergeFaces(int x, int y, Chunk* chunk, BlockBitMask* rxBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive);
+void RenderNonSolidBlock(int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices);
+void RenderCustomBlock(int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices);
 
 const uint64_t debruijn64 = 0x03f79d71b4cb0a89;
 const int index64[64] = {
@@ -49,18 +51,6 @@ void printChunkLayerX(Chunk& chunk, int x)
 	}
 }
 
-int chunk2dLocationToIndex(const int x, const int y)
-{
-#ifndef NDEBUG
-	if (x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE) {
-		std::cout << "Error log x = " << x << " y = " << y << "\n";
-		throw std::runtime_error("Tried to access blockFaceBitMask out of range!");
-	}
-#endif
-
-	return x + y * CHUNK_SIZE;
-}
-
 constexpr BlockBitMask chunkOuterBitsOff()
 {
 	return ~(((BlockBitMask)0b1) | (((BlockBitMask)0b1) << (CHUNK_SIZE + 1)));
@@ -76,7 +66,7 @@ BlockBitMask getBlockFacesRightShift(BlockBitMask blockBitMask)
 	return (((~blockBitMask) << 1) & blockBitMask) & chunkOuterBitsOff();
 }
 
-void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
+void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
 {
 	Chunk* chunk = &worldManager.chunks[chunkLocation];
 
@@ -121,64 +111,74 @@ void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation
 		throw std::runtime_error("Chunk not loaded when it should be!");
 	}
 
+	glm::i32vec3 chunkBlockLocationOffset = chunkLocation * CHUNK_SIZE;
+
 	// rx = faces that point to the right in the x direction
 	BlockBitMask* rxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
 	BlockBitMask* lxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+	BlockBitMask* ryBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+	BlockBitMask* lyBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+	BlockBitMask* rzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+	BlockBitMask* lzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
 	for (int y = 0; y < CHUNK_SIZE; y++) {
 		for (int z = 0; z < CHUNK_SIZE; z++) {
 
 			BlockBitMask blockBitMask = 0;
-			blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX)];
+			blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX));
 			
 			for (int x = 0; x < CHUNK_SIZE; x++) {
-				blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, z, chunk)] << (x + 1);
+				BlockType block = chunkGetBlockAtLocation(x, y, z, chunk);
+				blockBitMask |= (BlockBitMask)isBlockSolid(block) << (x + 1);
+			
+				// also check for non solid block rendering here
+				if (getRenderType(block) == BlockRenderType::renderTransparentBlock) {
+					RenderNonSolidBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
+				}
+				if (getRenderType(block) == BlockRenderType::renderCustom) {
+					RenderCustomBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
+				}
 			}
-			blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(0, y, z, chunkPX)] << CHUNK_SIZE + 1;
+			blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(0, y, z, chunkPX)) << CHUNK_SIZE + 1;
 
-			rxBlockFaceBitMask[chunk2dLocationToIndex(y, z)] = getBlockFacesLeftShift(blockBitMask);
-			lxBlockFaceBitMask[chunk2dLocationToIndex(y, z)] = getBlockFacesRightShift(blockBitMask);
+			rxBlockFaceBitMask[chunkLocationToIndex(y, z)] = getBlockFacesLeftShift(blockBitMask);
+			lxBlockFaceBitMask[chunkLocationToIndex(y, z)] = getBlockFacesRightShift(blockBitMask);
 		}
 	}
 
-	BlockBitMask* ryBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
-	BlockBitMask* lyBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 		for (int z = 0; z < CHUNK_SIZE; z++) {
 
 			BlockBitMask blockBitMask = 0;
-			blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY)];
+			blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY));
 
 			for (int y = 0; y < CHUNK_SIZE; y++) {
-				blockBitMask |= (BlockBitMask)isSolidBlock[chunk->blocks[chunkLocationToIndex(x, y, z)]] << (y + 1);
+				blockBitMask |= (BlockBitMask)isBlockSolid(chunk->blocks[chunkLocationToIndex(x, y, z)]) << (y + 1);
 			}
-			blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, 0, z, chunkPY)] << CHUNK_SIZE + 1;
+			blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, 0, z, chunkPY)) << CHUNK_SIZE + 1;
 
-			ryBlockFaceBitMask[chunk2dLocationToIndex(x, z)] = getBlockFacesLeftShift(blockBitMask);
-			lyBlockFaceBitMask[chunk2dLocationToIndex(x, z)] = getBlockFacesRightShift(blockBitMask);
+			ryBlockFaceBitMask[chunkLocationToIndex(x, z)] = getBlockFacesLeftShift(blockBitMask);
+			lyBlockFaceBitMask[chunkLocationToIndex(x, z)] = getBlockFacesRightShift(blockBitMask);
 		}
 	}
 
-	BlockBitMask* rzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
-	BlockBitMask* lzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
 	for (int x = 0; x < CHUNK_SIZE; x++) {
 		for (int y = 0; y < CHUNK_SIZE; y++) {
 
 			BlockBitMask blockBitMask = 0;
 
-			blockBitMask = (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ)];
+			blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ));
 			
 			for (int z = 0; z < CHUNK_SIZE; z++) {
-				blockBitMask |= (BlockBitMask)isSolidBlock[chunk->blocks[chunkLocationToIndex(x, y, z)]] << (z + 1);
+				blockBitMask |= (BlockBitMask)isBlockSolid(chunk->blocks[chunkLocationToIndex(x, y, z)]) << (z + 1);
 			}
-			blockBitMask |= (BlockBitMask)isSolidBlock[chunkGetBlockAtLocation(x, y, 0, chunkPZ)] << CHUNK_SIZE + 1;
+			blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, y, 0, chunkPZ)) << CHUNK_SIZE + 1;
 
-			rzBlockFaceBitMask[chunk2dLocationToIndex(x, y)] = getBlockFacesLeftShift(blockBitMask);
-			lzBlockFaceBitMask[chunk2dLocationToIndex(x, y)] = getBlockFacesRightShift(blockBitMask);
+			rzBlockFaceBitMask[chunkLocationToIndex(x, y)] = getBlockFacesLeftShift(blockBitMask);
+			lzBlockFaceBitMask[chunkLocationToIndex(x, y)] = getBlockFacesRightShift(blockBitMask);
 
 		}
 	}
 
-	glm::i32vec3 chunkBlockLocationOffset = chunkLocation * CHUNK_SIZE;
 
 	// todo: test if seperate loops is faster because of cache locality
 	for (int i = 0; i < CHUNK_SIZE; i++) {
@@ -194,6 +194,13 @@ void binaryGreedyMeshChunk(WorldManager worldManager, glm::i32vec3 chunkLocation
 			zDirectionMergeFaces(i, k, chunk, lzBlockFaceBitMask, vertices, chunkBlockLocationOffset, false);
 		}
 	}
+
+	delete[] rxBlockFaceBitMask;
+	delete[] lxBlockFaceBitMask;
+	delete[] ryBlockFaceBitMask;
+	delete[] lyBlockFaceBitMask;
+	delete[] rzBlockFaceBitMask;
+	delete[] lzBlockFaceBitMask;
 }
 
 inline void addVerticesRight(BlockType blockType, glm::i32vec3 blockLocation, int lenght, int height, std::vector<Vertex>& vertices)
@@ -250,9 +257,40 @@ inline void addVerticesBackward(BlockType blockType, glm::i32vec3 blockLocation,
 	vertices.push_back(Vertex{ {blockLocation.x,         blockLocation.y + height, blockLocation.z}, {0.9f, 0.9f, 0.9f}, {0.0f + UV_EDGE_CORRECTION,		 0.0f + UV_EDGE_CORRECTION},		  textureArrayIndex });
 }
 
+void RenderNonSolidBlock(int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices)
+{
+	glm::ivec3 blockLocation = glm::ivec3(x, y, z) + vertexOffset;
+
+	addVerticesRight(blockType, blockLocation, 1, 1, vertices);
+	addVerticesLeft(blockType, blockLocation, 1, 1, vertices);
+	addVerticesUp(blockType, blockLocation, 1, 1, vertices);
+	addVerticesDown(blockType, blockLocation, 1, 1, vertices);
+	addVerticesForward(blockType, blockLocation, 1, 1, vertices);
+	addVerticesBackward(blockType, blockLocation, 1, 1, vertices);
+}
+
+void RenderCustomBlock(int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices)
+{
+	float textureArrayIndex = blockTypeToTexLayer.at(blockType)[0];
+
+	glm::vec3 blockLocation = glm::ivec3(x, y, z) + vertexOffset;
+	std::vector<glm::vec3> vertexOffsets = blockCustomRenderVertexOffsets.at(blockType);
+
+	static glm::vec2 uvCoordinates[4] = {
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(0.0f, 0.0f)
+	};
+
+	for (int i = 0; i < vertexOffsets.size(); i++) {
+		vertices.push_back(Vertex{ blockLocation + vertexOffsets[i], {0.9f, 0.9f, 0.9f}, uvCoordinates[i % 4], textureArrayIndex});
+	}
+}
+
 void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* xBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
 {
-	BlockBitMask blockBitMask = xBlockFaceBitMask[chunk2dLocationToIndex(y, z)];
+	BlockBitMask blockBitMask = xBlockFaceBitMask[chunkLocationToIndex(y, z)];
 	while (blockBitMask != 0)
 	{
 		int height = 1;
@@ -266,19 +304,19 @@ void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* xBlockFaceBi
 
 		for (int yExpansion = 1; yExpansion < CHUNK_SIZE - y; yExpansion++) {
 
-			if (((blockBitMask & xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z)]) == 0)
+			if (((blockBitMask & xBlockFaceBitMask[chunkLocationToIndex(y + yExpansion, z)]) == 0)
 				|| (originalBlockType != chunk->blocks[chunkLocationToIndex(x - 1, y + yExpansion, z)])) {
 				break;
 			}
 			// Turn off blocks that can be merged.
-			xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z)] ^= startingBlock;
+			xBlockFaceBitMask[chunkLocationToIndex(y + yExpansion, z)] ^= startingBlock;
 			height++;
 		}
 
 		for (int zExpansion = 1; zExpansion < CHUNK_SIZE - z; zExpansion++) {
 			bool cantExpand = false;
 			for (int yExpansion = 0; yExpansion < height; yExpansion++) {
-				if ((blockBitMask & xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z + zExpansion)]) == 0
+				if ((blockBitMask & xBlockFaceBitMask[chunkLocationToIndex(y + yExpansion, z + zExpansion)]) == 0
 					|| originalBlockType != chunk->blocks[chunkLocationToIndex(x - 1, y + yExpansion, z + zExpansion)])
 				{
 					cantExpand = true;
@@ -290,7 +328,7 @@ void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* xBlockFaceBi
 			}
 			// Turn off blocks that can be merged.
 			for (int yExpansion = 0; yExpansion < height; yExpansion++) {
-				xBlockFaceBitMask[chunk2dLocationToIndex(y + yExpansion, z + zExpansion)] ^= startingBlock;
+				xBlockFaceBitMask[chunkLocationToIndex(y + yExpansion, z + zExpansion)] ^= startingBlock;
 			}
 			lenght++;
 		}
@@ -308,7 +346,7 @@ void xDirectionMergeFaces(int y, int z, Chunk* chunk, BlockBitMask* xBlockFaceBi
 
 void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* yBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
 {
-	BlockBitMask blockBitMask = yBlockFaceBitMask[chunk2dLocationToIndex(x, z)];
+	BlockBitMask blockBitMask = yBlockFaceBitMask[chunkLocationToIndex(x, z)];
 	while (blockBitMask != 0)
 	{
 		int width = 1;
@@ -322,19 +360,19 @@ void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* yBlockFaceBi
 
 		for (int xExpansion = 1; xExpansion < CHUNK_SIZE - x; xExpansion++) {
 
-			if (((blockBitMask & yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z)]) == 0)
+			if (((blockBitMask & yBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, z)]) == 0)
 				|| (originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y - 1, z)])) {
 				break;
 			}
 			// Turn off blocks that can be merged.
-			yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z)] ^= startingBlock;
+			yBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, z)] ^= startingBlock;
 			width++;
 		}
 
 		for (int zExpansion = 1; zExpansion < CHUNK_SIZE - z; zExpansion++) {
 			bool cantExpand = false;
 			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
-				if ((blockBitMask & yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z + zExpansion)]) == 0
+				if ((blockBitMask & yBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, z + zExpansion)]) == 0
 					|| originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y - 1, z + zExpansion)])
 				{
 					cantExpand = true;
@@ -346,7 +384,7 @@ void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* yBlockFaceBi
 			}
 			// Turn off blocks that can be merged.
 			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
-				yBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, z + zExpansion)] ^= startingBlock;
+				yBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, z + zExpansion)] ^= startingBlock;
 			}
 			lenght++;
 		}
@@ -364,7 +402,7 @@ void yDirectionMergeFaces(int x, int z, Chunk* chunk, BlockBitMask* yBlockFaceBi
 
 void zDirectionMergeFaces(int x, int y, Chunk* chunk, BlockBitMask* zBlockFaceBitMask, std::vector<Vertex>& vertices, glm::i32vec3 vertexOffset, bool directionIsPositive)
 {
-	BlockBitMask blockBitMask = zBlockFaceBitMask[chunk2dLocationToIndex(x, y)];
+	BlockBitMask blockBitMask = zBlockFaceBitMask[chunkLocationToIndex(x, y)];
 	while (blockBitMask != 0)
 	{
 		int width = 1;
@@ -382,19 +420,19 @@ void zDirectionMergeFaces(int x, int y, Chunk* chunk, BlockBitMask* zBlockFaceBi
 
 		for (int xExpansion = 1; xExpansion < CHUNK_SIZE - x; xExpansion++) {
 
-			if (((blockBitMask & zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y)]) == 0)
+			if (((blockBitMask & zBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, y)]) == 0)
 				|| (originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y, z - 1)])) {
 				break;
 			}
 			// Turn off blocks that can be merged.
-			zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y)] &= ~startingBlock;
+			zBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, y)] &= ~startingBlock;
 			width++;
 		}
 
 		for (int yExpansion = 1; yExpansion < CHUNK_SIZE - y; yExpansion++) {
 			bool cantExpand = false;
 			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
-				if ((blockBitMask & zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y + yExpansion)]) == 0
+				if ((blockBitMask & zBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, y + yExpansion)]) == 0
 					|| originalBlockType != chunk->blocks[chunkLocationToIndex(x + xExpansion, y + yExpansion, z - 1)])
 				{
 					cantExpand = true;
@@ -406,7 +444,7 @@ void zDirectionMergeFaces(int x, int y, Chunk* chunk, BlockBitMask* zBlockFaceBi
 			}
 			// Turn off blocks that can be merged.
 			for (int xExpansion = 0; xExpansion < width; xExpansion++) {
-				zBlockFaceBitMask[chunk2dLocationToIndex(x + xExpansion, y + yExpansion)] &= ~startingBlock;
+				zBlockFaceBitMask[chunkLocationToIndex(x + xExpansion, y + yExpansion)] &= ~startingBlock;
 			}
 			height++;
 		}

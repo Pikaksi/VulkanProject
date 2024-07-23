@@ -2,34 +2,19 @@
 
 #include <iostream>
 
-GPUMemoryBlock::GPUMemoryBlock(VulkanCoreInfo* vulkanCoreInfo, VkDeviceSize size, uint32_t maxSingleDrawCallIndexAmount)
+GPUMemoryBlock::GPUMemoryBlock(VulkanCoreInfo* vulkanCoreInfo, uint32_t sizeofData, uint32_t allocationDataCount, uint32_t mergedDataMaxCount)
+    : blockSize(sizeofData * allocationDataCount), sizeofData(sizeofData), mergedDataMaxCount(mergedDataMaxCount)
 {
-    if (size >= UINT32_MAX) {
+    if (blockSize >= UINT32_MAX) {
         throw std::runtime_error("GPUMemoryBlock is too large!");
     }
 
-    this->maxSingleDrawCallIndexCount = maxSingleDrawCallIndexAmount;
-
-    blockSize = size;
-    createBuffer(vulkanCoreInfo, size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
-    emptyMemoryLocationsStartLookup.insert(std::make_pair(0, MemoryLocation(0, size - 1)));
-    emptyMemoryLocationsEndLookup.insert(std::make_pair(size - 1, MemoryLocation(0, size - 1)));
+    createBuffer(vulkanCoreInfo, blockSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, memory);
+    emptyMemoryLocationsStartLookup.insert(std::make_pair(0, MemoryLocation(0, blockSize - 1)));
+    emptyMemoryLocationsEndLookup.insert(std::make_pair(blockSize - 1, MemoryLocation(0, blockSize - 1)));
 }
 
-bool GPUMemoryBlock::addVertices(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t& memoryLocation, std::vector<Vertex>& vertices)
-{
-    uint32_t verticesSize = sizeof(vertices[0]) * vertices.size();
-    //std::cout << "added chunk with vertices size: " << verticesSize << "\n";
-
-    if (!allocateMemory(verticesSize, memoryLocation)) {
-        std::cout << "Could not find space for vertex data in memory block\n";
-        return false;
-    }
-    copyVerticesToLocation(vulkanCoreInfo, commandPool, memoryLocation, verticesSize, vertices);
-    return true;
-}
-
-// returns true if location was found
+// returns true if successful
 bool GPUMemoryBlock::allocateMemory(uint32_t size, uint32_t& location)
 {
     for (auto pair : emptyMemoryLocationsStartLookup) {
@@ -97,27 +82,6 @@ void GPUMemoryBlock::freeMemory(uint32_t& allocationStartOffset)
     }
 }
 
-void GPUMemoryBlock::copyVerticesToLocation(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t memoryOffsetStart, uint32_t size, std::vector<Vertex>& vertices)
-{
-    if (memoryOffsetStart + size > blockSize) {
-        std::cout << "tried to write data at " << memoryOffsetStart << " to " << memoryOffsetStart + size << " block size is " << blockSize << '\n';
-        throw std::runtime_error("Vertex data write is out of memory block!\n");
-    }
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(vulkanCoreInfo, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, size, 0, &data);
-    memcpy(data, vertices.data(), (size_t)size);
-    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
-
-    copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, size, 0, memoryOffsetStart);
-
-    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
-}
 
 void GPUMemoryBlock::trackAddedMemoryLocation(uint32_t allocationStartOffset, uint32_t size)
 {
@@ -147,12 +111,9 @@ void GPUMemoryBlock::trackAddedMemoryLocation(uint32_t allocationStartOffset, ui
     }
 }
 
-void GPUMemoryBlock::getVerticesToRender(
-    VkBuffer& vertexBuffer,
-    std::vector<VkDeviceSize>& vertexOffsets,
-    std::vector<uint32_t>& batchIndexCounts)
+void GPUMemoryBlock::getVertexDataMerged(VkBuffer& outVertexBuffer, std::vector<VkDeviceSize>& vertexOffsets, std::vector<uint32_t>& batchVertexCounts)
 {
-    vertexBuffer = buffer;
+    outVertexBuffer = buffer;
 
     uint32_t iteratorLocation = 0;
     bool gapsBetweenLastMemory = true;
@@ -161,15 +122,14 @@ void GPUMemoryBlock::getVerticesToRender(
 
         if (usedMemoryLocationsStartLookup.contains(iteratorLocation)) {
             MemoryLocation currentMemoryBlock = usedMemoryLocationsStartLookup.at(iteratorLocation);
-            // get index count by getting vertex count and multiply with indices/vertices = 1.5f.
-            uint32_t indexCount = currentMemoryBlock.getSize() / sizeof(Vertex) * 1.5f;
+            uint32_t dataCount = currentMemoryBlock.getSize() / sizeofData;
 
-            if (gapsBetweenLastMemory || batchIndexCounts.back() + indexCount > maxSingleDrawCallIndexCount) {
+            if (gapsBetweenLastMemory || batchVertexCounts.back() + dataCount > mergedDataMaxCount) {
                 vertexOffsets.push_back(iteratorLocation);
-                batchIndexCounts.push_back(indexCount);
+                batchVertexCounts.push_back(dataCount);
             }
             else {
-                batchIndexCounts.back() += indexCount;
+                batchVertexCounts.back() += dataCount;
             }
             iteratorLocation = currentMemoryBlock.endOffset + 1;
             gapsBetweenLastMemory = false;
@@ -191,14 +151,14 @@ void GPUMemoryBlock::debugPrint()
     }
 }
 
-uint32_t GPUMemoryBlock::getVertexCount()
+uint32_t GPUMemoryBlock::getDataCount()
 {
-    uint32_t vertexCount = 0;
+    uint32_t dataCount = 0;
 
     for (auto pair : usedMemoryLocationsStartLookup) {
-        vertexCount += pair.second.getSize();
+        dataCount += pair.second.getSize();
     }
-    return vertexCount / sizeof(Vertex);
+    return dataCount / sizeofData;
 }
 
 void GPUMemoryBlock::cleanup(VulkanCoreInfo* vulkanCoreInfo)

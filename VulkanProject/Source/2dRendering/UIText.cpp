@@ -1,5 +1,7 @@
 #include "UIText.hpp"
 
+#include <iostream>
+
 void UIText::setText(std::string text)
 {
 	textQuads.clear();
@@ -17,22 +19,24 @@ void UIText::setText(std::string text)
 		if (!charToTexLocation.contains(text[i])) {
 			continue;
 		}
-		std::pair<float, float> texLocation = charToTexLocation.at(text[i]);
+		glm::vec2 texLocation = charToTexLocation.at(text[i]);
 		UIQuad uIQuad(
-			// dont know why the number here is 4 instead of 2
-			x + ((letterHeight / 4 ) * xCounter), y + (letterHeight * yCounter),
-			letterHeight / 2, letterHeight,
-			texLocation.first, texLocation.second,
-			LETTER_TEX_WIDTH, LETTER_TEX_HEIGHT);
+			location + letterSize * glm::vec2(xCounter / 2.0f, yCounter),
+			letterSize,
+			texLocation,
+			texLocation + LETTER_TEX_SIZE,
+			0,
+			{0.0f, 0.0f, 0.0f, 0.0f },
+			letterCenteringMode);
 		textQuads.push_back(uIQuad);
 
 		xCounter++;
 	}
 }
 
-void UIText::addMeshData(int screenWidth, int screenHeight, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+void UIText::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices)
 {
 	for (const UIQuad& charQuad : textQuads) {
-		charQuad.addMeshData(screenWidth, screenHeight, vertices, indices);
+		charQuad.addMeshData(extent, vertices);
 	}
 }

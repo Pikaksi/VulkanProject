@@ -6,10 +6,11 @@
 #include "World/WorldGeneration/ChunkGenerator.hpp"
 
 
-void WorldManager::tryGeneratingNewChunk(glm::i32vec3 chunkLocation)
+void WorldManager::tryGeneratingNewChunk(glm::i32vec3 chunkLocation, std::unordered_set<glm::ivec3>& chunksToRerender)
 {
 	if (chunks.contains(chunkLocation)) {
 		return;
 	}
-	chunks[chunkLocation] = generateChunk(chunkLocation);
+	generateChunk(chunkLocation, this, chunksToRerender);
 }
+

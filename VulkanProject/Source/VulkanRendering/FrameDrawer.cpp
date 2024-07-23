@@ -91,48 +91,56 @@ void recordCommandBuffer(
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    // render world from GPUMemoryBlocks
-    VkBuffer vertexBuffer;
-    std::vector<VkDeviceSize> vertexOffsets;
-    std::vector<uint32_t> batchIndexCounts;
-    VkBuffer indexBuffer;
+    // Render world.
+    VkBuffer worldVertexBuffer;
+    std::vector<VkDeviceSize> worldVertexOffsets;
+    std::vector<uint32_t> worldBatchVertexCounts;
+    VkBuffer worldIndexBuffer;
     vertexBufferManager.getWorldGeometryForRendering(
-        vertexBuffer,
-        vertexOffsets,
-        batchIndexCounts,
-        indexBuffer);
+        worldVertexBuffer,
+        worldVertexOffsets,
+        worldBatchVertexCounts,
+        worldIndexBuffer);
 
-    unsigned long long testIndexCount = 0;
+    for (int i = 0; i < worldVertexOffsets.size(); i++) {
 
-    for (int i = 0; i < vertexOffsets.size(); i++) {
+        VkBuffer vertexBuffers[] = { worldVertexBuffer };
 
-        VkBuffer vertexBuffers[] = { vertexBuffer };
-
-        VkDeviceSize offsets[] = { vertexOffsets[i] };
+        VkDeviceSize offsets[] = { worldVertexOffsets[i] };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, batchIndexCounts[i], 1, 0, 0, 0);
-        testIndexCount += batchIndexCounts[i];
+        // get index count by multiplying vertex count by 1.5
+        vkCmdDrawIndexed(commandBuffer, worldBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
     }
 
-    // render UI
-    if (uIManager.hasElementsToRender[uIManager.updatedUIIndex]) {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
+    // Render UI.
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
 
-        VkBuffer vertexBuffers[] = { uIManager.vertexBuffer[uIManager.updatedUIIndex] };
+    VkBuffer uiVertexBuffer;
+    std::vector<VkDeviceSize> uiVertexOffsets;
+    std::vector<uint32_t> uiBatchVertexCounts;
+    VkBuffer uiIndexBuffer;
+    vertexBufferManager.getUIGeometryForRendering(
+        uiVertexBuffer,
+        uiVertexOffsets,
+        uiBatchVertexCounts,
+        uiIndexBuffer);
 
-        VkDeviceSize offsets[] = { 0 };
+    for (int i = 0; i < uiVertexOffsets.size(); i++) {
+        VkBuffer vertexBuffers[] = { uiVertexBuffer };
+
+        VkDeviceSize offsets[] = { uiVertexOffsets[i] };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindIndexBuffer(commandBuffer, uIManager.indexBuffer[uIManager.updatedUIIndex], 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, uIManager.indexCount[uIManager.updatedUIIndex], 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
     }
 
     vkCmdEndRenderPass(commandBuffer);
@@ -176,8 +184,6 @@ void drawFrame(
         throw std::runtime_error("failed to acquire swap chain image!");
     }
     updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo->extent);
-
-    uIManager.refreshUI(vulkanCoreInfo, commandPool, swapChainInfo->extent.width, swapChainInfo->extent.height);
 
     vkResetFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame]);
 
@@ -230,10 +236,6 @@ void drawFrame(
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo);
-
-        if (framebufferResized) {
-            uIManager.refreshUI(vulkanCoreInfo, commandPool, swapChainInfo->extent.width, swapChainInfo->extent.height);
-        }
 
         framebufferResized = false;
     }

@@ -40,7 +40,9 @@ void Application::initGame()
 
     debugMenu = DebugMenu(0.25f);
 
-    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, sizeof(Vertex) * 10000000);
+    int worldMaxVertexCount = 10000000;
+    int uiMaxVertexCount = 50000;
+    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldMaxVertexCount, uiMaxVertexCount);
 
     generateBlockTexLayerLookupTable();
 }
@@ -101,7 +103,7 @@ void Application::mainLoop()
 
         cameraHandler.updateCameraTransform();
 
-        debugMenu.update(uIManager, worldManager, cameraHandler, vertexBufferManager.worldGPUMemoryBlock);
+        debugMenu.update(uIManager, vertexBufferManager, worldManager, cameraHandler);
 
         gameMainLoop();
         
@@ -138,12 +140,14 @@ void Application::gameMainLoop()
         std::floor(cameraHandler.position.z / (float)CHUNK_SIZE)
     );
     chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
+
+    uIManager.updateScreen(swapChainInfo->extent, vulkanCoreInfo, commandPool, vertexBufferManager);
 }
 
 void Application::cleanup()
 {
     vertexBufferManager.cleanUp(vulkanCoreInfo);
-    uIManager.cleanUpAll(vulkanCoreInfo);
+    uIManager.cleanup();
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
@@ -164,11 +168,6 @@ void Application::cleanup()
     vkDestroyImage(vulkanCoreInfo->device, blockTextureImageArray->image, nullptr);
     vkFreeMemory(vulkanCoreInfo->device, blockTextureImageArray->memory, nullptr);
     vkDestroySampler(vulkanCoreInfo->device, blockTextureArraySampler, nullptr);
-
-    /*vkDestroyImageView(vulkanCoreInfo->device, blockTextureImage->view, nullptr);
-    vkDestroyImage(vulkanCoreInfo->device, blockTextureImage->image, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, blockTextureImage->memory, nullptr);
-    vkDestroySampler(vulkanCoreInfo->device, blockTextureSampler, nullptr);*/
 
     vkDestroyImageView(vulkanCoreInfo->device, textTextureImage->view, nullptr);
     vkDestroyImage(vulkanCoreInfo->device, textTextureImage->image, nullptr);

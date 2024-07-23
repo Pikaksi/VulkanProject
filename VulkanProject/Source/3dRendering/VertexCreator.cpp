@@ -66,8 +66,8 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 {
 	std::array<float, 6> textureArrayIndices = blockTypeToTexLayer.at(blockType);
 	// right
-	if ((x != CHUNK_SIZE - 1 && !isSolidBlock[chunkGetBlockAtLocation(x + 1, y, z, chunk)])
-		|| (x == CHUNK_SIZE - 1 && chunkPX != nullptr && !isSolidBlock[chunkGetBlockAtLocation(0, y, z, chunkPX)])) {
+	if ((x != CHUNK_SIZE - 1 && !isBlockSolid(chunkGetBlockAtLocation(x + 1, y, z, chunk)))
+		|| (x == CHUNK_SIZE - 1 && chunkPX != nullptr && !isBlockSolid(chunkGetBlockAtLocation(0, y, z, chunkPX)))) {
 
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.9f, 0.9f, 0.9f}, {0.0f, 1.0f}, textureArrayIndices[0] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.9f, 0.9f, 0.9f}, {1.0f, 1.0f}, textureArrayIndices[0] });
@@ -76,8 +76,8 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	}
 
 	// left
-	if ((x != 0 && !isSolidBlock[chunkGetBlockAtLocation(x - 1, y, z, chunk)])
-		|| (x == 0 && chunkNX != nullptr && !isSolidBlock[chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX)])) {
+	if ((x != 0 && !isBlockSolid(chunkGetBlockAtLocation(x - 1, y, z, chunk)))
+		|| (x == 0 && chunkNX != nullptr && !isBlockSolid(chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX)))) {
 
 		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ + 1}, {0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}, textureArrayIndices[1] });
 		vertices.push_back(Vertex{ {locationX,     locationY,     locationZ    }, {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}, textureArrayIndices[1] });
@@ -86,8 +86,8 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	}
 
 	// up
-	if ((y != CHUNK_SIZE - 1 && !isSolidBlock[chunkGetBlockAtLocation(x, y + 1, z, chunk)])
-		|| (y == CHUNK_SIZE - 1 && chunkPY != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, 0, z, chunkPY)])) {
+	if ((y != CHUNK_SIZE - 1 && !isBlockSolid(chunkGetBlockAtLocation(x, y + 1, z, chunk)))
+		|| (y == CHUNK_SIZE - 1 && chunkPY != nullptr && !isBlockSolid(chunkGetBlockAtLocation(x, 0, z, chunkPY)))) {
 
 		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, textureArrayIndices[2] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, textureArrayIndices[2] });
@@ -96,8 +96,8 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	}
 
 	// down
-	if ((y != 0 && !isSolidBlock[chunkGetBlockAtLocation(x, y - 1, z, chunk)])
-		|| (y == 0 && chunkNY != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY)])) {
+	if ((y != 0 && !isBlockSolid(chunkGetBlockAtLocation(x, y - 1, z, chunk)))
+		|| (y == 0 && chunkNY != nullptr && !isBlockSolid(chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY)))) {
 
 		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {0.0f, 1.0f}, textureArrayIndices[3] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ + 1}, {0.4f, 0.4f, 0.4f}, {1.0f, 1.0f}, textureArrayIndices[3] });
@@ -106,8 +106,8 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	}
 
 	// forward
-	if ((z != CHUNK_SIZE - 1 && !isSolidBlock[chunkGetBlockAtLocation(x, y, z + 1, chunk)])
-		|| (z == CHUNK_SIZE - 1 && chunkPZ != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, y, 0, chunkPZ)])) {
+	if ((z != CHUNK_SIZE - 1 && !isBlockSolid(chunkGetBlockAtLocation(x, y, z + 1, chunk)))
+		|| (z == CHUNK_SIZE - 1 && chunkPZ != nullptr && !isBlockSolid(chunkGetBlockAtLocation(x, y, 0, chunkPZ)))) {
 
 		vertices.push_back(Vertex{ {locationX + 1, locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {0.0f, 1.0f}, textureArrayIndices[4] });
 		vertices.push_back(Vertex{ {locationX    , locationY    , locationZ + 1}, {0.8f, 0.8f, 0.8f}, {1.0f, 1.0f}, textureArrayIndices[4] });
@@ -116,8 +116,8 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 	}
 
 	// backward
-	if ((z != 0 && !isSolidBlock[chunkGetBlockAtLocation(x, y, z - 1, chunk)])
-		|| (z == 0 && chunkNZ != nullptr && !isSolidBlock[chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ)])) {
+	if ((z != 0 && !isBlockSolid(chunkGetBlockAtLocation(x, y, z - 1, chunk)))
+		|| (z == 0 && chunkNZ != nullptr && !isBlockSolid(chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ)))) {
 
 		vertices.push_back(Vertex{ {locationX    , locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 1.0f}, textureArrayIndices[5] });
 		vertices.push_back(Vertex{ {locationX + 1, locationY,     locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 1.0f}, textureArrayIndices[5] });

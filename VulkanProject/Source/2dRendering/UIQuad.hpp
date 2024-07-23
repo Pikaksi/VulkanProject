@@ -2,31 +2,36 @@
 
 #include <vector>
 
-#include "3dRendering/Vertex.hpp"
+#include "Rendering/Vertex.hpp"
 
-class UIQuad
+enum class UICenteringMode
+{
+	BottomLeft = 0,
+	Bottom = 1,
+	BottomRight = 2,
+	Left = 3,
+	Center = 4,
+	Right = 5,
+	TopLeft = 6,
+	Top = 7,
+	TopRight = 8,
+};
+
+struct UIQuad
 {
 public:
-	float x;
-	float y;
-	float width;
-	float height;
-	float texX; 
-	float texY; 
-	float texWidth; 
-	float texHeight;
+	glm::vec2 location;
+	glm::vec2 size;
+	glm::vec2 texDownLeft;
+	glm::vec2 texUpRight;
+	float texLayer;
+	glm::vec4 color;
+	UICenteringMode centeringMode;
 
-	UIQuad(float x, float y, float width, float height, float texX, float texY, float texWidth, float texHeight)
-	{
-		this->x = x;
-		this->y = y;
-		this->width = width;
-		this->height = height;
-		this->texX = texX;
-		this->texY = texY;
-		this->texWidth = texWidth;
-		this->texHeight = texHeight;
-	}
+	UIQuad() {};
+	UIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, float texLayer, glm::vec4 color, UICenteringMode centeringMode) :
+		location(location), size(size), texDownLeft(texDownLeft), texUpRight(texUpRight), texLayer(texLayer), color(color), centeringMode(centeringMode) {}
 
-	void addMeshData(int screenWidth, int screenHeight, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const;
+
+	void addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices) const;
 };

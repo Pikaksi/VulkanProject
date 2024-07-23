@@ -2,34 +2,35 @@
 
 #include <iostream>
 
-void UIQuad::addMeshData(int screenWidth, int screenHeight, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) const
+void UIQuad::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices) const
 {
     float xScale = 1.0f;
     float yScale = 1.0f;
-    if (screenHeight >= screenWidth) {
-        yScale = (float)screenWidth / (float)screenHeight;
+    if (extent.height >= extent.width) {
+        yScale = (float)extent.width / (float)extent.height;
     }
     else {
-        xScale = (float)screenHeight / (float)screenWidth;
+        xScale = (float)extent.height / (float)extent.width;
     }
-    uint32_t vertexCount = vertices.size();
 
-    indices.push_back(vertexCount);
-    indices.push_back(vertexCount + 1);
-    indices.push_back(vertexCount + 2);
-    indices.push_back(vertexCount + 2);
-    indices.push_back(vertexCount + 3);
-    indices.push_back(vertexCount);
+    glm::vec2 realSize = { size.x * xScale, size.y * yScale };
+    glm::vec2 locationCentered = location;
 
-    /*std::cout
-        << "width = " << screenWidth << " height = " << screenHeight << "\n"
-        << "xScale = " << xScale << "\n"
-        << "x = " << x << " y = " << y << "\n"
-        << "x = " << x << " y = " << y + (height * yScale) << "\n"
-        << "x = " << x + (width * xScale) << " y = " << y + (height * yScale) << "\n"
-        << "x = " << x + (width * xScale) << " y = " << y << "\n";*/
-    vertices.push_back(Vertex{ {x,                    y,                     0}, {1.0f, 1.0f, 1.0f}, {texX, texY}, 0.0f });
-    vertices.push_back(Vertex{ {x,                    y + (height * yScale), 0}, {1.0f, 1.0f, 1.0f}, {texX, texY + texHeight}, 0.0f });
-    vertices.push_back(Vertex{ {x + (width * xScale), y + (height * yScale), 0}, {1.0f, 1.0f, 1.0f}, {texX + texWidth, texY + texHeight}, 0.0f });
-    vertices.push_back(Vertex{ {x + (width * xScale), y,                     0}, {1.0f, 1.0f, 1.0f}, {texX + texWidth, texY}, 0.0f });
+    if (centeringMode == UICenteringMode::Top || centeringMode == UICenteringMode::Center || centeringMode == UICenteringMode::Bottom) {
+        locationCentered.x -= realSize.x / 2;
+    }
+    else if (centeringMode == UICenteringMode::BottomRight || centeringMode == UICenteringMode::Right || centeringMode == UICenteringMode::TopRight) {
+        locationCentered.x -= realSize.x;
+    }
+
+    if (centeringMode == UICenteringMode::Left || centeringMode == UICenteringMode::Center || centeringMode == UICenteringMode::Right) {
+        locationCentered.y -= realSize.y / 2;
+    }
+    else if (centeringMode == UICenteringMode::TopLeft || centeringMode == UICenteringMode::Top || centeringMode == UICenteringMode::TopRight) {
+        //locationCentered.y -= realSize.y;
+    }
+    vertices.push_back(Vertex2D{ {locationCentered.x,              locationCentered.y,            }, color, texDownLeft,                   0.0f });
+    vertices.push_back(Vertex2D{ {locationCentered.x,              locationCentered.y + realSize.y}, color, { texDownLeft.x, texUpRight.y }, 0.0f });
+    vertices.push_back(Vertex2D{ {locationCentered.x + realSize.x, locationCentered.y + realSize.y}, color, texUpRight,                    0.0f });
+    vertices.push_back(Vertex2D{ {locationCentered.x + realSize.x, locationCentered.y,            }, color, {texUpRight.x, texDownLeft.y}, 0.0f });
 }

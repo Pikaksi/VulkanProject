@@ -1,6 +1,6 @@
 #pragma once
 
-#include <VulkanRendering/VulkanTypes.hpp>
+#include "VulkanRendering/VulkanTypes.hpp"
 
 class QuadStripIndexBuffer
 {
@@ -10,6 +10,7 @@ public:
 	void cleanUp(VulkanCoreInfo* vulkanCoreInfo);
 	VkBuffer& getBuffer();
 	uint32_t getIndexCount();
+	uint32_t getVertexCount();
 
 private:
 	uint32_t quadCount;

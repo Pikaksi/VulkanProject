@@ -82,7 +82,7 @@ void ChunkRenderer::derenderChunks(glm::i32vec3 playerChunkLocation, VertexBuffe
 			pair.first.z <= minZ || pair.first.z >= maxZ)
 		{
 			//std::cout << "derendered chunk at " << pair.first.x << " " << pair.first.y << " " << pair.first.z << "\n";
-			vertexBufferManager.freeChunkVerticesMemory(pair.second);
+			vertexBufferManager.freeWorldVerticesMemory(pair.second);
 			chunksToDerender.push_back(pair.first);
 		}
 	}
@@ -128,47 +128,52 @@ void ChunkRenderer::renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPoo
 
 void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
 {
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	std::unordered_set<glm::ivec3> chunksToRerender;
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	// generate adjacent chunks so that we dont have to rerender this chunk when they are generated
 	chunkLocation.x -= 1;
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	chunkLocation.x += 2;
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	chunkLocation.x -= 1;
 
 	chunkLocation.y -= 1;
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	chunkLocation.y += 2;
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	chunkLocation.y -= 1;
 
 	chunkLocation.z -= 1;
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	chunkLocation.z += 2;
-	worldManager.tryGeneratingNewChunk(chunkLocation);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
 	chunkLocation.z -= 1;
 
-	//std::cout << "rendering chunk " << chunkLocation.x << " " << chunkLocation.y << " " << chunkLocation.z << "\n";
+	for (auto chunk : chunksToRerender) {
+		if (chunk.x == chunkLocation.x && chunk.y == chunkLocation.y && chunk.z == chunkLocation.z) {
+			tryAddChunksToRender(chunk);
+		}
+	}
+
+	/*static int chunksGenerated = 0;
+	static double averageTime = 0.0f;
+	auto startTime = std::chrono::high_resolution_clock::now();*/
 
 	std::vector<Vertex> vertices;
-	auto startTime = std::chrono::high_resolution_clock::now();
-
 	//generateChunkMeshData(worldManager, chunkLocation, vertices);
 	binaryGreedyMeshChunk(worldManager, chunkLocation, vertices);
 
-	auto endTime = std::chrono::high_resolution_clock::now();
-	auto chunkGenerationTime = std::chrono::duration<float, std::chrono::microseconds::period>(endTime - startTime).count();
-	if (vertices.size() == 0) {
-		std::cout << "time in generating empty chunk is " << chunkGenerationTime << "\n";
-	}
-	else {
-		std::cout << "time in generating not empty chunk is " << chunkGenerationTime << "\n";
-	}
+	/*auto endTime = std::chrono::high_resolution_clock::now();
+	double chunkGenerationTime = std::chrono::duration<double, std::chrono::microseconds::period>(endTime - startTime).count();
+	std::cout << "time in generating chunk is " << chunkGenerationTime << "\n";
+	chunksGenerated++;
+	averageTime = (averageTime * (chunksGenerated - 1) + chunkGenerationTime) / chunksGenerated;
+	std::cout << " average time up to this point is " << averageTime << "\n";*/
 	
 	if (vertices.size() == 0) {
 		return;
 	}
-	uint32_t memoryBlockPointer = vertexBufferManager.addChunkVertices(vulkanCoreInfo, commandPool, vertices);
+	uint32_t memoryBlockPointer = vertexBufferManager.addVerticesToWorld(vulkanCoreInfo, commandPool, vertices);
 
 	renderedChunks.insert(std::make_pair(chunkLocation, memoryBlockPointer));
 

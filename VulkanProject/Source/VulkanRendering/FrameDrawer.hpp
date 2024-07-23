@@ -2,7 +2,7 @@
 
 #include "VulkanTypes.hpp"
 #include "Constants.hpp"
-#include "3dRendering/VertexBufferManager.hpp"
+#include "Rendering/VertexBufferManager.hpp"
 #include "2dRendering/UIManager.hpp"
 #include "CameraHandler.hpp"
 

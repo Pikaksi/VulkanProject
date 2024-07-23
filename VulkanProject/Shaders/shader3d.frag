@@ -9,11 +9,7 @@ layout(location = 2) in float fragtexLayer;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    //if (fragTexCoord.x >= 0.75f || fragTexCoord.y >= 0.75f || fragTexCoord.x <= 0.5f || fragTexCoord.y <= 0.5f) {
-    //    outColor = vec4(1, 1, 1, 0);
-    //}
-    //else {
-    //    outColor = vec4(1, 1, 0, 0);
-    //}
-    outColor = texture(texSampler, vec3(fragTexCoord, fragtexLayer)) * vec4(fragColor, 0);
+    vec4 tex = texture(texSampler, vec3(fragTexCoord, fragtexLayer));
+    if (tex.w < 0.5) discard;
+    outColor = tex * vec4(fragColor, 0);
 }

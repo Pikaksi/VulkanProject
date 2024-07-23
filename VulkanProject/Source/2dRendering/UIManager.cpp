@@ -1,85 +1,151 @@
 #include "UIManager.hpp"
 
-#include <iostream>
+#include <vector>
 
-void UIManager::refreshUI(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, int screenWidth, int screenHeight)
+
+void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
 {
-    if (!uIRefreshNeeded) {
-        return;
-    }
-    uIRefreshNeeded = false;
+	for (int i = 0; i < quadsToDerender.size(); i++) {
+		vertexBufferManager.freeUIVerticesMemory(quadsToDerender[i]);
+	}
+	quadsToDerender.clear();
+	for (int i = 0; i < textToDerender.size(); i++) {
+		vertexBufferManager.freeUIVerticesMemory(textToDerender[i]);
+	}
+	textToDerender.clear();
 
-    updatedUIIndex = (updatedUIIndex + 1) % MAX_FRAMES_IN_FLIGHT;
-    cleanUpSingleFrame(vulkanCoreInfo, updatedUIIndex);
 
-    std::vector<Vertex> newVertices;
-    std::vector<uint32_t> newIndices;
+	for (int i = 0; i < quadsToRender.size(); i++) {
+		UIQuad* uiQuad = quadsToRender[i];
 
-    for (int i = 0; i < currentUIElements.size(); i++) {
-        currentUIElements[i].addMeshData(screenWidth, screenHeight, newVertices, newIndices);
-    }
-    for (int i = 0; i < currentTextElements.size(); i++) {
-        currentTextElements[i].addMeshData(screenWidth, screenHeight, newVertices, newIndices);
-    }
+		std::vector<Vertex2D> vertices;
+		uiQuad->addMeshData(extent, vertices);
+		uint32_t memoryLocation = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
+		quadsRendered.insert(std::make_pair(uiQuad, memoryLocation));
+	}
+	quadsToRender.clear();
 
-    bool hasVertices = newVertices.size() > 0;
-    hasElementsToRender[updatedUIIndex] = hasVertices;
-    std::cout << "refreshed with vertex count = " << (newVertices.size() > 0) << "\n";
-    if (!hasVertices) {
-        return;
-    }
+	for (int i = 0; i < textToRender.size(); i++) {
+		UIText* uiText = textToRender[i];
 
-    createVertexBuffer(vulkanCoreInfo, commandPool, vertexBuffer[updatedUIIndex], vertexBufferMemory[updatedUIIndex], newVertices);
-    createIndexBuffer(vulkanCoreInfo, commandPool, indexBuffer[updatedUIIndex], indexBufferMemory[updatedUIIndex], newIndices);
-    indexCount[updatedUIIndex] = newIndices.size();
-
-    /*VkBuffer test1; VkDeviceMemory test2;
-    createVertexBuffer(vulkanCoreInfo, commandPool, test1, test2, newVertices);
-    vertexBuffer.push_back(test1);
-    vertexBufferMemory.push_back(test2);
-
-    VkBuffer test3; VkDeviceMemory test4;
-    createIndexBuffer(vulkanCoreInfo, commandPool, test3, test4, newIndices);
-    indexBuffer.push_back(test3);
-    std::cout << "addedwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww " << indexBuffer.size() << "\n";
-    indexBufferMemory.push_back(test4);
-    indexCount.push_back(newIndices.size());*/
+		std::vector<Vertex2D> vertices;
+		uiText->addMeshData(extent, vertices);
+		uint32_t memoryLocation = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
+		textRendered.insert(std::make_pair(uiText, memoryLocation));
+	}
+	textToRender.clear();
 }
 
-UIText* UIManager::createUIText(float x, float y, float letterHeight, std::string text)
+UIQuad* UIManager::createUIQuad()
 {
-    UIText uIText(x, y, letterHeight, text);
-    currentTextElements.push_back(uIText);
-    return currentTextElements.data() + currentTextElements.size() - 1;
+	UIQuad* uiQuad = new UIQuad();
+	quadsAllocated.insert(uiQuad);
+	return uiQuad;
 }
 
-void UIManager::deleteUIText(UIText* uIText)
+UIQuad* UIManager::createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, float texLayer, glm::vec4 color, UICenteringMode uiCenteringMode)
 {
-    for (int i = 0; i < currentTextElements.size(); i++) {
-        if (uIText == currentTextElements.data() + i) {
-            std::cout << "deleted at " << i << "\n";
-            currentTextElements.erase(currentTextElements.begin() + i);
-            uIRefreshNeeded = true;
-        }
-    }
+	UIQuad* uiQuad = new UIQuad(location, size, texDownLeft, texUpRight, texLayer, color, uiCenteringMode);
+	quadsAllocated.insert(uiQuad);
+	return uiQuad;
 }
 
-void UIManager::cleanUpSingleFrame(VulkanCoreInfo* vulkanCoreInfo, int index)
+void UIManager::updateUIQuad(UIQuad* uiQuad)
 {
-    vkDestroyBuffer(vulkanCoreInfo->device, vertexBuffer[index], nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, vertexBufferMemory[index], nullptr);
-
-    vkDestroyBuffer(vulkanCoreInfo->device, indexBuffer[index], nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, indexBufferMemory[index], nullptr);
+	removeUIQuad(uiQuad);
+	quadsToRender.push_back(uiQuad);
 }
 
-void UIManager::cleanUpAll(VulkanCoreInfo* vulkanCoreInfo)
+void UIManager::deleteUIQuad(UIQuad* uiQuad)
 {
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(vulkanCoreInfo->device, vertexBuffer[i], nullptr);
-        vkFreeMemory(vulkanCoreInfo->device, vertexBufferMemory[i], nullptr);
+	removeUIQuad(uiQuad);
+	delete uiQuad;
+}
 
-        vkDestroyBuffer(vulkanCoreInfo->device, indexBuffer[i], nullptr);
-        vkFreeMemory(vulkanCoreInfo->device, indexBufferMemory[i], nullptr);
-    }
+void UIManager::removeUIQuad(UIQuad* uiQuad)
+{
+	bool quadIsRendered = quadsRendered.contains(uiQuad);
+	bool quadIsAllocated = quadsAllocated.contains(uiQuad);
+
+#ifndef NDEBUG
+	if (!quadIsRendered && !quadIsAllocated) {
+		throw std::runtime_error("Tried to update UIQuad but it does not exist");
+	}
+#endif
+
+	if (quadIsRendered) {
+		quadsToDerender.push_back(quadsRendered.at(uiQuad));
+		quadsRendered.erase(uiQuad);
+	}
+	else if (quadIsAllocated) {
+		quadsAllocated.erase(uiQuad);
+	}
+}
+
+UIText* UIManager::createUIText()
+{
+	UIText* uiText = new UIText();
+	textAllocated.insert(uiText);
+	return uiText;
+}
+
+UIText* UIManager::createUIText(glm::vec2 location, float letterHeight, std::string text, UICenteringMode letterCenteringMode)
+{
+	UIText* uiText = new UIText(location, letterHeight, text, letterCenteringMode);
+	textAllocated.insert(uiText);
+	return uiText;
+}
+
+void UIManager::updateUIText(UIText* uiText)
+{
+	removeUIText(uiText);
+	textToRender.push_back(uiText);
+}
+
+void UIManager::deleteUIText(UIText* uiText)
+{
+	removeUIText(uiText);
+	delete uiText;
+}
+
+void UIManager::removeUIText(UIText* uiText)
+{
+	bool textIsRendered = textRendered.contains(uiText);
+	bool textIsAllocated = textAllocated.contains(uiText);
+
+#ifndef NDEBUG
+	if (!textIsRendered && !textIsAllocated) {
+		throw std::runtime_error("Tried to update UIText but it does not exist");
+	}
+#endif
+
+	if (textIsRendered) {
+		textToDerender.push_back(textRendered.at(uiText));
+		textRendered.erase(uiText);
+	}
+	else if (textIsAllocated) {
+		textAllocated.erase(uiText);
+	}
+}
+
+void UIManager::cleanup()
+{
+	for (auto uiObjectPointer : quadsAllocated) {
+		delete uiObjectPointer;
+	}
+	for (auto uiObjectPointer : quadsToRender) {
+		delete uiObjectPointer;
+	}
+	for (auto uiObjectPointer : quadsRendered) {
+		delete uiObjectPointer.first;
+	}
+	for (auto uiObjectPointer : textAllocated) {
+		delete uiObjectPointer;
+	}
+	for (auto uiObjectPointer : textToRender) {
+		delete uiObjectPointer;
+	}
+	for (auto uiObjectPointer : textRendered) {
+		delete uiObjectPointer.first;
+	}
 }

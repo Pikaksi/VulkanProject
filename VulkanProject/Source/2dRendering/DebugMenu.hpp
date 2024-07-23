@@ -15,7 +15,7 @@ private:
 	float refreshInterval;
 	int fpsCounter = 0;
 	float textSize = 0.05f;
-	UIText* leftUpCornerText;
+	UIText* debugMenuText;
 	std::chrono::steady_clock::time_point lastFpsCounterResetTime;
 	std::chrono::steady_clock::time_point lastUIRefreshTime;
 
@@ -26,11 +26,11 @@ public:
 		this->refreshInterval = refreshInterval;
 	}
 
-	void update(UIManager& uIManager, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock);
+	void update(UIManager& uIManager, VertexBufferManager& vertexBufferManager, WorldManager& worldManager, CameraHandler& cameraHandler);
 
 private:
 	void enableMenu(UIManager& uIManager);
 	void disableMenu(UIManager& uIManager);
 	void checkIfEnabledStatus(UIManager& uIManager);
-	void updateUI(UIManager& uIManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler, GPUMemoryBlock& worldGPUMemoryBlock);
+	void updateUI(UIManager& uiManager, VertexBufferManager& vertexBufferManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler);
 };

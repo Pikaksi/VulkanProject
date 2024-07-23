@@ -1,18 +1,13 @@
 do UI rendering before world rendering and write depthbuffer to save resources
 
-convert MemoryLocation to use startOffset and size (performance)
-
-add checks so that the quad strip index buffer is never short enough
+maybe convert MemoryLocation to use startOffset and size (performance)
 
 optimize vertex size
 
 make 2d vertices
 
+Fix runtime library to use /MD and not /MDd.
 
+Vulkan types are created with new
 
-
-
-- allocate X1 amount of memory.
-- do vertex buffer and index bufdfer seperately
-- divide into X2 large chunks
-- insert vertices into there
+check if can bind multiple buffers with vkCmdBindVertexBuffers

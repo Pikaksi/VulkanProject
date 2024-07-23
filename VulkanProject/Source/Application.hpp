@@ -32,10 +32,10 @@
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "VulkanRendering/DeviceCreator.hpp"
 #include "VulkanRendering/SwapChain.hpp"
-#include "3dRendering/VertexBufferManager.hpp"
+#include "Rendering/VertexBufferManager.hpp"
 #include "3dRendering/ChunkRenderer.hpp"
 #include "3dRendering/VertexCreator.hpp"
-#include "3dRendering/Vertex.hpp"
+#include "Rendering/Vertex.hpp"
 #include "2dRendering/UIManager.hpp"
 #include "2dRendering/DebugMenu.hpp"
 #include "FilePathHandler.hpp"
@@ -54,14 +54,10 @@ public:
     void run();
 
 private:
-    Application()
-    {
-    }
+    Application() {}
 
     VulkanCoreInfo* vulkanCoreInfo = new VulkanCoreInfo;
     SwapChainInfo* swapChainInfo = new SwapChainInfo;
-
-    VertexBufferManager vertexBufferManager;
 
     GraphicsPipelineInfo* graphicsPipelineInfo3d = new GraphicsPipelineInfo;
     GraphicsPipelineInfo* graphicsPipelineInfo2d = new GraphicsPipelineInfo;
@@ -96,6 +92,7 @@ private:
     uint32_t currentFrame = 0;
     uint32_t maxVertexInputBindings;
 
+    VertexBufferManager vertexBufferManager;
     ChunkRenderer chunkRenderer;
     CameraHandler cameraHandler;
     WorldManager worldManager;

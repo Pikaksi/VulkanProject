@@ -36,7 +36,7 @@ VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo* vulkanCoreInfo
 
 VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo* vulkanCoreInfo) {
     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-    samplerLayoutBinding.binding = 1;
+    samplerLayoutBinding.binding = 0;
     samplerLayoutBinding.descriptorCount = 1;
     samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     samplerLayoutBinding.pImmutableSamplers = nullptr;
@@ -184,7 +184,7 @@ std::vector<VkDescriptorSet> createDescriptorSets2d(
 
         descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[0].dstSet = descriptorSets[i];
-        descriptorWrites[0].dstBinding = 1;
+        descriptorWrites[0].dstBinding = 0;
         descriptorWrites[0].dstArrayElement = 0;
         descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrites[0].descriptorCount = 1;
