@@ -31,5 +31,5 @@ public:
 	glm::vec3 cameraUpDirection();
 	glm::vec3 cameraForwardDirection();
 	void updateCameraTransform();
-	CameraUniformBufferObject getCameraMatrix(VkExtent2D swapChainExtent);
+	void getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo);
 };

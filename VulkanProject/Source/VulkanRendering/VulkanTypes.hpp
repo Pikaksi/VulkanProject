@@ -43,8 +43,8 @@ struct SwapChainInfo
 
 	VkRenderPass renderPass;
 
-	ImageInfo* colorImage = new ImageInfo;
-	ImageInfo* depthImage = new ImageInfo;
+	ImageInfo colorImage = ImageInfo();
+	ImageInfo depthImage = ImageInfo();
 };
 
 struct GraphicsPipelineInfo

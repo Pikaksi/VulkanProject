@@ -12,9 +12,10 @@
 #include "FilePathHandler.hpp"
 
 
-void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string fileName) {
+void createTextureImage(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string& fileName) {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(("Textures/" + fileName).c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    std::cout << ("Textures\\" + fileName) << "\n";
+    stbi_uc* pixels = stbi_load(("Textures\\" + fileName).c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     
     uint32_t mipLevels = 1;
@@ -31,9 +32,9 @@ void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, Vk
     createBuffer(vulkanCoreInfo, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(vulkanCoreInfo.device, stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, pixels, static_cast<size_t>(imageSize));
-    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
+    vkUnmapMemory(vulkanCoreInfo.device, stagingBufferMemory);
 
     stbi_image_free(pixels);
 
@@ -52,19 +53,19 @@ void createTextureImage(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, Vk
         1,
         VK_IMAGE_VIEW_TYPE_2D);
 
-    transitionImageLayout(vulkanCoreInfo, commandPool, imageInfo->image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
-    copyBufferToImage(vulkanCoreInfo, commandPool, stagingBuffer, imageInfo->image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
+    transitionImageLayout(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
+    copyBufferToImage(vulkanCoreInfo, commandPool, stagingBuffer, imageInfo.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
     //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
-    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(vulkanCoreInfo.device, stagingBuffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, stagingBufferMemory, nullptr);
 
-    generateMipmaps(vulkanCoreInfo, commandPool, imageInfo->image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, 1);
+    generateMipmaps(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, 1);
 }
 
-VkSampler createBlockTextureSampler(VulkanCoreInfo* vulkanCoreInfo) {
+VkSampler createBlockTextureSampler(VulkanCoreInfo& vulkanCoreInfo) {
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(vulkanCoreInfo->physicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &properties);
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -85,16 +86,16 @@ VkSampler createBlockTextureSampler(VulkanCoreInfo* vulkanCoreInfo) {
     samplerInfo.mipLodBias = 0.0f;
 
     VkSampler textureSampler;
-    if (vkCreateSampler(vulkanCoreInfo->device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(vulkanCoreInfo.device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
     return textureSampler;
 }
 
-VkSampler createTextTextureSampler(VulkanCoreInfo* vulkanCoreInfo)
+VkSampler createUITextureSampler(VulkanCoreInfo& vulkanCoreInfo)
 {
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(vulkanCoreInfo->physicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &properties);
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -115,22 +116,20 @@ VkSampler createTextTextureSampler(VulkanCoreInfo* vulkanCoreInfo)
     samplerInfo.mipLodBias = 0.0f;
 
     VkSampler textureSampler;
-    if (vkCreateSampler(vulkanCoreInfo->device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(vulkanCoreInfo.device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
     return textureSampler;
 }
 
-void createBlockTextureArray(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInfo, VkCommandPool commandPool, bool generateMipLevels) {
-
+void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels)
+{
     std::vector<stbi_uc*> imagePixels;
     std::vector<int> texWidths, texHeights;
     int texChannels;
 
     for (auto const& dir_entry : std::filesystem::directory_iterator{ GetBlockTexturesDirPath() }) {
         if (dir_entry.path().extension() == ".png") {
-
-            std::cout << dir_entry.path().filename().string() << " a\n";
 
             texWidths.push_back(0);
             texHeights.push_back(0);
@@ -184,21 +183,21 @@ void createBlockTextureArray(VulkanCoreInfo* vulkanCoreInfo, ImageInfo* imageInf
     createBuffer(vulkanCoreInfo, imageArraySize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, imageArraySize, 0, &data);
+    vkMapMemory(vulkanCoreInfo.device, stagingBufferMemory, 0, imageArraySize, 0, &data);
 
     for (int i = 0; i < imagePixels.size(); i++) {
         memcpy(static_cast<stbi_uc*>(data) + i * imageSize, imagePixels[i], static_cast<size_t>(imageSize));
         stbi_image_free(imagePixels[i]);
     }
-    vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
+    vkUnmapMemory(vulkanCoreInfo.device, stagingBufferMemory);
 
 
-    transitionImageLayout(vulkanCoreInfo, commandPool, imageInfo->image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, imageCount);
-    copyBufferToImage(vulkanCoreInfo, commandPool, stagingBuffer, imageInfo->image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), imageCount);
+    transitionImageLayout(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, imageCount);
+    copyBufferToImage(vulkanCoreInfo, commandPool, stagingBuffer, imageInfo.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), imageCount);
     //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
-    vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(vulkanCoreInfo.device, stagingBuffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, stagingBufferMemory, nullptr);
 
-    generateMipmaps(vulkanCoreInfo, commandPool, imageInfo->image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, imageCount);
+    generateMipmaps(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, imageCount);
 }

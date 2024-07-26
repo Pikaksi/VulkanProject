@@ -5,7 +5,7 @@
 #include "Descriptor.hpp"
 #include "Constants.hpp"
 
-VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo* vulkanCoreInfo) {
+VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo& vulkanCoreInfo) {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorCount = 1;
@@ -28,16 +28,16 @@ VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo* vulkanCoreInfo
 
     VkDescriptorSetLayout descriptorSetLayout;
 
-    if (vkCreateDescriptorSetLayout(vulkanCoreInfo->device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(vulkanCoreInfo.device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
     return descriptorSetLayout;
 }
 
-VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo* vulkanCoreInfo) {
+VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo) {
     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
     samplerLayoutBinding.binding = 0;
-    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorCount = 2;
     samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     samplerLayoutBinding.pImmutableSamplers = nullptr;
     samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -50,13 +50,13 @@ VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo* vulkanCoreInfo
 
     VkDescriptorSetLayout descriptorSetLayout;
 
-    if (vkCreateDescriptorSetLayout(vulkanCoreInfo->device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+    if (vkCreateDescriptorSetLayout(vulkanCoreInfo.device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
     return descriptorSetLayout;
 }
 
-VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo* vulkanCoreInfo) {
+VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo) {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -70,13 +70,13 @@ VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo* vulkanCoreInfo) {
     poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPool descriptorPool;
-    if (vkCreateDescriptorPool(vulkanCoreInfo->device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(vulkanCoreInfo.device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
     }
     return descriptorPool;
 }
 
-VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo* vulkanCoreInfo) {
+VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo) {
     std::array<VkDescriptorPoolSize, 1> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
@@ -88,18 +88,18 @@ VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo* vulkanCoreInfo) {
     poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPool descriptorPool;
-    if (vkCreateDescriptorPool(vulkanCoreInfo->device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(vulkanCoreInfo.device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
     }
     return descriptorPool;
 }
 
 std::vector<VkDescriptorSet> createDescriptorSets3d(
-    VulkanCoreInfo* vulkanCoreInfo, 
+    VulkanCoreInfo& vulkanCoreInfo, 
     VkDescriptorPool descriptorPool, 
     VkDescriptorSetLayout descriptorSetLayout,
-    std::vector<UniformBufferInfo*> cameraUniformBuffers,
-    ImageInfo* textureImage,
+    std::vector<UniformBufferInfo>& cameraUniformBuffers,
+    ImageInfo& textureImage,
     VkSampler textureImageSampler)
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
@@ -111,20 +111,20 @@ std::vector<VkDescriptorSet> createDescriptorSets3d(
 
     std::vector<VkDescriptorSet> descriptorSets;
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(vulkanCoreInfo->device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(vulkanCoreInfo.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
     //std::cout << "allocated descriptors\n";
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = cameraUniformBuffers[i]->buffer;
+        bufferInfo.buffer = cameraUniformBuffers[i].buffer;
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(CameraUniformBufferObject);
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = textureImage->view;
+        imageInfo.imageView = textureImage.view;
         imageInfo.sampler = textureImageSampler;
 
         std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
@@ -146,17 +146,17 @@ std::vector<VkDescriptorSet> createDescriptorSets3d(
         descriptorWrites[1].pImageInfo = &imageInfo;
         
 
-        vkUpdateDescriptorSets(vulkanCoreInfo->device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+        vkUpdateDescriptorSets(vulkanCoreInfo.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
     }
     return descriptorSets;
 }
 
 std::vector<VkDescriptorSet> createDescriptorSets2d(
-    VulkanCoreInfo* vulkanCoreInfo,
+    VulkanCoreInfo& vulkanCoreInfo,
     VkDescriptorPool descriptorPool,
     VkDescriptorSetLayout descriptorSetLayout,
-    ImageInfo* textureImage,
+    std::vector<ImageInfo>& uiImageInfos,
     VkSampler textureImageSampler)
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
@@ -168,17 +168,19 @@ std::vector<VkDescriptorSet> createDescriptorSets2d(
 
     std::vector<VkDescriptorSet> descriptorSets;
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(vulkanCoreInfo->device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(vulkanCoreInfo.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
-    //std::cout << "allocated descriptors\n";
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
-        VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = textureImage->view;
-        imageInfo.sampler = textureImageSampler;
+        std::vector<VkDescriptorImageInfo> imageInfo(uiImageInfos.size());
+
+        for (int imageIndex = 0; imageIndex < uiImageInfos.size(); imageIndex++) {
+            imageInfo[imageIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo[imageIndex].imageView = uiImageInfos[imageIndex].view;
+            imageInfo[imageIndex].sampler = textureImageSampler;
+        }
 
         std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
@@ -187,12 +189,10 @@ std::vector<VkDescriptorSet> createDescriptorSets2d(
         descriptorWrites[0].dstBinding = 0;
         descriptorWrites[0].dstArrayElement = 0;
         descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrites[0].descriptorCount = 1;
-        descriptorWrites[0].pImageInfo = &imageInfo;
+        descriptorWrites[0].descriptorCount = 2;
+        descriptorWrites[0].pImageInfo = imageInfo.data();
 
-
-        vkUpdateDescriptorSets(vulkanCoreInfo->device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
+        vkUpdateDescriptorSets(vulkanCoreInfo.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
     return descriptorSets;
 }

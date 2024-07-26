@@ -55,7 +55,7 @@ struct Vertex2D {
     glm::vec2 pos;
     glm::vec4 color;
     glm::vec2 texCoord;
-    float texLayer;
+    uint32_t texLayer;
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
@@ -86,7 +86,7 @@ struct Vertex2D {
 
         attributeDescriptions[3].binding = 0;
         attributeDescriptions[3].location = 3;
-        attributeDescriptions[3].format = VK_FORMAT_R32_SFLOAT;
+        attributeDescriptions[3].format = VK_FORMAT_R32_UINT;
         attributeDescriptions[3].offset = offsetof(Vertex2D, texLayer);
 
         return attributeDescriptions;

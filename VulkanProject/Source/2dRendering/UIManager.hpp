@@ -19,10 +19,10 @@ public:
 
 	UIManager() {};
 
-	void updateScreen(VkExtent2D extent, VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);
+	void updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);
 
 	UIQuad* createUIQuad();
-	UIQuad* createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, float texLayer, glm::vec4 color, UICenteringMode uiCenteringMode);
+	UIQuad* createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, uint32_t texLayer, glm::vec4 color, UICenteringMode uiCenteringMode);
 	void updateUIQuad(UIQuad* uiQuad);
 	void deleteUIQuad(UIQuad* uiQuad);
 

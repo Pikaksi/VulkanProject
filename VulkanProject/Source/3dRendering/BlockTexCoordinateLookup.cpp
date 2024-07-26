@@ -1,6 +1,7 @@
-#include <iostream>
-
 #include "BlockTexCoordinateLookup.hpp"
+
+#include <filesystem>
+
 #include "World/BlockDataLookup.hpp"
 
 int findTexLayerFromTable(std::string fileName, std::unordered_map<std::string, int>& fileNameIndexTable)

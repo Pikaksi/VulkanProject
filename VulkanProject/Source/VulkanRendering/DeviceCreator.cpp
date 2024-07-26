@@ -16,7 +16,6 @@ const std::vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-
 bool checkValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -71,7 +70,7 @@ void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create
 }
 
 
-void createInstance(VulkanCoreInfo* vulkanCoreInfo) {
+void createInstance(VulkanCoreInfo& vulkanCoreInfo) {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
     }
@@ -106,7 +105,7 @@ void createInstance(VulkanCoreInfo* vulkanCoreInfo) {
         createInfo.pNext = nullptr;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &vulkanCoreInfo->instance) != VK_SUCCESS) {
+    if (vkCreateInstance(&createInfo, nullptr, &vulkanCoreInfo.instance) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
     }
 }
@@ -121,41 +120,40 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
     }
 }
 
-void initWindow(VulkanCoreInfo* vulkanCoreInfo)
+void initWindow(VulkanCoreInfo& vulkanCoreInfo)
 {
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    vulkanCoreInfo->window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    vulkanCoreInfo.window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 }
 
-void createSurface(VulkanCoreInfo* vulkanCoreInfo) {
-    if (glfwCreateWindowSurface(vulkanCoreInfo->instance, vulkanCoreInfo->window, nullptr, &vulkanCoreInfo->surface) != VK_SUCCESS) {
+void createSurface(VulkanCoreInfo& vulkanCoreInfo) {
+    if (glfwCreateWindowSurface(vulkanCoreInfo.instance, vulkanCoreInfo.window, nullptr, &vulkanCoreInfo.surface) != VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }
 }
 
-void setupDebugMessenger(VulkanCoreInfo* vulkanCoreInfo) {
+void setupDebugMessenger(VulkanCoreInfo& vulkanCoreInfo) {
     if (!enableValidationLayers) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(vulkanCoreInfo->instance, &createInfo, nullptr, &vulkanCoreInfo->debugMessenger) != VK_SUCCESS) {
+    if (CreateDebugUtilsMessengerEXT(vulkanCoreInfo.instance, &createInfo, nullptr, &vulkanCoreInfo.debugMessenger) != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
 
-QueueFamilyIndices findQueueFamilies(VulkanCoreInfo* vulkanCoreInfo) {
+QueueFamilyIndices findQueueFamilies(VulkanCoreInfo& vulkanCoreInfo) {
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(vulkanCoreInfo->physicalDevice, &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(vulkanCoreInfo.physicalDevice, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(vulkanCoreInfo->physicalDevice, &queueFamilyCount, queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(vulkanCoreInfo.physicalDevice, &queueFamilyCount, queueFamilies.data());
 
     int i = 0;
     for (const auto& queueFamily : queueFamilies) {
@@ -164,7 +162,7 @@ QueueFamilyIndices findQueueFamilies(VulkanCoreInfo* vulkanCoreInfo) {
         }
 
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(vulkanCoreInfo->physicalDevice, i, vulkanCoreInfo->surface, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(vulkanCoreInfo.physicalDevice, i, vulkanCoreInfo.surface, &presentSupport);
 
         if (presentSupport) {
             indices.presentFamily = i;
@@ -196,10 +194,10 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     return requiredExtensions.empty();
 }
 
-bool isDeviceSuitable(VulkanCoreInfo* vulkanCoreInfo) {
+bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo) {
     QueueFamilyIndices indices = findQueueFamilies(vulkanCoreInfo);
 
-    bool extensionsSupported = checkDeviceExtensionSupport(vulkanCoreInfo->physicalDevice);
+    bool extensionsSupported = checkDeviceExtensionSupport(vulkanCoreInfo.physicalDevice);
 
     bool swapChainAdequate = false;
     if (extensionsSupported) {
@@ -208,7 +206,7 @@ bool isDeviceSuitable(VulkanCoreInfo* vulkanCoreInfo) {
     }
 
     VkPhysicalDeviceFeatures supportedFeatures;
-    vkGetPhysicalDeviceFeatures(vulkanCoreInfo->physicalDevice, &supportedFeatures);
+    vkGetPhysicalDeviceFeatures(vulkanCoreInfo.physicalDevice, &supportedFeatures);
 
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
@@ -230,33 +228,33 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice) {
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void pickPhysicalDevice(VulkanCoreInfo* vulkanCoreInfo) {
+void pickPhysicalDevice(VulkanCoreInfo& vulkanCoreInfo) {
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(vulkanCoreInfo->instance, &deviceCount, nullptr);
+    vkEnumeratePhysicalDevices(vulkanCoreInfo.instance, &deviceCount, nullptr);
 
     if (deviceCount == 0) {
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(vulkanCoreInfo->instance, &deviceCount, devices.data());
+    vkEnumeratePhysicalDevices(vulkanCoreInfo.instance, &deviceCount, devices.data());
 
     for (const auto& device : devices) {
         // set device and check if it valid. The device is replaced if not
         // done this way for ease of use for later
-        vulkanCoreInfo->physicalDevice = device;
+        vulkanCoreInfo.physicalDevice = device;
         if (isDeviceSuitable(vulkanCoreInfo)) {
-            vulkanCoreInfo->msaaSamples = getMaxUsableSampleCount(vulkanCoreInfo->physicalDevice);
+            vulkanCoreInfo.msaaSamples = getMaxUsableSampleCount(vulkanCoreInfo.physicalDevice);
             break;
         }
     }
 
-    if (vulkanCoreInfo->physicalDevice == VK_NULL_HANDLE) {
+    if (vulkanCoreInfo.physicalDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
 }
 
-void createLogicalDevice(VulkanCoreInfo* vulkanCoreInfo) {
+void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo) {
     QueueFamilyIndices indices = findQueueFamilies(vulkanCoreInfo);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -294,15 +292,15 @@ void createLogicalDevice(VulkanCoreInfo* vulkanCoreInfo) {
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(vulkanCoreInfo->physicalDevice, &createInfo, nullptr, &vulkanCoreInfo->device) != VK_SUCCESS) {
+    if (vkCreateDevice(vulkanCoreInfo.physicalDevice, &createInfo, nullptr, &vulkanCoreInfo.device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
 
-    vkGetDeviceQueue(vulkanCoreInfo->device, indices.graphicsFamily.value(), 0, &vulkanCoreInfo->graphicsQueue);
-    vkGetDeviceQueue(vulkanCoreInfo->device, indices.presentFamily.value(), 0, &vulkanCoreInfo->presentQueue);
+    vkGetDeviceQueue(vulkanCoreInfo.device, indices.graphicsFamily.value(), 0, &vulkanCoreInfo.graphicsQueue);
+    vkGetDeviceQueue(vulkanCoreInfo.device, indices.presentFamily.value(), 0, &vulkanCoreInfo.presentQueue);
 }
 
-void createDevice(VulkanCoreInfo* vulkanCoreInfo)
+void createDevice(VulkanCoreInfo& vulkanCoreInfo)
 {
     initWindow(vulkanCoreInfo);
     createInstance(vulkanCoreInfo);

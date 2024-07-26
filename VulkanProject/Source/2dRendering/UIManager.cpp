@@ -3,7 +3,7 @@
 #include <vector>
 
 
-void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
+void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
 {
 	for (int i = 0; i < quadsToDerender.size(); i++) {
 		vertexBufferManager.freeUIVerticesMemory(quadsToDerender[i]);
@@ -43,7 +43,7 @@ UIQuad* UIManager::createUIQuad()
 	return uiQuad;
 }
 
-UIQuad* UIManager::createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, float texLayer, glm::vec4 color, UICenteringMode uiCenteringMode)
+UIQuad* UIManager::createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, uint32_t texLayer, glm::vec4 color, UICenteringMode uiCenteringMode)
 {
 	UIQuad* uiQuad = new UIQuad(location, size, texDownLeft, texUpRight, texLayer, color, uiCenteringMode);
 	quadsAllocated.insert(uiQuad);

@@ -6,8 +6,8 @@ class QuadStripIndexBuffer
 {
 public:
 	QuadStripIndexBuffer() {}
-	QuadStripIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t quadCount);
-	void cleanUp(VulkanCoreInfo* vulkanCoreInfo);
+	QuadStripIndexBuffer(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t quadCount);
+	void cleanUp(VulkanCoreInfo& vulkanCoreInfo);
 	VkBuffer& getBuffer();
 	uint32_t getIndexCount();
 	uint32_t getVertexCount();

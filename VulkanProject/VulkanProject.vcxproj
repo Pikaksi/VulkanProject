@@ -23,6 +23,7 @@
     <ClCompile Include="Source\2dRendering\UIManager.cpp" />
     <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
     <ClCompile Include="Source\2dRendering\UIText.cpp" />
+    <ClCompile Include="Source\2dRendering\UITextureCreator.cpp" />
     <ClCompile Include="Source\3dRendering\BinaryGreedyMesher.cpp" />
     <ClCompile Include="Source\3dRendering\BlockTexCoordinateLookup.cpp" />
     <ClCompile Include="Source\3dRendering\QuadStripIndexBuffer.cpp" />
@@ -54,6 +55,7 @@
     <ClCompile Include="Source\3dRendering\VertexCreator.cpp" />
     <ClCompile Include="Source\World\WorldGeneration\ChunkGenerator.cpp" />
     <ClCompile Include="Source\World\WorldManager.cpp" />
+    <ClInclude Include="Source\2dRendering\UITextureCreator.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">

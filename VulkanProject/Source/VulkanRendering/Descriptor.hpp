@@ -2,21 +2,22 @@
 
 #include "VulkanTypes.hpp"
 
-VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo* vulkanCoreInfo);
-VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo* vulkanCoreInfo);
+VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo& vulkanCoreInfo);
+VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo);
 
-VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo* vulkanCoreInfo);
-VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo* vulkanCoreInfo);
+VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo);
+VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo);
 
-std::vector<VkDescriptorSet> createDescriptorSets3d(VulkanCoreInfo* vulkanCoreInfo,
+std::vector<VkDescriptorSet> createDescriptorSets3d(
+    VulkanCoreInfo& vulkanCoreInfo,
     VkDescriptorPool descriptorPool,
     VkDescriptorSetLayout descriptorSetLayout,
-    std::vector<UniformBufferInfo*> cameraUniformBuffers,
-    ImageInfo* textureImage,
+    std::vector<UniformBufferInfo>& cameraUniformBuffers,
+    ImageInfo& textureImage,
     VkSampler textureImageSampler);
 std::vector<VkDescriptorSet> createDescriptorSets2d(
-    VulkanCoreInfo* vulkanCoreInfo,
+    VulkanCoreInfo& vulkanCoreInfo,
     VkDescriptorPool descriptorPool,
     VkDescriptorSetLayout descriptorSetLayout,
-    ImageInfo* textureImage,
+    std::vector<ImageInfo>& uiImageInfos,
     VkSampler textureImageSampler);

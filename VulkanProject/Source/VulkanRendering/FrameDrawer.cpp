@@ -7,7 +7,7 @@
 #include "CameraHandler.hpp"
 
 void createSyncObjects(
-    VulkanCoreInfo* vulkanCoreInfo,
+    VulkanCoreInfo& vulkanCoreInfo,
     std::vector<VkSemaphore>& imageAvailableSemaphores, 
     std::vector<VkSemaphore>& renderFinishedSemaphores, 
     std::vector<VkFence>& inFlightFences)
@@ -24,31 +24,30 @@ void createSyncObjects(
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(vulkanCoreInfo->device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(vulkanCoreInfo->device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(vulkanCoreInfo->device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+        if (vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(vulkanCoreInfo.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
     }
 }
 
-void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo*>& uniformBufferInfos, CameraHandler cameraHandler, VkExtent2D swapChainExtent) {
-    CameraUniformBufferObject ubo = cameraHandler.getCameraMatrix(swapChainExtent);
+void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo>& uniformBufferInfos, CameraHandler& cameraHandler, VkExtent2D swapChainExtent) {
+    CameraUniformBufferObject ubo;
+    cameraHandler.getCameraMatrix(swapChainExtent, ubo);
 
-    memcpy(uniformBufferInfos[currentFrame]->mappingPointer, &ubo, sizeof(ubo));
+    memcpy(uniformBufferInfos[currentFrame].mappingPointer, &ubo, sizeof(ubo));
 }
 
 void recordCommandBuffer(
-    SwapChainInfo* swapChainInfo,
-    GraphicsPipelineInfo* graphicsPipelineInfo3d,
-    GraphicsPipelineInfo* graphicsPipelineInfo2d,
+    SwapChainInfo& swapChainInfo,
+    GraphicsPipelineInfo& graphicsPipelineInfo3d,
+    GraphicsPipelineInfo& graphicsPipelineInfo2d,
     VkDescriptorSet descriptorSet3d,
     VkDescriptorSet descriptorSet2d,
     VkCommandBuffer commandBuffer, 
     uint32_t imageIndex,
-    uint32_t& maxVertexInputBindings,
-    VertexBufferManager& vertexBufferManager,
-    UIManager& uIManager)
+    VertexBufferManager& vertexBufferManager)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -59,10 +58,10 @@ void recordCommandBuffer(
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = swapChainInfo->renderPass;
-    renderPassInfo.framebuffer = swapChainInfo->framebuffers[imageIndex];
+    renderPassInfo.renderPass = swapChainInfo.renderPass;
+    renderPassInfo.framebuffer = swapChainInfo.framebuffers[imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = swapChainInfo->extent;
+    renderPassInfo.renderArea.extent = swapChainInfo.extent;
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = { {0.3f, 0.7f, 0.9f, 1.0f} };
@@ -76,17 +75,17 @@ void recordCommandBuffer(
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)swapChainInfo->extent.width;
-    viewport.height = (float)swapChainInfo->extent.height;
+    viewport.width = (float)swapChainInfo.extent.width;
+    viewport.height = (float)swapChainInfo.extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
-    scissor.extent = swapChainInfo->extent;
+    scissor.extent = swapChainInfo.extent;
 
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->pipeline);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.pipeline);
 
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
@@ -111,14 +110,14 @@ void recordCommandBuffer(
 
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d->layout, 0, 1, &descriptorSet3d, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.layout, 0, 1, &descriptorSet3d, 0, nullptr);
 
         // get index count by multiplying vertex count by 1.5
         vkCmdDrawIndexed(commandBuffer, worldBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
     }
 
     // Render UI.
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->pipeline);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
 
     VkBuffer uiVertexBuffer;
     std::vector<VkDeviceSize> uiVertexOffsets;
@@ -138,7 +137,7 @@ void recordCommandBuffer(
 
         vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d->layout, 0, 1, &descriptorSet2d, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.layout, 0, 1, &descriptorSet2d, 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
     }
@@ -152,29 +151,28 @@ void recordCommandBuffer(
 
 
 void drawFrame(
-    VulkanCoreInfo* vulkanCoreInfo,
-    SwapChainInfo* swapChainInfo,
-    GraphicsPipelineInfo* graphicsPipelineInfo3d,
-    GraphicsPipelineInfo* graphicsPipelineInfo2d,
-    std::vector<VkDescriptorSet> descriptorSets3d,
-    std::vector<VkDescriptorSet> descriptorSets2d,
-    std::vector<UniformBufferInfo*> uniformBufferInfos,
+    VulkanCoreInfo& vulkanCoreInfo,
+    SwapChainInfo& swapChainInfo,
+    GraphicsPipelineInfo& graphicsPipelineInfo3d,
+    GraphicsPipelineInfo& graphicsPipelineInfo2d,
+    std::vector<VkDescriptorSet>& descriptorSets3d,
+    std::vector<VkDescriptorSet>& descriptorSets2d,
+    std::vector<UniformBufferInfo>& uniformBufferInfos,
     uint32_t& currentFrame,
-    uint32_t& maxVertexInputBindings,
     bool& framebufferResized,
-    std::vector<VkCommandBuffer> commandBuffers,
-    std::vector<VkSemaphore> imageAvailableSemaphores,
-    std::vector<VkSemaphore> renderFinishedSemaphores,
-    std::vector<VkFence> inFlightFences,
+    std::vector<VkCommandBuffer>& commandBuffers,
+    std::vector<VkSemaphore>& imageAvailableSemaphores,
+    std::vector<VkSemaphore>& renderFinishedSemaphores,
+    std::vector<VkFence>& inFlightFences,
     VkCommandPool commandPool,
     CameraHandler& cameraHandler,
     VertexBufferManager& vertexBufferManager,
     UIManager& uIManager)
 {
-    vkWaitForFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo->device, swapChainInfo->swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo.device, swapChainInfo.swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo);
@@ -183,9 +181,9 @@ void drawFrame(
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
-    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo->extent);
+    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo.extent);
 
-    vkResetFences(vulkanCoreInfo->device, 1, &inFlightFences[currentFrame]);
+    vkResetFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame]);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
     recordCommandBuffer(
@@ -196,9 +194,7 @@ void drawFrame(
         descriptorSets2d[currentFrame],
         commandBuffers[currentFrame],
         imageIndex,
-        maxVertexInputBindings,
-        vertexBufferManager,
-        uIManager);
+        vertexBufferManager);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -216,7 +212,7 @@ void drawFrame(
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(vulkanCoreInfo->graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+    if (vkQueueSubmit(vulkanCoreInfo.graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 
@@ -226,13 +222,13 @@ void drawFrame(
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = { swapChainInfo->swapChain };
+    VkSwapchainKHR swapChains[] = { swapChainInfo.swapChain };
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
 
     presentInfo.pImageIndices = &imageIndex;
 
-    result = vkQueuePresentKHR(vulkanCoreInfo->presentQueue, &presentInfo);
+    result = vkQueuePresentKHR(vulkanCoreInfo.presentQueue, &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo);

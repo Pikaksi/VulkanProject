@@ -12,11 +12,11 @@ class VertexBufferManager
 {
 public:
     VertexBufferManager() {}
-    VertexBufferManager(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t worldVertexCount, uint32_t uiMaxVertexCount);
+    VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t worldVertexCount, uint32_t uiMaxVertexCount);
 
-    uint32_t addVerticesToWorld(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices);
+    uint32_t addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices);
     void freeWorldVerticesMemory(uint32_t memoryBlockLocation);
-    uint32_t addVerticesToUI(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex2D>& vertices);
+    uint32_t addVerticesToUI(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex2D>& vertices);
     void freeUIVerticesMemory(uint32_t memoryBlockLocation);
     void getWorldGeometryForRendering(
         VkBuffer& vertexBuffer,
@@ -29,7 +29,7 @@ public:
         std::vector<uint32_t>& batchIndexCounts,
         VkBuffer& quadStripIndexBuffer);
 
-    void cleanUp(VulkanCoreInfo* vulkanCoreInfo);
+    void cleanUp(VulkanCoreInfo& vulkanCoreInfo);
 
     // public for debugging
     GPUMemoryBlock worldGPUMemoryBlock;

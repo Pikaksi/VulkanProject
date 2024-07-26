@@ -4,7 +4,7 @@
 
 #include "VulkanRendering/Buffers.hpp"
 
-QuadStripIndexBuffer::QuadStripIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t quadCount) :
+QuadStripIndexBuffer::QuadStripIndexBuffer(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t quadCount) :
 	quadCount(quadCount),
 	indexCount(quadCount * 6)
 {
@@ -21,10 +21,10 @@ QuadStripIndexBuffer::QuadStripIndexBuffer(VulkanCoreInfo* vulkanCoreInfo, VkCom
     createIndexBuffer(vulkanCoreInfo, commandPool, buffer, bufferMemory, indices);
 }
 
-void QuadStripIndexBuffer::cleanUp(VulkanCoreInfo* vulkanCoreInfo)
+void QuadStripIndexBuffer::cleanUp(VulkanCoreInfo& vulkanCoreInfo)
 {
-    vkDestroyBuffer(vulkanCoreInfo->device, buffer, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, bufferMemory, nullptr);
+    vkDestroyBuffer(vulkanCoreInfo.device, buffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, bufferMemory, nullptr);
 }
 
 VkBuffer& QuadStripIndexBuffer::getBuffer()

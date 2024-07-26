@@ -24,12 +24,12 @@ public:
 	glm::vec2 size;
 	glm::vec2 texDownLeft;
 	glm::vec2 texUpRight;
-	float texLayer;
+	uint32_t texLayer;
 	glm::vec4 color;
 	UICenteringMode centeringMode;
 
 	UIQuad() {};
-	UIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, float texLayer, glm::vec4 color, UICenteringMode centeringMode) :
+	UIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, uint32_t texLayer, glm::vec4 color, UICenteringMode centeringMode) :
 		location(location), size(size), texDownLeft(texDownLeft), texUpRight(texUpRight), texLayer(texLayer), color(color), centeringMode(centeringMode) {}
 
 

@@ -1,8 +1,7 @@
-#include <string>
+#include "FilePathHandler.hpp"
+
 #include <filesystem>
 #include <iostream>
-
-#include "FilePathHandler.hpp"
 
 std::string GetProjectPath()
 {
@@ -22,4 +21,9 @@ std::string GetTexturesDirPath()
 std::string GetBlockTexturesDirPath()
 {
     return GetTexturesDirPath() + "\\BlockTextures";
+}
+
+std::string GetUITexturesDirPath()
+{
+    return GetTexturesDirPath() + "\\UITextures";
 }

@@ -8,6 +8,7 @@
 #include "VulkanRendering/Descriptor.hpp"
 #include "Rendering/TextureCreator.hpp"
 #include "3dRendering/BlockTexCoordinateLookup.hpp"
+#include "2dRendering/UITextureCreator.hpp"
 
 #include <thread>
 
@@ -35,7 +36,7 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 
 void Application::initGame()
 {
-    PlayerInputHandler::getInstance().window = vulkanCoreInfo->window;
+    PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
 
     debugMenu = DebugMenu(0.25f);
@@ -50,11 +51,11 @@ void Application::initGame()
 void Application::initVulkan()
 {
     createDevice(vulkanCoreInfo);
-    glfwSetWindowUserPointer(vulkanCoreInfo->window, this);
-    glfwSetFramebufferSizeCallback(vulkanCoreInfo->window, framebufferResizeCallback);
+    glfwSetWindowUserPointer(vulkanCoreInfo.window, this);
+    glfwSetFramebufferSizeCallback(vulkanCoreInfo.window, framebufferResizeCallback);
 
     VkPhysicalDeviceProperties physicalDeviceProperties;
-    vkGetPhysicalDeviceProperties(vulkanCoreInfo->physicalDevice, &physicalDeviceProperties);
+    vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &physicalDeviceProperties);
     maxVertexInputBindings = physicalDeviceProperties.limits.maxVertexInputBindings;
 
     createSwapChain(vulkanCoreInfo, swapChainInfo);
@@ -68,16 +69,17 @@ void Application::initVulkan()
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
 
-    createBlockTextureArray(vulkanCoreInfo, blockTextureImageArray, commandPool, false);
     blockTextureArraySampler = createBlockTextureSampler(vulkanCoreInfo);
-    createTextureImage(vulkanCoreInfo, textTextureImage, commandPool, false, "TextSpriteSheet.png");
-    textTextureSampler = createTextTextureSampler(vulkanCoreInfo);
+    createBlockTextureArray(vulkanCoreInfo, blockTextureImageArray, commandPool, false);
+
+    uiTextureSampler = createUITextureSampler(vulkanCoreInfo);
+    createUIImageInfos(vulkanCoreInfo, commandPool, uiImageInfos);
 
     descriptorPool3d = createDescriptorPool3d(vulkanCoreInfo);
     descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo, descriptorPool3d, descriptorSetLayout3d, cameraUniformBuffers, blockTextureImageArray, blockTextureArraySampler);
 
     descriptorPool2d = createDescriptorPool2d(vulkanCoreInfo);
-    descriptorSets2d = createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, textTextureImage, textTextureSampler);
+    descriptorSets2d = createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, uiImageInfos, uiTextureSampler);
 
     commandBuffers = createCommandBuffers(vulkanCoreInfo, commandPool);
     createSyncObjects(vulkanCoreInfo, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences);
@@ -87,7 +89,7 @@ void Application::mainLoop()
 {
     //fpsTimer = std::chrono::high_resolution_clock::now();
 
-    while (!glfwWindowShouldClose(vulkanCoreInfo->window)) {
+    while (!glfwWindowShouldClose(vulkanCoreInfo.window)) {
 
         /*auto currentTime = std::chrono::high_resolution_clock::now();
         float timePassed = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - fpsTimer).count();
@@ -116,7 +118,6 @@ void Application::mainLoop()
             descriptorSets2d,
             cameraUniformBuffers,
             currentFrame,
-            maxVertexInputBindings,
             framebufferResized,
             commandBuffers,
             imageAvailableSemaphores,
@@ -128,7 +129,7 @@ void Application::mainLoop()
             uIManager);
     }
 
-    vkDeviceWaitIdle(vulkanCoreInfo->device);
+    vkDeviceWaitIdle(vulkanCoreInfo.device);
 }
 
 void Application::gameMainLoop()
@@ -141,7 +142,7 @@ void Application::gameMainLoop()
     );
     chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
 
-    uIManager.updateScreen(swapChainInfo->extent, vulkanCoreInfo, commandPool, vertexBufferManager);
+    uIManager.updateScreen(swapChainInfo.extent, vulkanCoreInfo, commandPool, vertexBufferManager);
 }
 
 void Application::cleanup()
@@ -151,50 +152,52 @@ void Application::cleanup()
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 
-    vkDestroyPipeline(vulkanCoreInfo->device, graphicsPipelineInfo3d->pipeline, nullptr);
-    vkDestroyPipelineLayout(vulkanCoreInfo->device, graphicsPipelineInfo3d->layout, nullptr);
-    vkDestroyPipeline(vulkanCoreInfo->device, graphicsPipelineInfo2d->pipeline, nullptr);
-    vkDestroyPipelineLayout(vulkanCoreInfo->device, graphicsPipelineInfo2d->layout, nullptr);
+    vkDestroyPipeline(vulkanCoreInfo.device, graphicsPipelineInfo3d.pipeline, nullptr);
+    vkDestroyPipelineLayout(vulkanCoreInfo.device, graphicsPipelineInfo3d.layout, nullptr);
+    vkDestroyPipeline(vulkanCoreInfo.device, graphicsPipelineInfo2d.pipeline, nullptr);
+    vkDestroyPipelineLayout(vulkanCoreInfo.device, graphicsPipelineInfo2d.layout, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(vulkanCoreInfo->device, cameraUniformBuffers[i]->buffer, nullptr);
-        vkFreeMemory(vulkanCoreInfo->device, cameraUniformBuffers[i]->memory, nullptr);
+        vkDestroyBuffer(vulkanCoreInfo.device, cameraUniformBuffers[i].buffer, nullptr);
+        vkFreeMemory(vulkanCoreInfo.device, cameraUniformBuffers[i].memory, nullptr);
     }
 
-    vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool3d, nullptr);
-    vkDestroyDescriptorPool(vulkanCoreInfo->device, descriptorPool2d, nullptr);
+    vkDestroyDescriptorPool(vulkanCoreInfo.device, descriptorPool3d, nullptr);
+    vkDestroyDescriptorPool(vulkanCoreInfo.device, descriptorPool2d, nullptr);
 
-    vkDestroyImageView(vulkanCoreInfo->device, blockTextureImageArray->view, nullptr);
-    vkDestroyImage(vulkanCoreInfo->device, blockTextureImageArray->image, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, blockTextureImageArray->memory, nullptr);
-    vkDestroySampler(vulkanCoreInfo->device, blockTextureArraySampler, nullptr);
+    vkDestroyImageView(vulkanCoreInfo.device, blockTextureImageArray.view, nullptr);
+    vkDestroyImage(vulkanCoreInfo.device, blockTextureImageArray.image, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, blockTextureImageArray.memory, nullptr);
+    vkDestroySampler(vulkanCoreInfo.device, blockTextureArraySampler, nullptr);
 
-    vkDestroyImageView(vulkanCoreInfo->device, textTextureImage->view, nullptr);
-    vkDestroyImage(vulkanCoreInfo->device, textTextureImage->image, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, textTextureImage->memory, nullptr);
-    vkDestroySampler(vulkanCoreInfo->device, textTextureSampler, nullptr);
+    for (int i = 0; i < uiImageInfos.size(); i++) {
+        vkDestroyImageView(vulkanCoreInfo.device, uiImageInfos[i].view, nullptr);
+        vkDestroyImage(vulkanCoreInfo.device, uiImageInfos[i].image, nullptr);
+        vkFreeMemory(vulkanCoreInfo.device, uiImageInfos[i].memory, nullptr);
+    }
+    vkDestroySampler(vulkanCoreInfo.device, uiTextureSampler, nullptr);
 
-    vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout3d, nullptr);
-    vkDestroyDescriptorSetLayout(vulkanCoreInfo->device, descriptorSetLayout2d, nullptr);
+    vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayout3d, nullptr);
+    vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayout2d, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(vulkanCoreInfo->device, renderFinishedSemaphores[i], nullptr);
-        vkDestroySemaphore(vulkanCoreInfo->device, imageAvailableSemaphores[i], nullptr);
-        vkDestroyFence(vulkanCoreInfo->device, inFlightFences[i], nullptr);
+        vkDestroySemaphore(vulkanCoreInfo.device, renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(vulkanCoreInfo.device, imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(vulkanCoreInfo.device, inFlightFences[i], nullptr);
     }
 
-    vkDestroyCommandPool(vulkanCoreInfo->device, commandPool, nullptr);
+    vkDestroyCommandPool(vulkanCoreInfo.device, commandPool, nullptr);
     
-    vkDestroyDevice(vulkanCoreInfo->device, nullptr);
+    vkDestroyDevice(vulkanCoreInfo.device, nullptr);
 
     if (enableValidationLayers) {
-        DestroyDebugUtilsMessengerEXT(vulkanCoreInfo->instance, vulkanCoreInfo->debugMessenger, nullptr);
+        DestroyDebugUtilsMessengerEXT(vulkanCoreInfo.instance, vulkanCoreInfo.debugMessenger, nullptr);
     }
 
-    vkDestroySurfaceKHR(vulkanCoreInfo->instance, vulkanCoreInfo->surface, nullptr);
-    vkDestroyInstance(vulkanCoreInfo->instance, nullptr);
+    vkDestroySurfaceKHR(vulkanCoreInfo.instance, vulkanCoreInfo.surface, nullptr);
+    vkDestroyInstance(vulkanCoreInfo.instance, nullptr);
 
-    glfwDestroyWindow(vulkanCoreInfo->window);
+    glfwDestroyWindow(vulkanCoreInfo.window);
 
     glfwTerminate();
 }

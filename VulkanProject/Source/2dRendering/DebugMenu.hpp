@@ -16,15 +16,13 @@ private:
 	int fpsCounter = 0;
 	float textSize = 0.05f;
 	UIText* debugMenuText;
+	UIQuad* testQuad;
 	std::chrono::steady_clock::time_point lastFpsCounterResetTime;
 	std::chrono::steady_clock::time_point lastUIRefreshTime;
 
 public:
 	DebugMenu() {}
-	DebugMenu(float refreshInterval)
-	{
-		this->refreshInterval = refreshInterval;
-	}
+	DebugMenu(float refreshInterval) : refreshInterval(refreshInterval) {}
 
 	void update(UIManager& uIManager, VertexBufferManager& vertexBufferManager, WorldManager& worldManager, CameraHandler& cameraHandler);
 

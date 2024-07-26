@@ -4,7 +4,7 @@
 #include "ChunkRenderer.hpp"
 #include "BinaryGreedyMesher.hpp"
 
-void ChunkRenderer::update(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
+void ChunkRenderer::update(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
 {
 	renderNewChunks(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, playerChunkLocation);
 	
@@ -99,7 +99,7 @@ void ChunkRenderer::tryAddChunksToRender(glm::i32vec3 chunkLocation)
 	}
 }
 
-void ChunkRenderer::renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
+void ChunkRenderer::renderNewChunks(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, WorldManager& worldManager, VertexBufferManager& vertexBufferManager, glm::i32vec3 playerChunkLocation)
 {
 	if (chunksToRender.size() == 0) {
 		return;
@@ -126,7 +126,7 @@ void ChunkRenderer::renderNewChunks(VulkanCoreInfo* vulkanCoreInfo, VkCommandPoo
 	}
 }
 
-void ChunkRenderer::renderChunk(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
+void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
 {
 	std::unordered_set<glm::ivec3> chunksToRerender;
 	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);

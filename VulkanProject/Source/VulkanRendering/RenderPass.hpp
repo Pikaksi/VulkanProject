@@ -2,4 +2,4 @@
 
 #include "VulkanTypes.hpp"
 
-VkRenderPass createRenderPass(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo);
+VkRenderPass createRenderPass(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo);

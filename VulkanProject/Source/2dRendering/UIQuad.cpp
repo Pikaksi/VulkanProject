@@ -29,8 +29,8 @@ void UIQuad::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices) con
     else if (centeringMode == UICenteringMode::TopLeft || centeringMode == UICenteringMode::Top || centeringMode == UICenteringMode::TopRight) {
         //locationCentered.y -= realSize.y;
     }
-    vertices.push_back(Vertex2D{ {locationCentered.x,              locationCentered.y,            }, color, texDownLeft,                   0.0f });
-    vertices.push_back(Vertex2D{ {locationCentered.x,              locationCentered.y + realSize.y}, color, { texDownLeft.x, texUpRight.y }, 0.0f });
-    vertices.push_back(Vertex2D{ {locationCentered.x + realSize.x, locationCentered.y + realSize.y}, color, texUpRight,                    0.0f });
-    vertices.push_back(Vertex2D{ {locationCentered.x + realSize.x, locationCentered.y,            }, color, {texUpRight.x, texDownLeft.y}, 0.0f });
+    vertices.push_back(Vertex2D{ {locationCentered.x,              locationCentered.y,            }, color, texDownLeft,                     texLayer });
+    vertices.push_back(Vertex2D{ {locationCentered.x,              locationCentered.y + realSize.y}, color, { texDownLeft.x, texUpRight.y }, texLayer });
+    vertices.push_back(Vertex2D{ {locationCentered.x + realSize.x, locationCentered.y + realSize.y}, color, texUpRight,                      texLayer });
+    vertices.push_back(Vertex2D{ {locationCentered.x + realSize.x, locationCentered.y,            }, color, { texUpRight.x, texDownLeft.y }, texLayer });
 }

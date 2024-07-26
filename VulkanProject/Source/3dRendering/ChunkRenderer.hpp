@@ -17,7 +17,7 @@ class ChunkRenderer
 public:
 	ChunkRenderer() {}
 	void update(
-		VulkanCoreInfo* vulkanCoreInfo, 
+		VulkanCoreInfo& vulkanCoreInfo, 
 		VkCommandPool commandPool, 
 		WorldManager& worldManager, 
 		VertexBufferManager& vertexBufferManager, 
@@ -34,13 +34,13 @@ private:
 	void derenderChunks(glm::i32vec3 playerChunkLocation, VertexBufferManager& vertexBufferManager);
 	void tryAddChunksToRender(glm::i32vec3 chunkLocation);
 	void renderNewChunks(
-		VulkanCoreInfo* vulkanCoreInfo,
+		VulkanCoreInfo& vulkanCoreInfo,
 		VkCommandPool commandPool,
 		WorldManager& worldManager,
 		VertexBufferManager& vertexBufferManager,
 		glm::i32vec3 playerChunkLocation);
 	void renderChunk(
-		VulkanCoreInfo* vulkanCoreInfo,
+		VulkanCoreInfo& vulkanCoreInfo,
 		VkCommandPool commandPool,
 		glm::i32vec3 chunkLocation,
 		WorldManager& worldManager,

@@ -6,23 +6,25 @@
 #include "Rendering/Vertex.hpp"
 #include "Descriptor.hpp"
 
-VkShaderModule createShaderModule(VulkanCoreInfo* vulkanCoreInfo, const std::vector<char>& code) {
+VkShaderModule createShaderModule(VulkanCoreInfo& vulkanCoreInfo, const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
     VkShaderModule shaderModule;
-    if (vkCreateShaderModule(vulkanCoreInfo->device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(vulkanCoreInfo.device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
 
     return shaderModule;
 }
 
-void createGraphicsPipeline3d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo, GraphicsPipelineInfo* graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
-    auto vertShaderCode = readFile(GetShaderDirPath() + "\\vert3d.spv");
-    auto fragShaderCode = readFile(GetShaderDirPath() + "\\frag3d.spv");
+void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, GraphicsPipelineInfo& graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
+    std::vector<char> vertShaderCode;
+    std::vector<char> fragShaderCode;
+    readFile(GetShaderDirPath() + "\\vert3d.spv", vertShaderCode);
+    readFile(GetShaderDirPath() + "\\frag3d.spv", fragShaderCode);
 
     VkShaderModule vertShaderModule = createShaderModule(vulkanCoreInfo, vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(vulkanCoreInfo, fragShaderCode);
@@ -75,7 +77,7 @@ void createGraphicsPipeline3d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = vulkanCoreInfo->msaaSamples;
+    multisampling.rasterizationSamples = vulkanCoreInfo.msaaSamples;
 
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -116,7 +118,7 @@ void createGraphicsPipeline3d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
     VkPipelineLayout pipelineLayout;
-    if (vkCreatePipelineLayout(vulkanCoreInfo->device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(vulkanCoreInfo.device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
@@ -133,25 +135,27 @@ void createGraphicsPipeline3d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = swapChainInfo->renderPass;
+    pipelineInfo.renderPass = swapChainInfo.renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkPipeline graphicsPipeline;
-    if (vkCreateGraphicsPipelines(vulkanCoreInfo->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(vulkanCoreInfo.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
-    vkDestroyShaderModule(vulkanCoreInfo->device, fragShaderModule, nullptr);
-    vkDestroyShaderModule(vulkanCoreInfo->device, vertShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, fragShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, vertShaderModule, nullptr);
 
-    graphicsPipelineInfo->layout = pipelineLayout;
-    graphicsPipelineInfo->pipeline = graphicsPipeline;
+    graphicsPipelineInfo.layout = pipelineLayout;
+    graphicsPipelineInfo.pipeline = graphicsPipeline;
 }
 
-void createGraphicsPipeline2d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swapChainInfo, GraphicsPipelineInfo* graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
-    auto vertShaderCode = readFile(GetShaderDirPath() + "\\vert2d.spv");
-    auto fragShaderCode = readFile(GetShaderDirPath() + "\\frag2d.spv");
+void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, GraphicsPipelineInfo& graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
+    std::vector<char> vertShaderCode;
+    std::vector<char> fragShaderCode;
+    readFile(GetShaderDirPath() + "\\vert2d.spv", vertShaderCode);
+    readFile(GetShaderDirPath() + "\\frag2d.spv", fragShaderCode);
 
     VkShaderModule vertShaderModule = createShaderModule(vulkanCoreInfo, vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(vulkanCoreInfo, fragShaderCode);
@@ -204,7 +208,7 @@ void createGraphicsPipeline2d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = vulkanCoreInfo->msaaSamples;
+    multisampling.rasterizationSamples = vulkanCoreInfo.msaaSamples;
 
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -244,7 +248,7 @@ void createGraphicsPipeline2d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
     VkPipelineLayout pipelineLayout;
-    if (vkCreatePipelineLayout(vulkanCoreInfo->device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(vulkanCoreInfo.device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
@@ -261,18 +265,18 @@ void createGraphicsPipeline2d(VulkanCoreInfo* vulkanCoreInfo, SwapChainInfo* swa
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = swapChainInfo->renderPass;
+    pipelineInfo.renderPass = swapChainInfo.renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkPipeline graphicsPipeline;
-    if (vkCreateGraphicsPipelines(vulkanCoreInfo->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(vulkanCoreInfo.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
-    vkDestroyShaderModule(vulkanCoreInfo->device, fragShaderModule, nullptr);
-    vkDestroyShaderModule(vulkanCoreInfo->device, vertShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, fragShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, vertShaderModule, nullptr);
 
-    graphicsPipelineInfo->layout = pipelineLayout;
-    graphicsPipelineInfo->pipeline = graphicsPipeline;
+    graphicsPipelineInfo.layout = pipelineLayout;
+    graphicsPipelineInfo.pipeline = graphicsPipeline;
 }

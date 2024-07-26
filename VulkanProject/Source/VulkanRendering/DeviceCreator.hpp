@@ -11,5 +11,5 @@ struct QueueFamilyIndices {
     }
 };
 
-QueueFamilyIndices findQueueFamilies(VulkanCoreInfo* vulkanCoreInfo);
-void createDevice(VulkanCoreInfo* vulkanCoreInfo);
+QueueFamilyIndices findQueueFamilies(VulkanCoreInfo& vulkanCoreInfo);
+void createDevice(VulkanCoreInfo& vulkanCoreInfo);

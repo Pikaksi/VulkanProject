@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-GPUMemoryBlock::GPUMemoryBlock(VulkanCoreInfo* vulkanCoreInfo, uint32_t sizeofData, uint32_t allocationDataCount, uint32_t mergedDataMaxCount)
+GPUMemoryBlock::GPUMemoryBlock(VulkanCoreInfo& vulkanCoreInfo, uint32_t sizeofData, uint32_t allocationDataCount, uint32_t mergedDataMaxCount)
     : blockSize(sizeofData * allocationDataCount), sizeofData(sizeofData), mergedDataMaxCount(mergedDataMaxCount)
 {
     if (blockSize >= UINT32_MAX) {
@@ -161,8 +161,8 @@ uint32_t GPUMemoryBlock::getDataCount()
     return dataCount / sizeofData;
 }
 
-void GPUMemoryBlock::cleanup(VulkanCoreInfo* vulkanCoreInfo)
+void GPUMemoryBlock::cleanup(VulkanCoreInfo& vulkanCoreInfo)
 {
-    vkDestroyBuffer(vulkanCoreInfo->device, buffer, nullptr);
-    vkFreeMemory(vulkanCoreInfo->device, memory, nullptr);
+    vkDestroyBuffer(vulkanCoreInfo.device, buffer, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, memory, nullptr);
 }

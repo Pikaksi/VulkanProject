@@ -114,6 +114,9 @@
     <ClCompile Include="Source\3dRendering\QuadStripIndexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\2dRendering\UITextureCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader3d.vert">
@@ -238,6 +241,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\3dRendering\QuadStripIndexBuffer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\2dRendering\UITextureCreator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

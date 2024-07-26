@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-void DebugMenu::update(UIManager& uIManager, VertexBufferManager& vertexBufferManager, WorldManager& worldManager, CameraHandler& cameraHandler)
+void DebugMenu::update(UIManager& uiManager, VertexBufferManager& vertexBufferManager, WorldManager& worldManager, CameraHandler& cameraHandler)
 {
-    checkIfEnabledStatus(uIManager);
+    checkIfEnabledStatus(uiManager);
     if (!isEnabled) {
         return;
     }
@@ -19,7 +19,7 @@ void DebugMenu::update(UIManager& uIManager, VertexBufferManager& vertexBufferMa
         int lastRecordedFps = fpsCounter / refreshInterval;
         fpsCounter = 0;
 
-        updateUI(uIManager, vertexBufferManager, lastRecordedFps, worldManager, cameraHandler);
+        updateUI(uiManager, vertexBufferManager, lastRecordedFps, worldManager, cameraHandler);
     }
 }
 
@@ -35,28 +35,32 @@ void DebugMenu::updateUI(UIManager& uiManager, VertexBufferManager& vertexBuffer
     uiManager.updateUIText(debugMenuText);
 }
 
-void DebugMenu::checkIfEnabledStatus(UIManager& uIManager)
+void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)
 {
     if (PlayerInputHandler::getInstance().f3Pressed) {
         if (isEnabled) {
-            disableMenu(uIManager);
+            disableMenu(uiManager);
         }
         else {
-            enableMenu(uIManager);
+            enableMenu(uiManager);
         }
     }
 }
 
-void DebugMenu::enableMenu(UIManager& uIManager)
+void DebugMenu::enableMenu(UIManager& uiManager)
 {
-    debugMenuText = uIManager.createUIText({-1.0f, -1.0f}, 0.05, "", UICenteringMode::TopLeft);
+    debugMenuText = uiManager.createUIText({-1.0f, -1.0f}, 0.05, "", UICenteringMode::TopLeft);
+    testQuad = uiManager.createUIQuad({0, 0}, {0.5, 0.5}, {0, 0}, {1, 1}, 1, {1, 0, 1, 1}, UICenteringMode::Center);
+    uiManager.updateUIQuad(testQuad);
+    
 
     isEnabled = true;
 }
 
-void DebugMenu::disableMenu(UIManager& uIManager)
+void DebugMenu::disableMenu(UIManager& uiManager)
 {
-    uIManager.deleteUIText(debugMenuText);
+    uiManager.deleteUIText(debugMenuText);
+    uiManager.deleteUIQuad(testQuad);
 
     isEnabled = false;
 }

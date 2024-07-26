@@ -56,22 +56,22 @@ public:
 private:
     Application() {}
 
-    VulkanCoreInfo* vulkanCoreInfo = new VulkanCoreInfo;
-    SwapChainInfo* swapChainInfo = new SwapChainInfo;
+    VulkanCoreInfo vulkanCoreInfo = VulkanCoreInfo();
+    SwapChainInfo swapChainInfo = SwapChainInfo();
 
-    GraphicsPipelineInfo* graphicsPipelineInfo3d = new GraphicsPipelineInfo;
-    GraphicsPipelineInfo* graphicsPipelineInfo2d = new GraphicsPipelineInfo;
+    GraphicsPipelineInfo graphicsPipelineInfo3d = GraphicsPipelineInfo();
+    GraphicsPipelineInfo graphicsPipelineInfo2d = GraphicsPipelineInfo();
 
     VkCommandPool commandPool;
 
-    ImageInfo* blockTextureImageArray = new ImageInfo;
+    ImageInfo blockTextureImageArray = ImageInfo();
     VkSampler blockTextureArraySampler;
 
-    ImageInfo* blockTextureImage = new ImageInfo;
+    ImageInfo blockTextureImage = ImageInfo();
     VkSampler blockTextureSampler;
 
-    ImageInfo* textTextureImage = new ImageInfo;
-    VkSampler textTextureSampler;
+    VkSampler uiTextureSampler;
+    std::vector<ImageInfo> uiImageInfos;
 
     VkDescriptorSetLayout descriptorSetLayout3d;
     VkDescriptorSetLayout descriptorSetLayout2d;
@@ -82,7 +82,7 @@ private:
     std::vector<VkDescriptorSet> descriptorSets3d;
     std::vector<VkDescriptorSet> descriptorSets2d;
 
-    std::vector<UniformBufferInfo*> cameraUniformBuffers;
+    std::vector<UniformBufferInfo> cameraUniformBuffers;
 
     std::vector<VkCommandBuffer> commandBuffers;
 

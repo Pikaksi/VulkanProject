@@ -7,6 +7,7 @@
 #include "World/BlockDataLookup.hpp"
 #include "World/WorldManager.hpp"
 
+// old version for benchmarking
 
 void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);
 void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, BlockType blockType,

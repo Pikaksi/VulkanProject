@@ -5,7 +5,7 @@
 #include "DeviceCreator.hpp"
 #include "Constants.hpp"
 
-VkCommandBuffer beginSingleTimeCommands(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool) {
+VkCommandBuffer beginSingleTimeCommands(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool) {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -13,7 +13,7 @@ VkCommandBuffer beginSingleTimeCommands(VulkanCoreInfo* vulkanCoreInfo, VkComman
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(vulkanCoreInfo->device, &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers(vulkanCoreInfo.device, &allocInfo, &commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -24,7 +24,7 @@ VkCommandBuffer beginSingleTimeCommands(VulkanCoreInfo* vulkanCoreInfo, VkComman
     return commandBuffer;
 }
 
-void endSingleTimeCommands(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, VkCommandBuffer commandBuffer) {
+void endSingleTimeCommands(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -32,13 +32,13 @@ void endSingleTimeCommands(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool command
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(vulkanCoreInfo->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(vulkanCoreInfo->graphicsQueue);
+    vkQueueSubmit(vulkanCoreInfo.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(vulkanCoreInfo.graphicsQueue);
 
-    vkFreeCommandBuffers(vulkanCoreInfo->device, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(vulkanCoreInfo.device, commandPool, 1, &commandBuffer);
 }
 
-VkCommandPool createCommandPool(VulkanCoreInfo* vulkanCoreInfo)
+VkCommandPool createCommandPool(VulkanCoreInfo& vulkanCoreInfo)
 {
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(vulkanCoreInfo);
 
@@ -48,13 +48,13 @@ VkCommandPool createCommandPool(VulkanCoreInfo* vulkanCoreInfo)
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
     VkCommandPool commandPool;
-    if (vkCreateCommandPool(vulkanCoreInfo->device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(vulkanCoreInfo.device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics command pool!");
     }
     return commandPool;
 }
 
-std::vector<VkCommandBuffer> createCommandBuffers(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool)
+std::vector<VkCommandBuffer> createCommandBuffers(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool)
 {
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -65,7 +65,7 @@ std::vector<VkCommandBuffer> createCommandBuffers(VulkanCoreInfo* vulkanCoreInfo
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-    if (vkAllocateCommandBuffers(vulkanCoreInfo->device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(vulkanCoreInfo.device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
     return commandBuffers;

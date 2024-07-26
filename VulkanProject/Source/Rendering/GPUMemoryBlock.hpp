@@ -28,10 +28,10 @@ class GPUMemoryBlock
 public:
 	void freeMemory(uint32_t& allocationStartOffset);
 	void getVertexDataMerged(VkBuffer& buffer, std::vector<VkDeviceSize>& offsets, std::vector<uint32_t>& batchCounts);
-	void cleanup(VulkanCoreInfo* vulkanCoreInfo);
+	void cleanup(VulkanCoreInfo& vulkanCoreInfo);
 
 	GPUMemoryBlock() {}
-	GPUMemoryBlock(VulkanCoreInfo* vulkanCoreInfo, uint32_t sizeofData, uint32_t allocationDataCount, uint32_t mergedDataMaxCount);
+	GPUMemoryBlock(VulkanCoreInfo& vulkanCoreInfo, uint32_t sizeofData, uint32_t allocationDataCount, uint32_t mergedDataMaxCount);
 
 	void debugPrint();
 	uint32_t getDataCount();
@@ -39,7 +39,7 @@ public:
 	VkBuffer buffer;
 
 	template<typename T>
-	void addData(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t& memoryLocation, std::vector<T>& data)
+	void addData(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t& memoryLocation, std::vector<T>& data)
 	{
 		uint32_t dataSize = sizeof(T) * data.size();
 
@@ -51,7 +51,7 @@ public:
 
 private:
 	template<typename T>
-	void copyDataToLocation(VulkanCoreInfo* vulkanCoreInfo, VkCommandPool commandPool, uint32_t memoryOffsetStart, uint32_t size, std::vector<T>& data)
+	void copyDataToLocation(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t memoryOffsetStart, uint32_t size, std::vector<T>& data)
 	{
 		if (memoryOffsetStart + size > blockSize) {
 			std::cout << "tried to write data at " << memoryOffsetStart << " to " << memoryOffsetStart + size << " block size is " << blockSize << '\n';
@@ -63,14 +63,14 @@ private:
 		createBuffer(vulkanCoreInfo, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 		void* stagingBufferPointer;
-		vkMapMemory(vulkanCoreInfo->device, stagingBufferMemory, 0, size, 0, &stagingBufferPointer);
+		vkMapMemory(vulkanCoreInfo.device, stagingBufferMemory, 0, size, 0, &stagingBufferPointer);
 		memcpy(stagingBufferPointer, data.data(), (size_t)size);
-		vkUnmapMemory(vulkanCoreInfo->device, stagingBufferMemory);
+		vkUnmapMemory(vulkanCoreInfo.device, stagingBufferMemory);
 
 		copyBuffer(vulkanCoreInfo, commandPool, stagingBuffer, buffer, size, 0, memoryOffsetStart);
 
-		vkDestroyBuffer(vulkanCoreInfo->device, stagingBuffer, nullptr);
-		vkFreeMemory(vulkanCoreInfo->device, stagingBufferMemory, nullptr);
+		vkDestroyBuffer(vulkanCoreInfo.device, stagingBuffer, nullptr);
+		vkFreeMemory(vulkanCoreInfo.device, stagingBufferMemory, nullptr);
 	}
 
 	uint32_t sizeofData;
