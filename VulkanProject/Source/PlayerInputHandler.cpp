@@ -20,10 +20,42 @@ void PlayerInputHandler::initGLFWControlCallbacks()
     glfwSetCursorPosCallback(window, cursorPositionCallback);
 }
 
+void PlayerInputHandler::enableCursor()
+{
+    cursorEnabledRequestCount += 1;
+    if (cursorEnabledRequestCount == 1) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        glfwSetCursorPos(window, width / 2, height / 2);
+    }
+}
+
+void PlayerInputHandler::disableCursor()
+{
+    if (cursorEnabledRequestCount == 0) {
+        throw std::runtime_error("requested to disable cursor when it was already disabled");
+    }
+
+    cursorEnabledRequestCount -= 1;
+    if (cursorEnabledRequestCount == 0) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+}
+
+bool PlayerInputHandler::cursorIsEnabled()
+{
+    return cursorEnabledRequestCount != 0;
+}
+
 void PlayerInputHandler::handleMouseMovement(GLFWwindow* window, double xPos, double yPos)
 {
-    mouseMovementX = xPos - mousePreviousLocationX;
-    mouseMovementY = yPos - mousePreviousLocationY;
+    if (!cursorIsEnabled()) {
+        mouseMovementX = xPos - mousePreviousLocationX;
+        mouseMovementY = yPos - mousePreviousLocationY;
+    }
 
     //std::cout << "mouse movement is " << mouseMovementX << "  " << mouseMovementY << "\n";
 
@@ -39,14 +71,15 @@ void PlayerInputHandler::handleKeyPress(GLFWwindow* window, int key, int scancod
     toggleKeyHeld(GLFW_KEY_D, dHeld, key, action);
     toggleKeyHeld(GLFW_KEY_Q, qHeld, key, action);
     toggleKeyHeld(GLFW_KEY_E, eHeld, key, action);
+    toggleKeyHeld(GLFW_KEY_R, rHeld, key, action);
     toggleKeyHeld(GLFW_KEY_LEFT_SHIFT, shiftHeld, key, action);
     toggleKeyHeld(GLFW_KEY_LEFT_CONTROL, ctrlHeld, key, action);
-
     toggleKeyHeld(GLFW_KEY_F3, f3Held, key, action);
 }
 
 void PlayerInputHandler::update()
 {
+    toggleKeyOnPress(GLFW_KEY_F3, rHeldPreviousFrame, rHeld, rPressed);
     toggleKeyOnPress(GLFW_KEY_F3, f3HeldPreviousFrame, f3Held, f3Pressed);
 }
 

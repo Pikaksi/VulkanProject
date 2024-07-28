@@ -5,147 +5,120 @@
 
 void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
 {
-	for (int i = 0; i < quadsToDerender.size(); i++) {
-		vertexBufferManager.freeUIVerticesMemory(quadsToDerender[i]);
+	for (int i = 0; i < uiObjectsToDerender.size(); i++) {
+		vertexBufferManager.freeUIVerticesMemory(uiObjectsToDerender[i]);
 	}
-	quadsToDerender.clear();
-	for (int i = 0; i < textToDerender.size(); i++) {
-		vertexBufferManager.freeUIVerticesMemory(textToDerender[i]);
-	}
-	textToDerender.clear();
+	uiObjectsToDerender.clear();
 
-
-	for (int i = 0; i < quadsToRender.size(); i++) {
-		UIQuad* uiQuad = quadsToRender[i];
+	for (int i = 0; i < uiObjectsToRender.size(); i++) {
+		UIObject* uiObject = uiObjectsToRender[i];
 
 		std::vector<Vertex2D> vertices;
-		uiQuad->addMeshData(extent, vertices);
+		uiObject->addMeshData(extent, vertices);
 		uint32_t memoryLocation = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
-		quadsRendered.insert(std::make_pair(uiQuad, memoryLocation));
+		uiObjectsRendered.insert(std::make_pair(uiObject, memoryLocation));
 	}
-	quadsToRender.clear();
+	uiObjectsToRender.clear();
+}
 
-	for (int i = 0; i < textToRender.size(); i++) {
-		UIText* uiText = textToRender[i];
-
-		std::vector<Vertex2D> vertices;
-		uiText->addMeshData(extent, vertices);
-		uint32_t memoryLocation = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
-		textRendered.insert(std::make_pair(uiText, memoryLocation));
+void UIManager::rerenderIfExtentChanged(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
+{
+	if (!extentChanged) {
+		return;
 	}
-	textToRender.clear();
+
+	for (std::pair<UIObject*, uint32_t> pair : uiObjectsRendered) {
+		uiObjectsToRender.push_back(pair.first);
+		uiObjectsToDerender.push_back(pair.second);
+	}
+	uiObjectsRendered.clear();
+
+	updateScreen(extent, vulkanCoreInfo, commandPool, vertexBufferManager);
+}
+
+void UIManager::updateUIObject(UIObject* uiObject)
+{
+	removeUIObject(uiObject);
+	uiObjectsToRender.push_back(uiObject);
+}
+
+void UIManager::deleteUIObject(UIObject* uiObject)
+{
+	removeUIObject(uiObject);
+	delete uiObject;
+}
+
+void UIManager::removeUIObject(UIObject* uiObject)
+{
+	bool uiObjectIsRendered = uiObjectsRendered.contains(uiObject);
+	bool uiObjectIsAllocated = uiObjectsAllocated.contains(uiObject);
+
+	if (!uiObjectIsRendered && !uiObjectIsAllocated) {
+		std::cout << "Updated a UIObject twice in a frame or bug\n";
+		return;
+	}
+
+	if (uiObjectIsRendered) {
+		uiObjectsToDerender.push_back(uiObjectsRendered.at(uiObject));
+		uiObjectsRendered.erase(uiObject);
+	}
+	else if (uiObjectIsAllocated) {
+		uiObjectsAllocated.erase(uiObject);
+	}
 }
 
 UIQuad* UIManager::createUIQuad()
 {
 	UIQuad* uiQuad = new UIQuad();
-	quadsAllocated.insert(uiQuad);
+	uiObjectsAllocated.insert(uiQuad);
 	return uiQuad;
 }
 
-UIQuad* UIManager::createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, uint32_t texLayer, glm::vec4 color, UICenteringMode uiCenteringMode)
+UIQuad* UIManager::createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, UITexLayer texLayer, glm::vec4 color, UICenteringMode uiCenteringMode, bool automaticResize)
 {
-	UIQuad* uiQuad = new UIQuad(location, size, texDownLeft, texUpRight, texLayer, color, uiCenteringMode);
-	quadsAllocated.insert(uiQuad);
+	UIQuad* uiQuad = new UIQuad(location, size, texDownLeft, texUpRight, texLayer, color, uiCenteringMode, automaticResize);
+	uiObjectsAllocated.insert(uiQuad);
 	return uiQuad;
 }
 
-void UIManager::updateUIQuad(UIQuad* uiQuad)
-{
-	removeUIQuad(uiQuad);
-	quadsToRender.push_back(uiQuad);
-}
-
-void UIManager::deleteUIQuad(UIQuad* uiQuad)
-{
-	removeUIQuad(uiQuad);
-	delete uiQuad;
-}
-
-void UIManager::removeUIQuad(UIQuad* uiQuad)
-{
-	bool quadIsRendered = quadsRendered.contains(uiQuad);
-	bool quadIsAllocated = quadsAllocated.contains(uiQuad);
-
-#ifndef NDEBUG
-	if (!quadIsRendered && !quadIsAllocated) {
-		throw std::runtime_error("Tried to update UIQuad but it does not exist");
-	}
-#endif
-
-	if (quadIsRendered) {
-		quadsToDerender.push_back(quadsRendered.at(uiQuad));
-		quadsRendered.erase(uiQuad);
-	}
-	else if (quadIsAllocated) {
-		quadsAllocated.erase(uiQuad);
-	}
-}
 
 UIText* UIManager::createUIText()
 {
 	UIText* uiText = new UIText();
-	textAllocated.insert(uiText);
+	uiObjectsAllocated.insert(uiText);
 	return uiText;
 }
 
 UIText* UIManager::createUIText(glm::vec2 location, float letterHeight, std::string text, UICenteringMode letterCenteringMode)
 {
 	UIText* uiText = new UIText(location, letterHeight, text, letterCenteringMode);
-	textAllocated.insert(uiText);
+	uiObjectsAllocated.insert(uiText);
 	return uiText;
 }
 
-void UIManager::updateUIText(UIText* uiText)
+DefaultWindow* UIManager::createDefaultWindow()
 {
-	removeUIText(uiText);
-	textToRender.push_back(uiText);
+	DefaultWindow* defaultWindow = new DefaultWindow();
+	uiObjectsAllocated.insert(defaultWindow);
+	return defaultWindow;
 }
 
-void UIManager::deleteUIText(UIText* uiText)
+DefaultWindow* UIManager::createDefaultWindow(glm::vec2 location, glm::vec2 size, UICenteringMode uiCenteringMode, float topBarHeight, std::string title, glm::vec4 topBarColor, glm::vec4 bodyColor)
 {
-	removeUIText(uiText);
-	delete uiText;
-}
-
-void UIManager::removeUIText(UIText* uiText)
-{
-	bool textIsRendered = textRendered.contains(uiText);
-	bool textIsAllocated = textAllocated.contains(uiText);
-
-#ifndef NDEBUG
-	if (!textIsRendered && !textIsAllocated) {
-		throw std::runtime_error("Tried to update UIText but it does not exist");
-	}
-#endif
-
-	if (textIsRendered) {
-		textToDerender.push_back(textRendered.at(uiText));
-		textRendered.erase(uiText);
-	}
-	else if (textIsAllocated) {
-		textAllocated.erase(uiText);
-	}
+	DefaultWindow* defaultWindow = new DefaultWindow(location, size, uiCenteringMode, topBarHeight, title, topBarColor, bodyColor);
+	uiObjectsAllocated.insert(defaultWindow);
+	return defaultWindow;
 }
 
 void UIManager::cleanup()
 {
-	for (auto uiObjectPointer : quadsAllocated) {
+	for (auto uiObjectPointer : uiObjectsAllocated) {
 		delete uiObjectPointer;
 	}
-	for (auto uiObjectPointer : quadsToRender) {
+	for (auto uiObjectPointer : uiObjectsToRender) {
 		delete uiObjectPointer;
 	}
-	for (auto uiObjectPointer : quadsRendered) {
-		delete uiObjectPointer.first;
-	}
-	for (auto uiObjectPointer : textAllocated) {
-		delete uiObjectPointer;
-	}
-	for (auto uiObjectPointer : textToRender) {
-		delete uiObjectPointer;
-	}
-	for (auto uiObjectPointer : textRendered) {
+	for (auto uiObjectPointer : uiObjectsRendered) {
 		delete uiObjectPointer.first;
 	}
 }

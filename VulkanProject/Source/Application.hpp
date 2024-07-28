@@ -42,6 +42,7 @@
 #include "PlayerInputHandler.hpp"
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
+#include "Inventory/PlayerInventory.hpp"
 
 class Application
 {
@@ -96,8 +97,9 @@ private:
     ChunkRenderer chunkRenderer;
     CameraHandler cameraHandler;
     WorldManager worldManager;
-    UIManager uIManager;
+    UIManager uiManager;
     DebugMenu debugMenu;
+    PlayerInventory playerInventory;
 
     std::chrono::steady_clock::time_point fpsTimer;
 

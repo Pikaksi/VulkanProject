@@ -20,6 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\2dRendering\DebugMenu.cpp" />
+    <ClCompile Include="Source\2dRendering\DefaultWindow.cpp" />
+    <ClCompile Include="Source\2dRendering\UIButton.cpp" />
+    <ClCompile Include="Source\2dRendering\UIHelperFunctions.cpp" />
     <ClCompile Include="Source\2dRendering\UIManager.cpp" />
     <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
     <ClCompile Include="Source\2dRendering\UIText.cpp" />
@@ -27,11 +30,16 @@
     <ClCompile Include="Source\3dRendering\BinaryGreedyMesher.cpp" />
     <ClCompile Include="Source\3dRendering\BlockTexCoordinateLookup.cpp" />
     <ClCompile Include="Source\3dRendering\QuadStripIndexBuffer.cpp" />
+    <ClCompile Include="Source\Inventory\PlayerInventory.cpp" />
     <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp" />
     <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClInclude Include="Source\Inventory\PlayerInventory.hpp" />
+    <ClInclude Include="Source\2dRendering\DefaultWindow.hpp" />
+    <ClInclude Include="Source\Inventory\ItemSlot.hpp" />
+    <ClInclude Include="Source\Inventory\Item.hpp" />
     <ClInclude Include="Source\3dRendering\QuadStripIndexBuffer.hpp" />
     <ClInclude Include="Source\3dRendering\BinaryGreedyMesher.hpp" />
     <ClInclude Include="Source\VulkanRendering\ImageCreator.hpp" />
@@ -56,6 +64,11 @@
     <ClCompile Include="Source\World\WorldGeneration\ChunkGenerator.cpp" />
     <ClCompile Include="Source\World\WorldManager.cpp" />
     <ClInclude Include="Source\2dRendering\UITextureCreator.hpp" />
+    <ClInclude Include="Source\2dRendering\UITexLayer.hpp" />
+    <ClInclude Include="Source\2dRendering\UICenteringMode.hpp" />
+    <ClInclude Include="Source\2dRendering\UIObject.hpp" />
+    <ClInclude Include="Source\2dRendering\UIHelperFunctions.hpp" />
+    <ClInclude Include="Source\2dRendering\UIButton.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">
@@ -225,6 +238,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

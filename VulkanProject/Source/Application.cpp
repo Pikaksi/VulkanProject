@@ -32,6 +32,7 @@ void Application::run() {
 void Application::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
     auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     app->framebufferResized = true;
+    app->uiManager.extentChanged = true;
 }
 
 void Application::initGame()
@@ -40,6 +41,7 @@ void Application::initGame()
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
 
     debugMenu = DebugMenu(0.25f);
+    playerInventory = PlayerInventory();
 
     int worldMaxVertexCount = 10000000;
     int uiMaxVertexCount = 50000;
@@ -87,27 +89,16 @@ void Application::initVulkan()
 
 void Application::mainLoop()
 {
-    //fpsTimer = std::chrono::high_resolution_clock::now();
-
     while (!glfwWindowShouldClose(vulkanCoreInfo.window)) {
-
-        /*auto currentTime = std::chrono::high_resolution_clock::now();
-        float timePassed = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - fpsTimer).count();
-        fpsTimer = currentTime;
-        
-        std::cout << "time passed " << timePassed << "\n";
-        if (timePassed < 1000.0f / (float)MAX_FPS) {
-            std::this_thread::sleep_for(std::chrono::milliseconds((int)timePassed));
-        }*/
 
         glfwPollEvents();
         PlayerInputHandler::getInstance().update();
 
         cameraHandler.updateCameraTransform();
 
-        debugMenu.update(uIManager, vertexBufferManager, worldManager, cameraHandler);
-
         gameMainLoop();
+
+        uiManager.updateScreen(swapChainInfo.extent, vulkanCoreInfo, commandPool, vertexBufferManager);
         
         drawFrame(
             vulkanCoreInfo,
@@ -126,7 +117,9 @@ void Application::mainLoop()
             commandPool,
             cameraHandler,
             vertexBufferManager,
-            uIManager);
+            uiManager);
+
+        uiManager.rerenderIfExtentChanged(swapChainInfo.extent, vulkanCoreInfo, commandPool, vertexBufferManager);
     }
 
     vkDeviceWaitIdle(vulkanCoreInfo.device);
@@ -142,13 +135,15 @@ void Application::gameMainLoop()
     );
     chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
 
-    uIManager.updateScreen(swapChainInfo.extent, vulkanCoreInfo, commandPool, vertexBufferManager);
+    playerInventory.update(uiManager);
+
+    debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);
 }
 
 void Application::cleanup()
 {
     vertexBufferManager.cleanUp(vulkanCoreInfo);
-    uIManager.cleanup();
+    uiManager.cleanup();
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 

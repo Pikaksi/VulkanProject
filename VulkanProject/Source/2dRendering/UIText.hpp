@@ -14,25 +14,22 @@ const float LETTER_TEX_WIDTH = 1.0f / LETTERS_IN_TEX_ROW;
 const float LETTER_TEX_HEIGHT = 1.0f / LETTERS_IN_TEX_COLUMN;
 const glm::vec2 LETTER_TEX_SIZE = { LETTER_TEX_WIDTH, LETTER_TEX_HEIGHT };
 
-struct UIText
+struct UIText : public UIObject
 {
 public:
+	std::string text;
 	glm::vec2 location;
 	glm::vec2 letterSize;
 	UICenteringMode letterCenteringMode;
 
-	void setText(std::string text);
 	void addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices);
 
 	UIText() {}
 	UIText(glm::vec2 location, float letterHeight, std::string text, UICenteringMode letterCenteringMode) :
 		location(location), letterSize({ letterHeight / 2, letterHeight }), letterCenteringMode(letterCenteringMode)
 	{
-		setText(text);
+		this->text = text;
 	}
-
-private:
-	std::vector<UIQuad> textQuads;
 };
 
 const std::unordered_map<char, glm::vec2> charToTexLocation = std::unordered_map<char, glm::vec2>{

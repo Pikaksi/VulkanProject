@@ -3,17 +3,12 @@
 #include <string>
 #include <map>
 
+#include "UITexLayer.hpp"
 #include "VulkanRendering/VulkanTypes.hpp"
 
-enum class UITexture
-{
-	text = 0,
-	whiteBox = 1
-};
-
 const std::map<int, std::string> textureToFileName = {
-	{(int)UITexture::text, "TextSpriteSheet"},
-	{(int)UITexture::whiteBox, "WhiteBox"}
+	{(int)UITexLayer::text, "TextSpriteSheet"},
+	{(int)UITexLayer::white, "WhiteBox"}
 };
 
 void createUIImageInfos(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<ImageInfo>& uiImageInfos);

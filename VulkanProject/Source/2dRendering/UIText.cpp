@@ -1,14 +1,13 @@
 #include "UIText.hpp"
 
-#include <iostream>
+#include "UIHelperFunctions.hpp"
 
-void UIText::setText(std::string text)
+void UIText::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices)
 {
-	textQuads.clear();
-	textQuads = std::vector<UIQuad>();
-
 	int xCounter = 0;
 	int yCounter = 0;
+
+	glm::vec2 scalar = getScalarFromExtent(extent);
 
 	for (int i = 0; i < text.size(); i++) {
 		if (text[i] == '\n') {
@@ -20,23 +19,18 @@ void UIText::setText(std::string text)
 			continue;
 		}
 		glm::vec2 texLocation = charToTexLocation.at(text[i]);
-		UIQuad uIQuad(
-			location + letterSize * glm::vec2(xCounter / 2.0f, yCounter),
+
+		UIQuad uiQuad(
+			location + letterSize * glm::vec2(xCounter, yCounter) * scalar,
 			letterSize,
 			texLocation,
 			texLocation + LETTER_TEX_SIZE,
-			0,
-			{0.0f, 0.0f, 0.0f, 0.0f },
-			letterCenteringMode);
-		textQuads.push_back(uIQuad);
+			UITexLayer::text,
+			{ 0.0f, 0.0f, 0.0f, 1.0f },
+			letterCenteringMode,
+			true);
+		uiQuad.addMeshData(extent, vertices);
 
 		xCounter++;
-	}
-}
-
-void UIText::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices)
-{
-	for (const UIQuad& charQuad : textQuads) {
-		charQuad.addMeshData(extent, vertices);
 	}
 }

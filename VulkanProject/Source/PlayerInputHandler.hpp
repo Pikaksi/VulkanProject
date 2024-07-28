@@ -14,6 +14,9 @@ public:
     bool dHeld = false;
     bool qHeld = false;
     bool eHeld = false;
+    bool rHeld = false;
+    bool rHeldPreviousFrame = false;
+    bool rPressed = false;
     bool shiftHeld = false;
     bool ctrlHeld = false;
     bool f3Held = false;
@@ -27,6 +30,10 @@ public:
 
 	void initGLFWControlCallbacks();
     void update();
+
+    void enableCursor();
+    void disableCursor();
+    bool cursorIsEnabled();
 
     void handleMouseMovement(GLFWwindow* window, double xpos, double ypos);
     void handleKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -42,6 +49,8 @@ public:
     void operator=(PlayerInputHandler const&) = delete;
 
 private:
+    uint32_t cursorEnabledRequestCount = 0;
+
     PlayerInputHandler() {}
 
     void toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action);

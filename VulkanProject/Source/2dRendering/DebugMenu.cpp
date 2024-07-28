@@ -25,14 +25,13 @@ void DebugMenu::update(UIManager& uiManager, VertexBufferManager& vertexBufferMa
 
 void DebugMenu::updateUI(UIManager& uiManager, VertexBufferManager& vertexBufferManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler)
 {
-    debugMenuText->setText(
+    debugMenuText->text =
         "Fps: " + std::to_string(fps) + '\n' +
         "vertex count: " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + '\n' +
         "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) + " z: " + std::to_string(cameraHandler.position.z) + '\n' +
-        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX)
-    );
-    uiManager.updateUIText(debugMenuText);
+        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX);
+    uiManager.updateUIObject(debugMenuText);
 }
 
 void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)
@@ -49,9 +48,7 @@ void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)
 
 void DebugMenu::enableMenu(UIManager& uiManager)
 {
-    debugMenuText = uiManager.createUIText({-1.0f, -1.0f}, 0.05, "", UICenteringMode::TopLeft);
-    testQuad = uiManager.createUIQuad({0, 0}, {0.5, 0.5}, {0, 0}, {1, 1}, 1, {1, 0, 1, 1}, UICenteringMode::Center);
-    uiManager.updateUIQuad(testQuad);
+    debugMenuText = uiManager.createUIText({-1.0f, -1.0f}, 0.05f, "", UICenteringMode::topLeft);
     
 
     isEnabled = true;
@@ -59,8 +56,7 @@ void DebugMenu::enableMenu(UIManager& uiManager)
 
 void DebugMenu::disableMenu(UIManager& uiManager)
 {
-    uiManager.deleteUIText(debugMenuText);
-    uiManager.deleteUIQuad(testQuad);
+    uiManager.deleteUIObject(debugMenuText);
 
     isEnabled = false;
 }
