@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "PlayerInputHandler.hpp"
 
 void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
 {
@@ -19,6 +20,26 @@ void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, 
 		uiObjectsRendered.insert(std::make_pair(uiObject, memoryLocation));
 	}
 	uiObjectsToRender.clear();
+}
+
+void UIManager::updateButtons(VkExtent2D extent)
+{
+	if (!PlayerInputHandler::getInstance().cursorIsEnabled()) {
+		return;
+	}
+
+	double xPos, yPos;
+	glfwGetCursorPos(PlayerInputHandler::getInstance().window, &xPos, &yPos);
+	int width, height;
+	glfwGetWindowSize(PlayerInputHandler::getInstance().window, &width, &height);
+	glm::vec2 mousePosition = glm::vec2(xPos / width, yPos / height);
+
+	for (UIButton* uiButton : uiButtons) {
+		bool clicked = uiButton->updateStatus(extent, mousePosition);
+		if (clicked) {
+			return;
+		}
+	}
 }
 
 void UIManager::rerenderIfExtentChanged(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
@@ -42,7 +63,7 @@ void UIManager::updateUIObject(UIObject* uiObject)
 	uiObjectsToRender.push_back(uiObject);
 }
 
-void UIManager::deleteUIObject(UIObject* uiObject)
+void UIManager::destroyUIObject(UIObject* uiObject)
 {
 	removeUIObject(uiObject);
 	delete uiObject;
@@ -110,6 +131,28 @@ DefaultWindow* UIManager::createDefaultWindow(glm::vec2 location, glm::vec2 size
 	return defaultWindow;
 }
 
+UIButton* UIManager::createUIButton()
+{
+	UIButton* uiButton = new UIButton();
+	uiButtons.insert(uiButton);
+	return uiButton;
+}
+
+UIButton* UIManager::createUIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction)
+{
+	UIButton* uiButton = new UIButton(location, size, centeringMode, automaticResize, callbackFunction);
+	uiButtons.insert(uiButton);
+	return uiButton;
+}
+
+void UIManager::destroyUIButton(UIButton* uiButton)
+{
+	if (uiButtons.contains(uiButton)) {
+		delete uiButton;
+		uiButtons.erase(uiButton);
+	}
+}
+
 void UIManager::cleanup()
 {
 	for (auto uiObjectPointer : uiObjectsAllocated) {
@@ -120,5 +163,9 @@ void UIManager::cleanup()
 	}
 	for (auto uiObjectPointer : uiObjectsRendered) {
 		delete uiObjectPointer.first;
+	}
+	
+	for (auto uiButtonPointer : uiButtons) {
+		delete uiButtonPointer;
 	}
 }

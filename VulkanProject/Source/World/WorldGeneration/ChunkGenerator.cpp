@@ -185,7 +185,7 @@ void generateChunk(glm::i32vec3 chunkLocation, WorldManager* worldManager, std::
 						if (hasAirOnTop) {
 							worldManager->chunks.at(chunkLocation).blocks[chunkLocationToIndex(x, y, z)] = BlockType::grass;
 							
-							if (randomFloat01() < 0.5f) {
+							if (randomFloat01() < 0.3f) {
 								placeStructureBlock(x, y + 1, z, chunkLocation, BlockType::grassPlant, worldManager);
 							}
 							if (randomFloat01() < 0.002f) {

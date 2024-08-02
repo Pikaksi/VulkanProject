@@ -3,10 +3,12 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <functional>
 
 #include "UIQuad.hpp"
 #include "UIText.hpp"
 #include "DefaultWindow.hpp"
+#include "UIButton.hpp"
 #include "Rendering/VertexBufferManager.hpp"
 
 // All components derive from UIObject.
@@ -17,7 +19,7 @@ class UIManager
 {
 public:
 	void updateUIObject(UIObject* uiObject);
-	void deleteUIObject(UIObject* uiObject);
+	void destroyUIObject(UIObject* uiObject);
 
 	UIQuad* createUIQuad();
 	UIQuad* createUIQuad(glm::vec2 location, glm::vec2 size, glm::vec2 texDownLeft, glm::vec2 texUpRight, UITexLayer texLayer, glm::vec4 color, UICenteringMode uiCenteringMode, bool automaticResize);
@@ -28,8 +30,13 @@ public:
 	DefaultWindow* createDefaultWindow();
 	DefaultWindow* createDefaultWindow(glm::vec2 location, glm::vec2 size, UICenteringMode uiCenteringMode, float topBarHeight, std::string title, glm::vec4 topBarColor, glm::vec4 bodyColor);
 
+	UIButton* createUIButton();
+	UIButton* createUIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction);
+	void destroyUIButton(UIButton* uiButton);
+
 	UIManager() {};
 	void updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);
+	void updateButtons(VkExtent2D extent);
 	void cleanup();
 
 	bool extentChanged = false;
@@ -42,4 +49,6 @@ private:
 	std::vector<UIObject*> uiObjectsToRender;
 	std::map<UIObject*, uint32_t> uiObjectsRendered;
 	std::vector<uint32_t> uiObjectsToDerender;
+
+	std::set<UIButton*> uiButtons;
 };

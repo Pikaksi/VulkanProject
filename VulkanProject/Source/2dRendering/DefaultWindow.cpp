@@ -45,7 +45,7 @@ void DefaultWindow::addMeshDataScaledCentered(VkExtent2D extent, std::vector<Ver
     UIText uiText(
         location + glm::vec2(topBarHeight * 0.1f, topBarHeight * 0.1f),
         topBarHeight * 0.8f,
-        title,
+        "Inventory",
         UICenteringMode::topLeft);
     uiText.addMeshData(extent, vertices);
 }

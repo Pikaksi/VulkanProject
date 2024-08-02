@@ -56,7 +56,7 @@ void DebugMenu::enableMenu(UIManager& uiManager)
 
 void DebugMenu::disableMenu(UIManager& uiManager)
 {
-    uiManager.deleteUIObject(debugMenuText);
+    uiManager.destroyUIObject(debugMenuText);
 
     isEnabled = false;
 }
