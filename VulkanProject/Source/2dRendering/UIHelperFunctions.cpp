@@ -32,3 +32,11 @@ glm::vec2 getCenteredLocation(glm::vec2 location, glm::vec2 size, UICenteringMod
 
     return centeredLocation;
 }
+
+void scaleBoxToWindow(glm::vec2 windowLocation, glm::vec2 windowSize, glm::vec2& location, glm::vec2& size)
+{
+    size *= windowSize * 0.5f;
+    
+    location *= windowSize * 0.5f;
+    location += windowLocation * 0.5f;
+}

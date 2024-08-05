@@ -4,7 +4,7 @@
 
 #include "UIText.hpp"
 
-class DefaultWindow : public UIObject
+struct DefaultWindow : public UIObject
 {
 public:
 	void addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices);
@@ -17,7 +17,6 @@ public:
 		this->title = title;
 	}
 
-private:
 	glm::vec2 location;
 	glm::vec2 size;
 	UICenteringMode centeringMode;

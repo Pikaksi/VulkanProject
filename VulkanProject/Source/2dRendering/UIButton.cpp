@@ -1,5 +1,7 @@
 #include "UIButton.hpp"
 
+#include <iostream>
+
 #include "UIHelperFunctions.hpp"
 
 bool UIButton::updateStatus(VkExtent2D extent, glm::vec2 mouseLocation)
@@ -18,7 +20,7 @@ bool UIButton::updateStatus(VkExtent2D extent, glm::vec2 mouseLocation)
     {
         // The number here does not matter.
         // It is replaced by the number given during the construction of the function.
-        callbackFunction(0);
+        callbackFunction(callbackNumber);
         return true;
     }
     return false;

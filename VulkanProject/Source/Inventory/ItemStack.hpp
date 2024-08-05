@@ -3,7 +3,7 @@
 #include "Item.hpp"
 #include <cstdint>
 
-struct ItemSlot
+struct ItemStack
 {
 	Item item;
 	uint32_t amount;

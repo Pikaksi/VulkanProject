@@ -1,0 +1,59 @@
+#include "InventoryRenderer.hpp"
+
+#include "2dRendering/UIHelperFunctions.hpp"
+#include "PlayerInputHandler.hpp"
+
+void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void(int)> inventorySlotCallback)
+{
+	defaultWindow = uiManager.createDefaultWindow(
+		{0.0f, 0.0f},
+		{1.2f, 0.8f},
+		UICenteringMode::center,
+		0.05f,
+		"Inventory",
+		{0.1f, 0.2, 0.8f, 1.0f},
+		{0.05f, 0.05f, 0.07f, 1.0f});
+	uiManager.updateUIObject(defaultWindow);
+
+    auto inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
+
+    for (int i = 0; i < inventorySlotLocations.size(); i++) {
+        InventorySlotLocation slotLocation = inventorySlotLocations[i];
+        scaleBoxToWindow(defaultWindow->location, defaultWindow->size, slotLocation.location, slotLocation.size);
+
+        buttons.push_back(uiManager.createUIButton(
+            slotLocation.location,
+            slotLocation.size,
+            UICenteringMode::topLeft,
+            true,
+            inventorySlotCallback,  // create the callback function like this: std::bind(&PlayerInventory::testCallback, this, std::placeholders::_1));
+            i));
+
+        buttonImages.push_back(uiManager.createUIQuad(
+            slotLocation.location,
+            slotLocation.size,
+            { 0.0f, 0.0f },
+            { 1.0f, 1.0f },
+            UITexLayer::white,
+            {0.2f, 0.2f, 0.2f, 1.0f},
+            UICenteringMode::topLeft,
+            true));
+        uiManager.updateUIObject(buttonImages.back());
+    }
+
+	PlayerInputHandler::getInstance().enableCursor();
+}
+
+void InventoryRenderer::disableInventory(UIManager& uiManager)
+{
+	uiManager.destroyUIObject(defaultWindow);
+
+    for (int i = 0; i < buttons.size(); i++) {
+        uiManager.destroyUIButton(buttons[i]);
+    }
+    for (int i = 0; i < buttonImages.size(); i++) {
+        uiManager.destroyUIObject(buttonImages[i]);
+    }
+
+	PlayerInputHandler::getInstance().disableCursor();
+}

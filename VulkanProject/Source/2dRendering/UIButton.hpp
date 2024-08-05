@@ -15,10 +15,11 @@ public:
 	UICenteringMode centeringMode;
 	bool automaticResize;
 	std::function<void(int)> callbackFunction;
+	int callbackNumber;
 
 	UIButton() {}
-	UIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction)
-		: location(location), size(size), centeringMode(centeringMode), automaticResize(automaticResize), callbackFunction(callbackFunction) {}
+	UIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction, int callbackNumber)
+		: location(location), size(size), centeringMode(centeringMode), automaticResize(automaticResize), callbackFunction(callbackFunction), callbackNumber(callbackNumber) {}
 
 	bool updateStatus(VkExtent2D extent, glm::vec2 mouseLocation);
 };

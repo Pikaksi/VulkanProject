@@ -1,5 +1,4 @@
 #include "DefaultWindow.hpp"
-
 #include <algorithm>
 #include <iostream>
 
@@ -43,9 +42,18 @@ void DefaultWindow::addMeshDataScaledCentered(VkExtent2D extent, std::vector<Ver
     body.addMeshData(extent, vertices);
 
     UIText uiText(
-        location + glm::vec2(topBarHeight * 0.1f, topBarHeight * 0.1f),
+        location + glm::vec2(topBarHeight * 0.1f, topBarHeight * 0.1f),   
         topBarHeight * 0.8f,
         "Inventory",
         UICenteringMode::topLeft);
     uiText.addMeshData(extent, vertices);
 }
+
+
+
+class A
+{
+public:
+    int getRekt();
+    A() {}
+};

@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${default}",
+                "${workspaceFolder}/VulkanProject/**", // include Constants.hpp in own project before dependencies. 
                 "${workspaceFolder}/**"
             ],
             "defines": [

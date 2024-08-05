@@ -1,17 +1,24 @@
 #pragma once
 
-#include "ItemSlot.hpp"
+#include "ItemStack.hpp"
 #include "2dRendering/UIManager.hpp"
+#include "InventoryLayouts.hpp"
+#include "Inventory.hpp"
+#include "InventoryRenderer.hpp"
 
 class PlayerInventory
 {
 public:
 	void update(UIManager& uiManager);
+	PlayerInventory()
+		: inventory(Inventory(inventorySize)), inventoryRenderer(InventoryRenderer(&inventory, inventoryLayout)) {}
 
 private:
-	DefaultWindow* defaultWindow;
-	UIButton* button;
-	UIQuad* buttonImage;
+	InventoryLayout inventoryLayout = InventoryLayout::grid10x4Inventory;	
+	uint32_t inventorySize = getInventoryLayoutSize(inventoryLayout);
+
+	Inventory inventory;
+	InventoryRenderer inventoryRenderer;
 
 	bool inventoryIsActive = false;
 

@@ -23,6 +23,13 @@ public:
     bool f3HeldPreviousFrame = false;
     bool f3Pressed = false;
 
+    bool mouseLeftHeld = false;
+    bool mouseLeftHeldPreviousFrame = false;
+    bool mouseLeftPressed = false;
+    bool mouseRightHeld = false;
+    bool mouseRightHeldPreviousFrame = false;
+    bool mouseRightPressed = false;
+
     double mousePreviousLocationX = 0.0f;
     double mousePreviousLocationY = 0.0f;
     double mouseMovementX = 0.0f;
@@ -35,6 +42,7 @@ public:
     void disableCursor();
     bool cursorIsEnabled();
 
+    void handleMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     void handleMouseMovement(GLFWwindow* window, double xpos, double ypos);
     void handleKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods);
 

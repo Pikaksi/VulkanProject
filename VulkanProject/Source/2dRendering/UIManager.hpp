@@ -31,7 +31,7 @@ public:
 	DefaultWindow* createDefaultWindow(glm::vec2 location, glm::vec2 size, UICenteringMode uiCenteringMode, float topBarHeight, std::string title, glm::vec4 topBarColor, glm::vec4 bodyColor);
 
 	UIButton* createUIButton();
-	UIButton* createUIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction);
+	UIButton* createUIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction, int callbackNumber);
 	void destroyUIButton(UIButton* uiButton);
 
 	UIManager() {};

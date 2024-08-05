@@ -9,6 +9,7 @@
 #include "Rendering/TextureCreator.hpp"
 #include "3dRendering/BlockTexCoordinateLookup.hpp"
 #include "2dRendering/UITextureCreator.hpp"
+#include "Inventory/InventoryLayouts.hpp"
 
 #include <thread>
 
@@ -39,6 +40,8 @@ void Application::initGame()
 {
     PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
+
+    generateInventoryLayouts();
 
     debugMenu = DebugMenu(0.25f);
     playerInventory = PlayerInventory();

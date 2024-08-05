@@ -27,12 +27,15 @@ void UIManager::updateButtons(VkExtent2D extent)
 	if (!PlayerInputHandler::getInstance().cursorIsEnabled()) {
 		return;
 	}
+	if (!PlayerInputHandler::getInstance().mouseLeftPressed) {
+		return;
+	}
 
 	double xPos, yPos;
 	glfwGetCursorPos(PlayerInputHandler::getInstance().window, &xPos, &yPos);
 	int width, height;
 	glfwGetWindowSize(PlayerInputHandler::getInstance().window, &width, &height);
-	glm::vec2 mousePosition = glm::vec2(xPos / width, yPos / height);
+	glm::vec2 mousePosition = glm::vec2(xPos / width * 2.0f - 1.0f, yPos / height * 2.0f - 1.0f);
 
 	for (UIButton* uiButton : uiButtons) {
 		bool clicked = uiButton->updateStatus(extent, mousePosition);
@@ -138,9 +141,9 @@ UIButton* UIManager::createUIButton()
 	return uiButton;
 }
 
-UIButton* UIManager::createUIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction)
+UIButton* UIManager::createUIButton(glm::vec2 location, glm::vec2 size, UICenteringMode centeringMode, bool automaticResize, std::function<void(int)> callbackFunction, int callbackNumber)
 {
-	UIButton* uiButton = new UIButton(location, size, centeringMode, automaticResize, callbackFunction);
+	UIButton* uiButton = new UIButton(location, size, centeringMode, automaticResize, callbackFunction, callbackNumber);
 	uiButtons.insert(uiButton);
 	return uiButton;
 }

@@ -129,6 +129,15 @@
     <ClCompile Include="Source\2dRendering\UIButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Inventory\Inventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Inventory\InventoryLayouts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Inventory\InventoryRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader3d.vert">
@@ -261,7 +270,7 @@
     <ClInclude Include="Source\Inventory\Item.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Inventory\ItemSlot.hpp">
+    <ClInclude Include="Source\Inventory\ItemStack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\DefaultWindow.hpp">
@@ -283,6 +292,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\UIButton.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Inventory\InventoryLayouts.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Inventory\Inventory.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Inventory\InventoryRenderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,35 +18,7 @@ void PlayerInventory::update(UIManager& uiManager)
 
 void PlayerInventory::enableInventory(UIManager& uiManager)
 {
-	defaultWindow = uiManager.createDefaultWindow(
-		{0.0f, 0.0f},
-		{1.2f, 0.8f},
-		UICenteringMode::center,
-		0.05f,
-		"Inventory",
-		{0.1f, 0.2, 0.8f, 1.0f},
-		{0.05f, 0.05f, 0.07f, 1.0f});
-	uiManager.updateUIObject(defaultWindow);
-
-	button = uiManager.createUIButton(
-		glm::vec2(0.8f, 0.8f),
-		glm::vec2(0.2f, 0.2f),
-		UICenteringMode::topLeft,
-		true,
-		std::bind(&PlayerInventory::testCallback, this, 69));
-
-	buttonImage = uiManager.createUIQuad(
-		{ 0.8f, 0.8f },
-		{ 0.2f, 0.2f },
-		{ 0.0f, 0.0f },
-		{ 1.0f, 1.0f },
-		UITexLayer::white,
-		{0.2f, 0.2f, 0.2f, 1.0f},
-		UICenteringMode::topLeft,
-		true);
-	uiManager.updateUIObject(buttonImage);
-
-	PlayerInputHandler::getInstance().enableCursor();
+	inventoryRenderer.enableInventory(uiManager, std::bind(&PlayerInventory::testCallback, this, std::placeholders::_1));
 }
 
 void PlayerInventory::testCallback(int callbackNumber)
@@ -56,7 +28,5 @@ void PlayerInventory::testCallback(int callbackNumber)
 
 void PlayerInventory::disableInventory(UIManager& uiManager)
 {
-	uiManager.destroyUIObject(defaultWindow);
-
-	PlayerInputHandler::getInstance().disableCursor();
+	inventoryRenderer.disableInventory(uiManager);
 }
