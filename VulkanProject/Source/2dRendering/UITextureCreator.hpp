@@ -8,7 +8,13 @@
 
 const std::map<int, std::string> textureToFileName = {
 	{(int)UITexLayer::text, "TextSpriteSheet"},
-	{(int)UITexLayer::white, "WhiteBox"}
+	{(int)UITexLayer::white, "WhiteBox"},
+	{(int)UITexLayer::itemStick, "Stick"},
+	{(int)UITexLayer::itemStone, "Stone"},
+	{(int)UITexLayer::itemOakLog, "OakLog"},
+	{(int)UITexLayer::itemOakLeaf, "OakLeaft"},
+	{(int)UITexLayer::itemDirt, "Dirt"},
+	{(int)UITexLayer::itemGrassBlock, "GrassBlock"},
 };
 
 void createUIImageInfos(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<ImageInfo>& uiImageInfos);

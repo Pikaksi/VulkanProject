@@ -189,7 +189,7 @@ std::vector<VkDescriptorSet> createDescriptorSets2d(
         descriptorWrites[0].dstBinding = 0;
         descriptorWrites[0].dstArrayElement = 0;
         descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrites[0].descriptorCount = 2;
+        descriptorWrites[0].descriptorCount = uiImageInfos.size();
         descriptorWrites[0].pImageInfo = imageInfo.data();
 
         vkUpdateDescriptorSets(vulkanCoreInfo.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);

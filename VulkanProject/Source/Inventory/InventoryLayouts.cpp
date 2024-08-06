@@ -13,6 +13,7 @@ uint32_t getInventoryLayoutSize(InventoryLayout inventoryLayout)
 
 void generategrid10x4InventoryLayout(std::vector<InventorySlotLocation>& inventorySlotPositions)
 {
+    glm::vec2 startingOffset = { 0.01f, 0.1f };
     glm::vec2 slotSize = { 0.08f, 0.08f };
     glm::vec2 slotGap { 0.02f, 0.02f };
 
@@ -24,8 +25,12 @@ void generategrid10x4InventoryLayout(std::vector<InventorySlotLocation>& invento
             x * (slotSize.x + slotGap.x),
             y * (slotSize.y + slotGap.y)
         };
+        location += startingOffset;
+        // scale from 0 - 1 to -1 - 1 range
+        glm::vec2 screenLocation = location * glm::vec2(2, 2) - glm::vec2(1, 1);
+        glm::vec2 screenSize = slotSize * glm::vec2(2, 2);
 
-        InventorySlotLocation inventorySlotPosition(location, slotSize);
+        InventorySlotLocation inventorySlotPosition(screenLocation, screenSize);
         inventorySlotPositions.push_back(inventorySlotPosition);
     }
 }

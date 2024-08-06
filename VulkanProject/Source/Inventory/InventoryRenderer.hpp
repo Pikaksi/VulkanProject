@@ -24,6 +24,4 @@ private:
 	DefaultWindow* defaultWindow;
 	std::vector<UIButton*> buttons;
 	std::vector<UIQuad*> buttonImages;
-
-	bool inventoryIsActive = false;
 };
