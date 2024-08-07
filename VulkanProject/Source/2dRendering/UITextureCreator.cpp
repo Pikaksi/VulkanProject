@@ -1,5 +1,6 @@
 #include "UITextureCreator.hpp"
 
+#include <iostream>
 #include <stdexcept>
 #include <filesystem>
 #include <unordered_set>
@@ -26,8 +27,14 @@ void createUIImageInfos(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPoo
 			std::string filePath = "UITextures\\" + textureToFileName.at(i) + ".png";
 			createTextureImage(vulkanCoreInfo, uiImageInfos[i], commandPool, false, filePath);
 		}
-		else {
-			throw std::runtime_error("textureToFileName does not contain all the enums or enums do not have consecutive values (0, 1, 2,...).");
+		else { 
+			if (textureToFileName.contains(i)) {
+				std::cout << "Did not have enum " << i << ".";
+			}
+			else {
+				std::cout << "the file corresponding to enum with the value " << i << "was not found.";
+			}
+			throw std::runtime_error("textureToFileName contains bad values");
 		}
 	}
 }

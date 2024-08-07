@@ -8,5 +8,5 @@ enum class Item
 	grassBlock = 3,
 	oakLog = 4,
 	stick = 5,
-	planks = 6
+	oakPlanks = 6
 };

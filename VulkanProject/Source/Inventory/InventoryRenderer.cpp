@@ -1,5 +1,6 @@
 #include "InventoryRenderer.hpp"
 
+#include "2dRendering/ItemToTexLayer.hpp"
 #include "2dRendering/UIHelperFunctions.hpp"
 #include "PlayerInputHandler.hpp"
 
@@ -34,11 +35,24 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
             slotLocation.size,
             { 0.0f, 0.0f },
             { 1.0f, 1.0f },
-            UITexLayer::itemDirt,
+            UITexLayer::white,
             {0.2f, 0.2f, 0.2f, 1.0f},
             UICenteringMode::topLeft,
             true));
         uiManager.updateUIObject(buttonImages.back());
+
+        std::cout << "inventory size = " << inventory->getSize();
+        UITexLayer itemTexLayer = itemToUITexLayer.at(inventory->getItem(i).item);
+        itemImages.push_back(uiManager.createUIQuad(
+            slotLocation.location + 0.01f,
+            slotLocation.size - 0.02f,
+            { 0.0f, 0.0f },
+            { 1.0f, 1.0f },
+            UITexLayer::white,
+            {0.2f, 0.2f, 0.2f, 1.0f},
+            UICenteringMode::topLeft,
+            true));
+        uiManager.updateUIObject(itemImages.back());
     }
 
 	PlayerInputHandler::getInstance().enableCursor();

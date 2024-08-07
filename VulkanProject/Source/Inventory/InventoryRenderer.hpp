@@ -24,4 +24,5 @@ private:
 	DefaultWindow* defaultWindow;
 	std::vector<UIButton*> buttons;
 	std::vector<UIQuad*> buttonImages;
+	std::vector<UIQuad*> itemImages;
 };

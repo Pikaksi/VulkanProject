@@ -39,6 +39,7 @@
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClInclude Include="Source\2dRendering\ItemToTexLayer.hpp" />
     <ClInclude Include="Source\Inventory\Inventory.hpp" />
     <ClInclude Include="Source\Inventory\InventoryRenderer.hpp" />
     <ClInclude Include="Source\Inventory\InventoryLayouts.hpp" />

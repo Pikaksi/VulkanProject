@@ -12,7 +12,7 @@ const std::map<int, std::string> textureToFileName = {
 	{(int)UITexLayer::itemStick, "Stick"},
 	{(int)UITexLayer::itemStone, "Stone"},
 	{(int)UITexLayer::itemOakLog, "OakLog"},
-	{(int)UITexLayer::itemOakLeaf, "OakLeaft"},
+	{(int)UITexLayer::itemOakLeaf, "OakLeaf"},
 	{(int)UITexLayer::itemDirt, "Dirt"},
 	{(int)UITexLayer::itemGrassBlock, "GrassBlock"},
 };
