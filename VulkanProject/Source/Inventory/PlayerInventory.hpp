@@ -10,13 +10,18 @@ class PlayerInventory
 {
 public:
 	void update(UIManager& uiManager);
-	PlayerInventory()
-		: inventory(Inventory(inventorySize)), inventoryRenderer(InventoryRenderer(&inventory, inventoryLayout)) {}
+	PlayerInventory() :
+		inventoryLayout(InventoryLayout::grid10x4Inventory),
+		inventorySize(getInventoryLayoutSize(inventoryLayout)), 
+		inventory(Inventory(inventorySize)),
+		inventoryRenderer(InventoryRenderer(inventoryLayout))
+	{
+		inventory.insertItem(ItemStack(Item::dirt, 3));
+	}
 
 private:
-	InventoryLayout inventoryLayout = InventoryLayout::grid10x4Inventory;	
-	uint32_t inventorySize = getInventoryLayoutSize(inventoryLayout);
-
+	InventoryLayout inventoryLayout;
+	uint32_t inventorySize;
 	Inventory inventory;
 	InventoryRenderer inventoryRenderer;
 

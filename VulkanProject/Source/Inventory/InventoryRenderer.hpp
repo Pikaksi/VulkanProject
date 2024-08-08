@@ -9,20 +9,18 @@
 class InventoryRenderer
 {
 public:
-	void enableInventory(UIManager& uiManager, std::function<void(int)> inventorySlotCallback);
+	void enableInventory(UIManager& uiManager, std::function<void(int)> inventorySlotCallback, Inventory* inventory);
 	void disableInventory(UIManager& uiManager);
 
-	void testCallback(int callbackNumber);
-
-	InventoryRenderer(Inventory* inventory, InventoryLayout inventoryLayout)
-	    : inventory(inventory), inventoryLayout(inventoryLayout) {}
+	InventoryRenderer(InventoryLayout inventoryLayout)
+	    : inventoryLayout(inventoryLayout) {}
 
 private:
-	Inventory* inventory;
 	InventoryLayout inventoryLayout;
 
 	DefaultWindow* defaultWindow;
 	std::vector<UIButton*> buttons;
 	std::vector<UIQuad*> buttonImages;
 	std::vector<UIQuad*> itemImages;
+	std::vector<UIText*> itemCounts;
 };

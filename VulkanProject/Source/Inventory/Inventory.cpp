@@ -41,16 +41,17 @@ void Inventory::insertItem(ItemStack itemStack)
 
             itemStacks[i].amount += itemsToAdd;
             itemStack.amount -= itemsToAdd;
-        }
-    }
 
-    if (itemStack.amount == 0) {
-        return;
+            if (itemStack.amount == 0) {
+                return;
+            }
+        }
     }
 
     for (int i = 0; i < itemStacks.size(); i++) {
         if (itemStacks[i].item == Item::empty) {
             itemStacks[i] = itemStack;
+            return;
         }
     }
 }
