@@ -24,8 +24,9 @@ public:
 		glm::i32vec3 playerChunkLocation);
 
 private:
-	const int renderDistance = 10;
+	const int renderDistance = 4;
 	const int extraRangeToDerenderChunk = 1;
+	
 	std::queue<glm::i32vec3> chunksToRender;
 	std::unordered_map<glm::i32vec3, uint32_t> renderedChunks; // holds GPU memory pointer to delete chunks
 	glm::i32vec3 peviousPlayerChunkLocation = glm::i32vec3(9999, 9999, 9999);

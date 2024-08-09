@@ -76,10 +76,10 @@ VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo) {
     return descriptorPool;
 }
 
-VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo) {
+VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t imageCount) {
     std::array<VkDescriptorPoolSize, 1> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT * 2);
+    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT * imageCount);
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

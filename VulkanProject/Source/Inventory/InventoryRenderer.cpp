@@ -1,11 +1,15 @@
 #include "InventoryRenderer.hpp"
 
+#include <chrono>
+
 #include "2dRendering/ItemToTexLayer.hpp"
 #include "2dRendering/UIHelperFunctions.hpp"
 #include "PlayerInputHandler.hpp"
 
 void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void(int)> inventorySlotCallback, Inventory* inventory)
 {
+    auto startingTime = std::chrono::high_resolution_clock::now();
+
 	defaultWindow = uiManager.createDefaultWindow(
 		{0.0f, 0.0f},
 		{1.2f, 1.2f},
@@ -68,6 +72,10 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
     }
 
 	PlayerInputHandler::getInstance().enableCursor();
+
+    auto endingTime = std::chrono::high_resolution_clock::now();
+    auto timeTaken = std::chrono::duration_cast<std::chrono::milliseconds>(endingTime - startingTime);
+    std::cout << "time taken in milliseconds is " << timeTaken << "\n";
 }
 
 void InventoryRenderer::disableInventory(UIManager& uiManager)

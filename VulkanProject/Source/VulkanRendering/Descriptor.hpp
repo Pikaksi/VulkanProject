@@ -6,7 +6,7 @@ VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo& vulkanCoreInfo
 VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo);
 
 VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo);
-VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo);
+VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t imageCount);
 
 std::vector<VkDescriptorSet> createDescriptorSets3d(
     VulkanCoreInfo& vulkanCoreInfo,

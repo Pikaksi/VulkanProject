@@ -30,7 +30,8 @@ void DebugMenu::updateUI(UIManager& uiManager, VertexBufferManager& vertexBuffer
         "vertex count: " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + '\n' +
         "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) + " z: " + std::to_string(cameraHandler.position.z) + '\n' +
-        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX);
+        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX) + "\n" +
+        "2d GPUMemoryBlock is using " + std::to_string(vertexBufferManager.uiGPUMemoryBlock.getDataCount()) + " of data";
     uiManager.updateUIObject(debugMenuText);
 }
 

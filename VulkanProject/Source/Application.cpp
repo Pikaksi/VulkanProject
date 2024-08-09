@@ -83,7 +83,7 @@ void Application::initVulkan()
     descriptorPool3d = createDescriptorPool3d(vulkanCoreInfo);
     descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo, descriptorPool3d, descriptorSetLayout3d, cameraUniformBuffers, blockTextureImageArray, blockTextureArraySampler);
 
-    descriptorPool2d = createDescriptorPool2d(vulkanCoreInfo);
+    descriptorPool2d = createDescriptorPool2d(vulkanCoreInfo, uiImageInfos.size());
     descriptorSets2d = createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, uiImageInfos, uiTextureSampler);
 
     commandBuffers = createCommandBuffers(vulkanCoreInfo, commandPool);
