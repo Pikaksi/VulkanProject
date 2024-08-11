@@ -39,6 +39,7 @@
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClCompile Include="Source\2dRendering\UIAnchor.cpp" />
     <ClInclude Include="Source\2dRendering\ItemToTexLayer.hpp" />
     <ClInclude Include="Source\Inventory\Inventory.hpp" />
     <ClInclude Include="Source\Inventory\InventoryRenderer.hpp" />
@@ -76,6 +77,7 @@
     <ClInclude Include="Source\2dRendering\UIObject.hpp" />
     <ClInclude Include="Source\2dRendering\UIHelperFunctions.hpp" />
     <ClInclude Include="Source\2dRendering\UIButton.hpp" />
+    <ClInclude Include="Source\2dRendering\UIAnchor.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">

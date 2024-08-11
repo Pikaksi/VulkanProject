@@ -7,7 +7,7 @@
 
 void DefaultWindow::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices)
 {
-    glm::vec2 scalar = { 1, 1 };//getScalarFromExtent(extent);
+    glm::vec2 scalar = getScalarFromExtent(extent);
     glm::vec2 realSize = size * scalar;
     float realTopBarHeight = topBarHeight * scalar.y;
 

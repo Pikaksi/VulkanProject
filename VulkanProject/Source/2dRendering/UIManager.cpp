@@ -1,5 +1,6 @@
 #include "UIManager.hpp"
 
+#include <chrono>
 #include <vector>
 
 #include "PlayerInputHandler.hpp"
@@ -10,6 +11,19 @@ void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, 
 		vertexBufferManager.freeUIVerticesMemory(uiObjectsToDerender[i]);
 	}
 	uiObjectsToDerender.clear();
+
+	if (extentChanged) {
+		auto startingTime = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < uiObjectsToRender.size(); i++) {
+			UIObject* uiObject = uiObjectsToRender[i];
+
+			std::vector<Vertex2D> vertices;
+			uiObject->addMeshData(extent, vertices);
+		}
+		auto endingTime = std::chrono::high_resolution_clock::now();
+		auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
+		std::cout << "time taken to generate mesh for all objects in nanoseconds is " << timeTaken << "\n";
+	}
 
 	for (int i = 0; i < uiObjectsToRender.size(); i++) {
 		UIObject* uiObject = uiObjectsToRender[i];
@@ -45,19 +59,24 @@ void UIManager::updateButtons(VkExtent2D extent)
 	}
 }
 
-void UIManager::rerenderIfExtentChanged(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
+void UIManager::rerenderIfExtentChanged(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
 {
 	if (!extentChanged) {
 		return;
 	}
-
+	
 	for (std::pair<UIObject*, uint32_t> pair : uiObjectsRendered) {
 		uiObjectsToRender.push_back(pair.first);
 		uiObjectsToDerender.push_back(pair.second);
 	}
 	uiObjectsRendered.clear();
 
+    auto startingTime = std::chrono::high_resolution_clock::now();
 	updateScreen(extent, vulkanCoreInfo, commandPool, vertexBufferManager);
+    auto endingTime = std::chrono::high_resolution_clock::now();
+    auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
+    std::cout << "time taken to generate mesh and update it to GPUMemory in nanoseconds is " << timeTaken << "\n";
+	extentChanged = false;
 }
 
 void UIManager::updateUIObject(UIObject* uiObject)
@@ -154,6 +173,17 @@ void UIManager::destroyUIButton(UIButton* uiButton)
 		delete uiButton;
 		uiButtons.erase(uiButton);
 	}
+}
+
+VkExtent2D UIManager::getExtent()
+{
+	return extent;
+}
+
+void UIManager::changeExtent(VkExtent2D newExtent)
+{
+	extent = newExtent;
+	extentChanged = true;
 }
 
 void UIManager::cleanup()

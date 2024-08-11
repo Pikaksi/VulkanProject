@@ -39,11 +39,15 @@ public:
 	void updateButtons(VkExtent2D extent);
 	void cleanup();
 
-	bool extentChanged = false;
-	void rerenderIfExtentChanged(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);
+	VkExtent2D getExtent();
+	void changeExtent(VkExtent2D newExtent);
+	void rerenderIfExtentChanged(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);
 
 private:
 	void removeUIObject(UIObject* uiQuad);
+
+	bool extentChanged = false;
+	VkExtent2D extent;
 
 	std::set<UIObject*> uiObjectsAllocated;
 	std::vector<UIObject*> uiObjectsToRender;

@@ -32,7 +32,7 @@ public:
 	}
 };
 
-const std::unordered_map<char, glm::vec2> charToTexLocation = std::unordered_map<char, glm::vec2>{
+const std::unordered_map<char, glm::vec2> charToTexLocation = {
 	{ '0', {0.0f,                       0.0f} },
 	{ '1', {1.0f / LETTERS_IN_TEX_ROW,  0.0f} },
 	{ '2', {2.0f / LETTERS_IN_TEX_ROW,  0.0f} },
@@ -71,9 +71,9 @@ const std::unordered_map<char, glm::vec2> charToTexLocation = std::unordered_map
 	{ 'x', {1.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
 	{ 'y', {2.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
 	{ 'z', {3.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
-	{ 'å', {4.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
-	{ 'ä', {5.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
-	{ 'ö', {6.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
+	//{ 'Ã¥', {4.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
+	//{ 'Ã¤', {5.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
+	//{ 'Ã¶', {6.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
 	{ 'A', {7.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
 	{ 'B', {8.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
 	{ 'C', {9.0f / LETTERS_IN_TEX_ROW,  2.0f / LETTERS_IN_TEX_COLUMN} },
@@ -102,9 +102,9 @@ const std::unordered_map<char, glm::vec2> charToTexLocation = std::unordered_map
 	{ 'Y', {15.0f / LETTERS_IN_TEX_ROW, 3.0f / LETTERS_IN_TEX_COLUMN} },
 
 	{ 'Z', {0.0f,					    4.0f / 8.0f } },
-	{ 'Å', {1.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
-	{ 'Ä', {2.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
-	{ 'Ö', {3.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
+	//{ 'Ã…', {1.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
+	//{ 'Ã„', {2.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
+	//{ 'Ã–', {3.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
 	{ '.', {4.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
 	{ '?', {5.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },
 	{ '!', {6.0f / LETTERS_IN_TEX_ROW,  4.0f / LETTERS_IN_TEX_COLUMN } },

@@ -33,13 +33,15 @@ void Application::run() {
 void Application::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
     auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
     app->framebufferResized = true;
-    app->uiManager.extentChanged = true;
+    app->uiManager.changeExtent({(uint32_t)width, (uint32_t)height});
 }
 
 void Application::initGame()
 {
     PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
+
+    uiManager.changeExtent(swapChainInfo.extent);
 
     generateInventoryLayouts();
 
@@ -121,8 +123,8 @@ void Application::mainLoop()
             cameraHandler,
             vertexBufferManager,
             uiManager);
-
-        uiManager.rerenderIfExtentChanged(swapChainInfo.extent, vulkanCoreInfo, commandPool, vertexBufferManager);
+            
+        uiManager.rerenderIfExtentChanged(vulkanCoreInfo, commandPool, vertexBufferManager);
     }
 
     vkDeviceWaitIdle(vulkanCoreInfo.device);

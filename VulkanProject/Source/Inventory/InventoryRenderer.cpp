@@ -5,6 +5,7 @@
 #include "2dRendering/ItemToTexLayer.hpp"
 #include "2dRendering/UIHelperFunctions.hpp"
 #include "PlayerInputHandler.hpp"
+#include "2dRendering/UIAnchor.hpp"
 
 void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void(int)> inventorySlotCallback, Inventory* inventory)
 {
@@ -22,15 +23,18 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
 
     std::vector<InventorySlotLocation>& inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
 
+    glm::vec2 topBarOffset = glm::vec2(0.0f, defaultWindow->topBarHeight);
+    UIAnchor windowBodyAnchor(defaultWindow->location + topBarOffset, defaultWindow->size - topBarOffset, UICenteringMode::topLeft, uiManager.getExtent());
+
     for (int i = 0; i < inventorySlotLocations.size(); i++) {
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
-        scaleBoxToWindow(defaultWindow->location, defaultWindow->size, slotLocation.location, slotLocation.size);
+        windowBodyAnchor.scaleToAnchor(slotLocation.location, slotLocation.size);
 
         buttons.push_back(uiManager.createUIButton(
             slotLocation.location,
             slotLocation.size,
             UICenteringMode::topLeft,
-            true,
+            false,
             inventorySlotCallback,  // create the callback function like this: std::bind(&PlayerInventory::testCallback, this, std::placeholders::_1));
             i));
 
@@ -42,7 +46,7 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
             UITexLayer::white,
             {0.2f, 0.2f, 0.2f, 1.0f},
             UICenteringMode::topLeft,
-            true));
+            false));
         uiManager.updateUIObject(buttonImages.back());
 
         ItemStack itemStackInSlot = inventory->getItem(i);
@@ -51,7 +55,7 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
             UITexLayer itemTexLayer = itemToUITexLayer.at(itemStackInSlot.item);
 
             itemImages.push_back(uiManager.createUIQuad(
-                slotLocation.location + 0.01f,
+                slotLocation.location,
                 slotLocation.size - 0.02f,
                 { 0.0f, 0.0f },
                 { 1.0f, 1.0f },
@@ -62,10 +66,10 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
             uiManager.updateUIObject(itemImages.back());
 
             itemCounts.push_back(uiManager.createUIText(
-                slotLocation.location + slotLocation.size,
+                slotLocation.location,
                 slotLocation.size.y / 2.0f,
                 std::to_string(itemStackInSlot.amount),
-                UICenteringMode::bottomRight
+                UICenteringMode::topLeft
             ));
             uiManager.updateUIObject(itemCounts.back());
         }
@@ -74,8 +78,8 @@ void InventoryRenderer::enableInventory(UIManager& uiManager, std::function<void
 	PlayerInputHandler::getInstance().enableCursor();
 
     auto endingTime = std::chrono::high_resolution_clock::now();
-    auto timeTaken = std::chrono::duration_cast<std::chrono::milliseconds>(endingTime - startingTime);
-    std::cout << "time taken in milliseconds is " << timeTaken << "\n";
+    auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
+    std::cout << "time taken to generate inventory UIObjects in nanoseconds is " << timeTaken << "\n";
 }
 
 void InventoryRenderer::disableInventory(UIManager& uiManager)

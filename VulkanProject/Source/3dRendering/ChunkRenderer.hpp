@@ -24,7 +24,7 @@ public:
 		glm::i32vec3 playerChunkLocation);
 
 private:
-	const int renderDistance = 4;
+	const int renderDistance = 10;
 	const int extraRangeToDerenderChunk = 1;
 	
 	std::queue<glm::i32vec3> chunksToRender;

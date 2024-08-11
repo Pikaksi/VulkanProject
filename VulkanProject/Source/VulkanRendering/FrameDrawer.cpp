@@ -119,6 +119,8 @@ void recordCommandBuffer(
     // Render UI.
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
 
+    auto startingTime = std::chrono::high_resolution_clock::now();
+
     VkBuffer uiVertexBuffer;
     std::vector<VkDeviceSize> uiVertexOffsets;
     std::vector<uint32_t> uiBatchVertexCounts;
@@ -128,6 +130,9 @@ void recordCommandBuffer(
         uiVertexOffsets,
         uiBatchVertexCounts,
         uiIndexBuffer);
+    auto endingTime = std::chrono::high_resolution_clock::now();
+    auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
+    //std::cout << "time taken to render UI in nanoseconds is " << timeTaken << "\n";
 
     for (int i = 0; i < uiVertexOffsets.size(); i++) {
         VkBuffer vertexBuffers[] = { uiVertexBuffer };
@@ -142,6 +147,7 @@ void recordCommandBuffer(
         vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
     }
 
+    
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
