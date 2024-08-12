@@ -49,7 +49,7 @@ void Application::initGame()
     playerInventory = PlayerInventory();
 
     int worldMaxVertexCount = 10000000;
-    int uiMaxVertexCount = 5000;
+    int uiMaxVertexCount = 50000;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldMaxVertexCount, uiMaxVertexCount);
 
     generateBlockTexLayerLookupTable();
@@ -123,8 +123,6 @@ void Application::mainLoop()
             cameraHandler,
             vertexBufferManager,
             uiManager);
-            
-        uiManager.rerenderIfExtentChanged(vulkanCoreInfo, commandPool, vertexBufferManager);
     }
 
     vkDeviceWaitIdle(vulkanCoreInfo.device);
@@ -132,8 +130,6 @@ void Application::mainLoop()
 
 void Application::gameMainLoop()
 {
-    uiManager.updateButtons(swapChainInfo.extent);
-
     glm::i32vec3 chunkLocation = glm::i32vec3(
         std::floor(cameraHandler.position.x / (float)CHUNK_SIZE), 
         std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
@@ -149,7 +145,6 @@ void Application::gameMainLoop()
 void Application::cleanup()
 {
     vertexBufferManager.cleanUp(vulkanCoreInfo);
-    uiManager.cleanup();
 
     cleanupSwapChain(vulkanCoreInfo, swapChainInfo);
 

@@ -18,9 +18,9 @@ void createUIText(
 	UIManager& uiManager,
 	glm::vec2 location,
 	float textHeight,
-	std::string text,
 	UICenteringMode letterCenteringMode,
-	UICenteringMode textBoxCenteringMode);
+	UICenteringMode textBoxCenteringMode,
+	std::string text);
 
 const std::unordered_map<char, glm::vec2> charToTexLocation = {
 	{ '0', {0.0f,                       0.0f} },

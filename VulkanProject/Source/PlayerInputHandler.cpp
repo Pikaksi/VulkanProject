@@ -59,14 +59,14 @@ bool PlayerInputHandler::cursorIsEnabled()
 void PlayerInputHandler::handleMouseMovement(GLFWwindow* window, double xPos, double yPos)
 {
     if (!cursorIsEnabled()) {
-        mouseMovementX = xPos - mousePreviousLocationX;
-        mouseMovementY = yPos - mousePreviousLocationY;
+        mouseMovementX = xPos - mouseLocationX;
+        mouseMovementY = yPos - mouseLocationY;
     }
 
     //std::cout << "mouse movement is " << mouseMovementX << "  " << mouseMovementY << "\n";
 
-    mousePreviousLocationX = xPos;
-    mousePreviousLocationY = yPos;
+    mouseLocationX = xPos;
+    mouseLocationY = yPos;
 }
 
 void PlayerInputHandler::handleMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)

@@ -13,8 +13,16 @@ void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, 
 		hasAllocatedGPUBlockMemory = false;
 	}
 
-	uiMemoryPointer = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
-	hasAllocatedGPUBlockMemory = true;
+	if (!hasAllocatedGPUBlockMemory && vertices.size() != 0) {
+		uiMemoryPointer = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
+		vertices.clear();
+		hasAllocatedGPUBlockMemory = true;
+	}
+}
+
+std::vector<Vertex2D>& UIManager::getVertexVector()
+{
+	return vertices;
 }
 
 glm::vec2 UIManager::getScalar()

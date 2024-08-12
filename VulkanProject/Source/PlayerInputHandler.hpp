@@ -30,8 +30,8 @@ public:
     bool mouseRightHeldPreviousFrame = false;
     bool mouseRightPressed = false;
 
-    double mousePreviousLocationX = 0.0f;
-    double mousePreviousLocationY = 0.0f;
+    double mouseLocationX = 0.0f;
+    double mouseLocationY = 0.0f;
     double mouseMovementX = 0.0f;
     double mouseMovementY = 0.0f;
 

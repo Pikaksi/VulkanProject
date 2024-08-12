@@ -22,7 +22,6 @@
     <ClCompile Include="Source\Inventory\InventoryRenderer.cpp" />
     <ClCompile Include="Source\2dRendering\DebugMenu.cpp" />
     <ClCompile Include="Source\2dRendering\DefaultWindow.cpp" />
-    <ClCompile Include="Source\2dRendering\UIButton.cpp" />
     <ClCompile Include="Source\2dRendering\UIHelperFunctions.cpp" />
     <ClCompile Include="Source\2dRendering\UIManager.cpp" />
     <ClCompile Include="Source\2dRendering\UIQuad.cpp" />
@@ -39,7 +38,6 @@
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
-    <ClCompile Include="Source\2dRendering\UIAnchor.cpp" />
     <ClInclude Include="Source\2dRendering\ItemToTexLayer.hpp" />
     <ClInclude Include="Source\Inventory\Inventory.hpp" />
     <ClInclude Include="Source\Inventory\InventoryRenderer.hpp" />
@@ -74,10 +72,7 @@
     <ClInclude Include="Source\2dRendering\UITextureCreator.hpp" />
     <ClInclude Include="Source\2dRendering\UITexLayer.hpp" />
     <ClInclude Include="Source\2dRendering\UICenteringMode.hpp" />
-    <ClInclude Include="Source\2dRendering\UIObject.hpp" />
     <ClInclude Include="Source\2dRendering\UIHelperFunctions.hpp" />
-    <ClInclude Include="Source\2dRendering\UIButton.hpp" />
-    <ClInclude Include="Source\2dRendering\UIAnchor.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">

@@ -13,8 +13,7 @@ public:
 	PlayerInventory() :
 		inventoryLayout(InventoryLayout::grid10x4Inventory),
 		inventorySize(getInventoryLayoutSize(inventoryLayout)), 
-		inventory(Inventory(inventorySize)),
-		inventoryRenderer(InventoryRenderer(inventoryLayout))
+		inventory(Inventory(inventorySize))
 	{
 		inventory.insertItem(ItemStack(Item::dirt, 3));
 	}
@@ -23,12 +22,5 @@ private:
 	InventoryLayout inventoryLayout;
 	uint32_t inventorySize;
 	Inventory inventory;
-	InventoryRenderer inventoryRenderer;
-
 	bool inventoryIsActive = false;
-
-	void enableInventory(UIManager& uiManager);
-	void disableInventory(UIManager& uiManager);
-
-	void testCallback(int callbackNumber);
 };

@@ -126,9 +126,6 @@
     <ClCompile Include="Source\2dRendering\UIHelperFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\2dRendering\UIButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Inventory\Inventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -136,9 +133,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Inventory\InventoryRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\2dRendering\UIAnchor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -285,16 +279,10 @@
     <ClInclude Include="Source\2dRendering\UICenteringMode.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\2dRendering\UIObject.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Inventory\PlayerInventory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\UIHelperFunctions.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\2dRendering\UIButton.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Inventory\InventoryLayouts.hpp">
@@ -307,9 +295,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\ItemToTexLayer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\2dRendering\UIAnchor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

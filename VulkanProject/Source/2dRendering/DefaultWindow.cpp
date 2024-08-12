@@ -5,55 +5,38 @@
 #include "UITextureCreator.hpp"
 #include "UIHelperFunctions.hpp"
 
-void DefaultWindow::addMeshData(VkExtent2D extent, std::vector<Vertex2D>& vertices)
+void createDefaultWindow(
+	UIManager& uiManager,
+	glm::vec2 location,
+	glm::vec2 size,
+	float topBarHeight,
+	std::string title,
+	glm::vec4 topBarColor,
+	glm::vec4 bodyColor)
 {
-    glm::vec2 scalar = getScalarFromExtent(extent);
-    glm::vec2 realSize = size * scalar;
-    float realTopBarHeight = topBarHeight * scalar.y;
-
-    glm::vec2 realLocation = getCenteredLocation(location, size, centeringMode);
-    realLocation *= scalar;
-
-    addMeshDataScaledCentered(extent, vertices, realLocation, realSize, realTopBarHeight);
-}
-
-void DefaultWindow::addMeshDataScaledCentered(VkExtent2D extent, std::vector<Vertex2D>& vertices, glm::vec2 location, glm::vec2 size, float topBarHeight)
-{
-    UIQuad topBar(
+    createUIQuad(
+        uiManager,
         location,
         { size.x, topBarHeight },
         { 0.0f, 0.0f },
         { 1.0f, 1.0f },
         UITexLayer::white,
-        topBarColor,
-        UICenteringMode::topLeft,
-        false);
-    topBar.addMeshData(extent, vertices);
+        topBarColor);
 
-    UIQuad body(
+    createUIQuad(
+        uiManager,
         { location.x, location.y + topBarHeight },
         { size.x, size.y - topBarHeight },
         { 0.0f, 0.0f },
         { 1.0f, 1.0f },
         UITexLayer::white,
-        bodyColor,
-        UICenteringMode::topLeft,
-        false);
-    body.addMeshData(extent, vertices);
+        bodyColor);
 
-    UIText uiText(
+    createUIText(
+        uiManager,
         location + glm::vec2(topBarHeight * 0.1f, topBarHeight * 0.1f),   
         topBarHeight * 0.8f,
-        "Inventory",
-        UICenteringMode::topLeft);
-    uiText.addMeshData(extent, vertices);
+        UICenteringMode::topLeft,
+        UICenteringMode::topLeft,
+        "Inventory");
 }
-
-
-
-class A
-{
-public:
-    int getRekt();
-    A() {}
-};

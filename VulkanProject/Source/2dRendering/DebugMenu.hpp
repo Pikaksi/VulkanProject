@@ -14,8 +14,8 @@ private:
 	bool isEnabled = false;
 	float refreshInterval;
 	int fpsCounter = 0;
+	int lastRecordedFPS = 0;
 	float textSize = 0.05f;
-	UIText* debugMenuText;
 	std::chrono::steady_clock::time_point lastFpsCounterResetTime;
 	std::chrono::steady_clock::time_point lastUIRefreshTime;
 
@@ -29,5 +29,5 @@ private:
 	void enableMenu(UIManager& uIManager);
 	void disableMenu(UIManager& uIManager);
 	void checkIfEnabledStatus(UIManager& uIManager);
-	void updateUI(UIManager& uiManager, VertexBufferManager& vertexBufferManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler);
+	void drawUI(UIManager& uiManager, VertexBufferManager& vertexBufferManager, int fps, WorldManager& worldManager, CameraHandler& cameraHandler);
 };

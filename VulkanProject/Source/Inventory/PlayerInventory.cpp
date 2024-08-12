@@ -7,27 +7,21 @@ void PlayerInventory::update(UIManager& uiManager)
 	if (PlayerInputHandler::getInstance().rPressed) {
 		if (inventoryIsActive) {
 			inventoryIsActive = false;
-			disableInventory(uiManager);
+			PlayerInputHandler::getInstance().disableCursor();
 		}
 		else {
 			inventoryIsActive = true;
-			enableInventory(uiManager);
+			PlayerInputHandler::getInstance().enableCursor();
 		}
 	}
-}
 
-void PlayerInventory::enableInventory(UIManager& uiManager)
-{
-	inventoryRenderer.enableInventory(uiManager, std::bind(&PlayerInventory::testCallback, this, std::placeholders::_1), &inventory);
-}
+	if (inventoryIsActive) {
+		std::optional<int> clickedSlot, howerOverSlot;
 
-void PlayerInventory::testCallback(int callbackNumber)
-{
-	std::cout << "test callback " << callbackNumber << "\n";
-	std::cout << "item in slot is " << (int)(inventory.getItem(callbackNumber).item) << " and has " << inventory.getItem(callbackNumber).amount << " items\n";
-}
+		renderInventory(uiManager, clickedSlot, howerOverSlot, inventory, inventoryLayout);
 
-void PlayerInventory::disableInventory(UIManager& uiManager)
-{
-	inventoryRenderer.disableInventory(uiManager);
+		if (clickedSlot.has_value()) {
+			
+		}
+	}
 }
