@@ -3,6 +3,7 @@
 #include <chrono>
 #include <vector>
 
+#include "UIHelperFunctions.hpp"
 #include "PlayerInputHandler.hpp"
 
 void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
@@ -16,6 +17,11 @@ void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, 
 	hasAllocatedGPUBlockMemory = true;
 }
 
+glm::vec2 UIManager::getScalar()
+{
+	return scalar;
+}
+
 VkExtent2D UIManager::getExtent()
 {
 	return extent;
@@ -24,4 +30,5 @@ VkExtent2D UIManager::getExtent()
 void UIManager::changeExtent(VkExtent2D newExtent)
 {
 	extent = newExtent;
+	scalar = getScalarFromExtent(newExtent);
 }

@@ -13,6 +13,7 @@ class UIManager
 public:
 	UIManager() {};
 
+	glm::vec2 getScalar();
 	VkExtent2D getExtent();
 	std::vector<Vertex2D>& getVertexVector();
 
@@ -20,6 +21,7 @@ public:
 	void changeExtent(VkExtent2D newExtent);
 
 private:
+	glm::vec2 scalar;
 	bool hasAllocatedGPUBlockMemory = false;
 	uint32_t uiMemoryPointer = 0;
 	VkExtent2D extent;
