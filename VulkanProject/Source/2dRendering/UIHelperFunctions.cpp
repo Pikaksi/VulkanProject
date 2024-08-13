@@ -1,5 +1,7 @@
 #include "UIHelperFunctions.hpp"
 
+#include <iostream>
+
 glm::vec2 getScalarFromExtent(VkExtent2D extent)
 {
     glm::vec2 sizeScalar = { 1.0f, 1.0f };
@@ -54,7 +56,7 @@ void scaleBoxToWindow(glm::vec2 windowLocation, glm::vec2 windowSize, glm::vec2&
     size *= windowSize * 0.5f;
     
     location *= windowSize * 0.5f;
-    location += windowLocation * 0.5f;
+    location += windowLocation + windowSize * 0.5f;
 }
 
 void scaleBoxToWindow(const glm::vec2 windowLocation, const glm::vec2 windowSize, InventorySlotLocation& slotLocation)
@@ -62,7 +64,7 @@ void scaleBoxToWindow(const glm::vec2 windowLocation, const glm::vec2 windowSize
     slotLocation.size *= windowSize * 0.5f;
     
     slotLocation.location *= windowSize * 0.5f;
-    slotLocation.location += windowLocation * 0.5f;
+    slotLocation.location += windowLocation + windowSize * 0.5f;
 }
 
 bool isLocationInBox(const glm::vec2 point, const glm::vec2 location, const glm::vec2 size)

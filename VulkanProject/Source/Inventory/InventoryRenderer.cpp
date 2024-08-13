@@ -33,9 +33,11 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
     std::vector<InventorySlotLocation>& inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
 
-    glm::vec2 testLocation = {-1.0f, -1.0f};
-    glm::vec2 testSize = {0.5f, 0.5f};
+    glm::vec2 testLocation = {0.0f, 0.0f};
+    glm::vec2 testSize = {1.0f, 1.0f};
     scaleBoxToWindow(windowBodyLocation, windowBodySize, testLocation, testSize);
+
+    std::cout << "test location = " << testLocation.x << " " << testLocation.y << "\n";
     createUIQuad(
         uiManager,
         testLocation,
