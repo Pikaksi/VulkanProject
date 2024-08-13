@@ -15,20 +15,18 @@ void createUIText(
 	int xCounter = 0;
 	int yCounter = 0;
 
-	glm::vec2 letterSize = glm::vec2(letterHeight, letterHeight / 2);
+	glm::vec2 letterSize = glm::vec2(letterHeight / 2.0f, letterHeight);
 	centerLocation(location, letterSize, letterCenteringMode);
 	letterSize *= uiManager.getScalar();
 
-	glm::vec2 letterOffset = glm::vec2(xCounter, yCounter) * uiManager.getScalar();
-
 	for (int i = 0; i < text.size(); i++) {
-		if (text[i] == ' ' || !charToTexLocation.contains(text[i])) {
-			xCounter++;
-			continue;
-		}
 		if (text[i] == '\n') {
 			xCounter = 0;
 			yCounter++;
+			continue;
+		}
+		if (text[i] == ' ' || !charToTexLocation.contains(text[i])) {
+			xCounter++;
 			continue;
 		}
 
@@ -36,7 +34,7 @@ void createUIText(
 
 		createUIQuad(
 			uiManager,
-			location + glm::vec2(xCounter, yCounter) * letterOffset,
+			location + glm::vec2(xCounter, yCounter) * letterSize,
 			letterSize,
 			texLocation,
 			texLocation + LETTER_TEX_SIZE,

@@ -14,11 +14,11 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     clickedSlot = std::nullopt;
     howerOverSlot = std::nullopt;
     glm::vec2 windowLocation = {0.0f, 0.0f};
-    glm::vec2 windowSize = {1.2f, 1.2f}; 
+    glm::vec2 windowSize = {1.0f, 1.0f}; 
     float topBarHeight = 0.05f;
 
-    centerLocation(windowLocation, windowLocation, UICenteringMode::center);
     windowSize *= uiManager.getScalar();
+    centerLocation(windowLocation, windowSize, UICenteringMode::center);
 
 	createDefaultWindow(
         uiManager,
@@ -29,13 +29,29 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
 		{0.1f, 0.2, 0.8f, 1.0f},
 		{0.05f, 0.05f, 0.07f, 1.0f});
 
-    glm::vec2 windowBodyLocation = windowLocation + glm::vec2(topBarHeight, 0.0f);
-    glm::vec2 windowBodySize = windowSize - glm::vec2(topBarHeight, 0.0f);
+    glm::vec2 windowBodyLocation = windowLocation + glm::vec2(0.0f, topBarHeight);
+    glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
     std::vector<InventorySlotLocation>& inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
+
+    glm::vec2 testLocation = {-1.0f, -1.0f};
+    glm::vec2 testSize = {0.5f, 0.5f};
+    scaleBoxToWindow(windowBodyLocation, windowBodySize, testLocation, testSize);
+    createUIQuad(
+        uiManager,
+        testLocation,
+        testSize,
+        {0.0f, 0.0f},
+        {1.0f, 1.0f},
+        UITexLayer::white,
+        {1.0f, 1.0f, 1.0f, 1.0f});
+
+    std::cout << "window location = " << windowBodyLocation.x << " " << windowBodyLocation.y << "\n";
+    std::cout << "window size = " << windowBodySize.x << " " << windowBodySize.y << "\n";
 
     for (int i = 0; i < inventorySlotLocations.size(); i++) {
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
         scaleBoxToWindow(windowBodyLocation, windowBodySize, slotLocation);
+        std::cout << "slot location = " << slotLocation.location.x << " " << slotLocation.location.y << "\n";
 
         createUIQuad(
             uiManager,
@@ -83,9 +99,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
         }
     }
 
-	PlayerInputHandler::getInstance().enableCursor();
-
     auto endingTime = std::chrono::high_resolution_clock::now();
     auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
-    std::cout << "time taken to generate inventory UIObjects in nanoseconds is " << timeTaken << "\n";
+    //std::cout << "time taken to generate inventory UIObjects in nanoseconds is " << timeTaken << "\n";
 }

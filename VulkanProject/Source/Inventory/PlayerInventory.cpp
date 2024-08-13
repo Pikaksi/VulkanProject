@@ -8,10 +8,12 @@ void PlayerInventory::update(UIManager& uiManager)
 		if (inventoryIsActive) {
 			inventoryIsActive = false;
 			PlayerInputHandler::getInstance().disableCursor();
+			std::cout << "disabled\n";
 		}
 		else {
 			inventoryIsActive = true;
 			PlayerInputHandler::getInstance().enableCursor();
+			std::cout << "enabled\n";
 		}
 	}
 

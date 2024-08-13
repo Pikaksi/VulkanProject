@@ -29,7 +29,7 @@ void DebugMenu::drawUI(UIManager& uiManager, VertexBufferManager& vertexBufferMa
 {
     createUIText(
         uiManager,
-        { 0.0f, 0.0f },
+        { -1.0f, -1.0f },
         0.05f,
         UICenteringMode::topLeft,
         UICenteringMode::topLeft,
