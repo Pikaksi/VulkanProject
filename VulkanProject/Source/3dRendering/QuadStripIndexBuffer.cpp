@@ -5,8 +5,7 @@
 #include "VulkanRendering/Buffers.hpp"
 
 QuadStripIndexBuffer::QuadStripIndexBuffer(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t quadCount) :
-	quadCount(quadCount),
-	indexCount(quadCount * 6)
+	quadCount(quadCount), indexCount(quadCount * 6)
 {
     std::vector<uint32_t> indices;
     for (int i = 0; i < quadCount; i++) {

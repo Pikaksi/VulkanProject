@@ -9,14 +9,14 @@
 
 void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std::optional<int>& howerOverSlot, Inventory& inventory, InventoryLayout inventoryLayout)
 {
-    createUIText(
+    /*createUIText(
         uiManager,
         {0.7f, -0.7f},
         0.1f,
         UICenteringMode::topLeft,
         UICenteringMode::topLeft,
         "ABCD\nABCD\nABCD\n"
-    );
+    );*/
     auto startingTime = std::chrono::high_resolution_clock::now();
 
     clickedSlot = std::nullopt;
@@ -28,14 +28,14 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     windowSize *= uiManager.getScalar();
     centerLocation(windowLocation, windowSize, UICenteringMode::center);
 
-	createDefaultWindow(
+	/*createDefaultWindow(
         uiManager,
 		windowLocation,
 		windowSize,
 		topBarHeight,
 		"Inventory",
 		{0.1f, 0.2, 0.8f, 1.0f},
-		{0.05f, 0.05f, 0.07f, 1.0f});
+		{0.05f, 0.05f, 0.07f, 1.0f});*/
 
     glm::vec2 windowBodyLocation = windowLocation + glm::vec2(0.0f, topBarHeight);
     glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
@@ -101,13 +101,13 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
             glm::vec2 itemCountLocation = getCenteredLocation(slotLocation.location, slotLocation.size, UICenteringMode::bottomLeft);
             centerLocation(itemCountLocation, textSize, UICenteringMode::topLeft);
 
-            createUIText(
+            /*createUIText(
                 uiManager,
                 slotLocation.location,
                 slotLocation.size.y / 2.0f,
                 UICenteringMode::topLeft,
                 UICenteringMode::topLeft,
-                itemCountText);
+                itemCountText);*/
         }
     }
 
