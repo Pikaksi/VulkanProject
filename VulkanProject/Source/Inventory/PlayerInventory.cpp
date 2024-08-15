@@ -23,7 +23,17 @@ void PlayerInventory::update(UIManager& uiManager)
 		renderInventory(uiManager, clickedSlot, howerOverSlot, inventory, inventoryLayout);
 
 		if (clickedSlot.has_value()) {
-			
+			if (previousClickedSlot.has_value()) {
+				inventory.swapSlots(previousClickedSlot.value(), clickedSlot.value());
+				previousClickedSlot = std::nullopt;
+			}
+			else {
+				previousClickedSlot = clickedSlot.value();
+			}
+			std::cout << "Clicked slot " << clickedSlot.value() << "\n";
+		}
+		if (howerOverSlot.has_value()) {
+			std::cout << "Howered over slot " << howerOverSlot.value() << "\n";
 		}
 	}
 }

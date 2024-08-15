@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "ItemStack.hpp"
 #include "2dRendering/UIManager.hpp"
 #include "InventoryLayouts.hpp"
@@ -23,4 +25,5 @@ private:
 	uint32_t inventorySize;
 	Inventory inventory;
 	bool inventoryIsActive = false;
+	std::optional<int> previousClickedSlot = std::nullopt;
 };

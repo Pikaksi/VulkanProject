@@ -30,6 +30,14 @@ glm::vec2 UIManager::getScalar()
 	return scalar;
 }
 
+glm::vec2 UIManager::getMousePositionScreenSpace()
+{
+	return glm::vec2(
+		(float)PlayerInputHandler::getInstance().mouseLocationX * 2.0f / (float)extent.width - 1.0f,
+		(float)PlayerInputHandler::getInstance().mouseLocationY * 2.0f / (float)extent.height - 1.0f
+	);
+}
+
 VkExtent2D UIManager::getExtent()
 {
 	return extent;

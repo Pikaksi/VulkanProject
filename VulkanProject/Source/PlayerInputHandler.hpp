@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
 
 class PlayerInputHandler
 {
@@ -34,6 +35,7 @@ public:
     double mouseLocationY = 0.0f;
     double mouseMovementX = 0.0f;
     double mouseMovementY = 0.0f;
+    glm::vec2 mouseLocationScreenSpace = {0.0f, 0.0f};
 
 	void initGLFWControlCallbacks();
     void update();

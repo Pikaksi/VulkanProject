@@ -9,6 +9,14 @@
 
 void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std::optional<int>& howerOverSlot, Inventory& inventory, InventoryLayout inventoryLayout)
 {
+    createUIText(
+        uiManager,
+        {0.7f, -0.7f},
+        0.1f,
+        UICenteringMode::topLeft,
+        UICenteringMode::topLeft,
+        "ABCD\nABCD\nABCD\n"
+    );
     auto startingTime = std::chrono::high_resolution_clock::now();
 
     clickedSlot = std::nullopt;
@@ -33,7 +41,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
     std::vector<InventorySlotLocation>& inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
 
-    glm::vec2 testLocation = {0.0f, 0.0f};
+    /*glm::vec2 testLocation = {0.0f, 0.0f};
     glm::vec2 testSize = {1.0f, 1.0f};
     scaleBoxToWindow(windowBodyLocation, windowBodySize, testLocation, testSize);
 
@@ -45,15 +53,15 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
         {0.0f, 0.0f},
         {1.0f, 1.0f},
         UITexLayer::white,
-        {1.0f, 1.0f, 1.0f, 1.0f});
+        {1.0f, 1.0f, 1.0f, 1.0f});*/
 
-    std::cout << "window location = " << windowBodyLocation.x << " " << windowBodyLocation.y << "\n";
-    std::cout << "window size = " << windowBodySize.x << " " << windowBodySize.y << "\n";
+    //std::cout << "window location = " << windowBodyLocation.x << " " << windowBodyLocation.y << "\n";
+    //std::cout << "window size = " << windowBodySize.x << " " << windowBodySize.y << "\n";
 
+    glm::vec2 mouseLocation = uiManager.getMousePositionScreenSpace();
     for (int i = 0; i < inventorySlotLocations.size(); i++) {
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
         scaleBoxToWindow(windowBodyLocation, windowBodySize, slotLocation);
-        std::cout << "slot location = " << slotLocation.location.x << " " << slotLocation.location.y << "\n";
 
         createUIQuad(
             uiManager,
@@ -64,7 +72,6 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
             UITexLayer::white,
             {0.2f, 0.2f, 0.2f, 1.0f});
 
-        glm::vec2 mouseLocation = {PlayerInputHandler::getInstance().mouseLocationX, PlayerInputHandler::getInstance().mouseLocationY};
         bool mouseInSlot = isLocationInBox(mouseLocation, slotLocation.location, slotLocation.size);
         
         if (mouseInSlot) {
@@ -82,14 +89,17 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
 
             createUIQuad(
                 uiManager,
-                slotLocation.location,
-                slotLocation.size - 0.02f,
+                slotLocation.location + 0.01f * uiManager.getScalar().x,
+                slotLocation.size - glm::vec2(0.02f, 0.02f) * uiManager.getScalar(),
                 { 0.0f, 0.0f },
                 { 1.0f, 1.0f },
                 itemTexLayer,
                 {1.0f, 1.0f, 1.0f, 1.0f});
 
-            glm::vec2 slotBottomRight = getCenteredLocation(slotLocation.location, slotLocation.size, UICenteringMode::bottomLeft);
+            std::string itemCountText = std::to_string(itemStackInSlot.amount);
+            glm::vec2 textSize = {slotLocation.size.y / 2.0f, slotLocation.size.y / 4.0f * itemCountText.size()};
+            glm::vec2 itemCountLocation = getCenteredLocation(slotLocation.location, slotLocation.size, UICenteringMode::bottomLeft);
+            centerLocation(itemCountLocation, textSize, UICenteringMode::topLeft);
 
             createUIText(
                 uiManager,
@@ -97,7 +107,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
                 slotLocation.size.y / 2.0f,
                 UICenteringMode::topLeft,
                 UICenteringMode::topLeft,
-                std::to_string(itemStackInSlot.amount));
+                itemCountText);
         }
     }
 

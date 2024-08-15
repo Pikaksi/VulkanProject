@@ -15,6 +15,7 @@ public:
 
 	glm::vec2 getScalar();
 	VkExtent2D getExtent();
+	glm::vec2 getMousePositionScreenSpace();
 	std::vector<Vertex2D>& getVertexVector();
 
 	void updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager);

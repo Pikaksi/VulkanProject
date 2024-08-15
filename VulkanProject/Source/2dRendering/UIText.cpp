@@ -16,8 +16,6 @@ void createUIText(
 	int yCounter = 0;
 
 	glm::vec2 letterSize = glm::vec2(letterHeight / 2.0f, letterHeight);
-	centerLocation(location, letterSize, letterCenteringMode);
-	letterSize *= uiManager.getScalar();
 
 	for (int i = 0; i < text.size(); i++) {
 		if (text[i] == '\n') {
