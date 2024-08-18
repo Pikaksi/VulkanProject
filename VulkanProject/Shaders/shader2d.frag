@@ -9,7 +9,10 @@ layout(location = 2) flat in uint fragTexLayer;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    vec4 tex = texture(texSampler[fragTexLayer], fragTexCoord);
-    if (tex.w < 0.5) discard;
-    outColor = tex * fragColor;
+    //vec4 tex = texture(texSampler[fragTexLayer], fragTexCoord);
+    //if (tex.w < 1.0f || fragColor.w < 1.0f) discard;
+
+    //outColor = 
+    outColor = vec4(fragColor.w, 0.0f, 0.0f, 1.0f);
+    //outColor = tex * fragColor;
 }

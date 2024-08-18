@@ -63,14 +63,16 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
         scaleBoxToWindow(windowBodyLocation, windowBodySize, slotLocation);
 
-        createUIQuad(
-            uiManager,
-            slotLocation.location,
-            slotLocation.size,
-            { 0.0f, 0.0f },
-            { 1.0f, 1.0f },
-            UITexLayer::white,
-            {0.2f, 0.2f, 0.2f, 1.0f});
+        if (i == 0) {
+            createUIQuad(
+                uiManager,
+                slotLocation.location,
+                {0.5f, 0.5f},
+                { 0.0f, 0.0f },
+                { 1.0f, 1.0f },
+                UITexLayer::white,
+                {0.0f, 0.0f, 0.0f, 0.0f});/**/
+        }
 
         bool mouseInSlot = isLocationInBox(mouseLocation, slotLocation.location, slotLocation.size);
         
@@ -90,7 +92,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
             createUIQuad(
                 uiManager,
                 slotLocation.location + 0.01f * uiManager.getScalar().x,
-                slotLocation.size - glm::vec2(0.02f, 0.02f) * uiManager.getScalar(),
+                (slotLocation.size - glm::vec2(0.02f, 0.02f) * uiManager.getScalar()) * 10.0f,
                 { 0.0f, 0.0f },
                 { 1.0f, 1.0f },
                 itemTexLayer,
