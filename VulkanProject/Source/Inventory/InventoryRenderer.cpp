@@ -71,7 +71,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
                 { 0.0f, 0.0f },
                 { 1.0f, 1.0f },
                 UITexLayer::white,
-                {0.0f, 0.0f, 0.0f, 0.0f});/**/
+                {0.0f, 0.0f, 0.0f, 1.0f});/**/
         }
 
         bool mouseInSlot = isLocationInBox(mouseLocation, slotLocation.location, slotLocation.size);
