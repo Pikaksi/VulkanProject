@@ -9,14 +9,6 @@
 
 void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std::optional<int>& howerOverSlot, Inventory& inventory, InventoryLayout inventoryLayout)
 {
-    /*createUIText(
-        uiManager,
-        {0.7f, -0.7f},
-        0.1f,
-        UICenteringMode::topLeft,
-        UICenteringMode::topLeft,
-        "ABCD\nABCD\nABCD\n"
-    );*/
     auto startingTime = std::chrono::high_resolution_clock::now();
 
     clickedSlot = std::nullopt;
@@ -28,51 +20,32 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     windowSize *= uiManager.getScalar();
     centerLocation(windowLocation, windowSize, UICenteringMode::center);
 
-	/*createDefaultWindow(
+	createDefaultWindow(
         uiManager,
 		windowLocation,
 		windowSize,
 		topBarHeight,
 		"Inventory",
 		{0.1f, 0.2, 0.8f, 1.0f},
-		{0.05f, 0.05f, 0.07f, 1.0f});*/
+		{0.05f, 0.05f, 0.07f, 1.0f});
 
     glm::vec2 windowBodyLocation = windowLocation + glm::vec2(0.0f, topBarHeight);
     glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
     std::vector<InventorySlotLocation>& inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
-
-    /*glm::vec2 testLocation = {0.0f, 0.0f};
-    glm::vec2 testSize = {1.0f, 1.0f};
-    scaleBoxToWindow(windowBodyLocation, windowBodySize, testLocation, testSize);
-
-    std::cout << "test location = " << testLocation.x << " " << testLocation.y << "\n";
-    createUIQuad(
-        uiManager,
-        testLocation,
-        testSize,
-        {0.0f, 0.0f},
-        {1.0f, 1.0f},
-        UITexLayer::white,
-        {1.0f, 1.0f, 1.0f, 1.0f});*/
-
-    //std::cout << "window location = " << windowBodyLocation.x << " " << windowBodyLocation.y << "\n";
-    //std::cout << "window size = " << windowBodySize.x << " " << windowBodySize.y << "\n";
 
     glm::vec2 mouseLocation = uiManager.getMousePositionScreenSpace();
     for (int i = 0; i < inventorySlotLocations.size(); i++) {
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
         scaleBoxToWindow(windowBodyLocation, windowBodySize, slotLocation);
 
-        if (i == 0) {
-            createUIQuad(
-                uiManager,
-                slotLocation.location,
-                {0.5f, 0.5f},
-                { 0.0f, 0.0f },
-                { 1.0f, 1.0f },
-                UITexLayer::white,
-                {0.0f, 0.0f, 0.0f, 1.0f});/**/
-        }
+        createUIQuad(
+            uiManager,
+            slotLocation.location,
+            slotLocation.size,
+            { 0.0f, 0.0f },
+            { 1.0f, 1.0f },
+            UITexLayer::white,
+            {0.2f, 0.2f, 0.2f, 1.0f});
 
         bool mouseInSlot = isLocationInBox(mouseLocation, slotLocation.location, slotLocation.size);
         
@@ -89,10 +62,13 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
         if (itemStackInSlot.item != Item::empty) {
             UITexLayer itemTexLayer = itemToUITexLayer.at(itemStackInSlot.item);
 
+            slotLocation.location += slotLocation.size / 20.0f;
+            slotLocation.size *= 0.9f;
+
             createUIQuad(
                 uiManager,
-                slotLocation.location + 0.01f * uiManager.getScalar().x,
-                (slotLocation.size - glm::vec2(0.02f, 0.02f) * uiManager.getScalar()) * 10.0f,
+                slotLocation.location,
+                slotLocation.size,
                 { 0.0f, 0.0f },
                 { 1.0f, 1.0f },
                 itemTexLayer,
@@ -103,13 +79,13 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
             glm::vec2 itemCountLocation = getCenteredLocation(slotLocation.location, slotLocation.size, UICenteringMode::bottomLeft);
             centerLocation(itemCountLocation, textSize, UICenteringMode::topLeft);
 
-            /*createUIText(
+            createUIText(
                 uiManager,
                 slotLocation.location,
                 slotLocation.size.y / 2.0f,
                 UICenteringMode::topLeft,
                 UICenteringMode::topLeft,
-                itemCountText);*/
+                itemCountText);
         }
     }
 

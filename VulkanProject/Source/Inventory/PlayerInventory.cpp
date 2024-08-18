@@ -33,7 +33,6 @@ void PlayerInventory::update(UIManager& uiManager)
 			std::cout << "Clicked slot " << clickedSlot.value() << "\n";
 		}
 		if (howerOverSlot.has_value()) {
-			std::cout << "Howered over slot " << howerOverSlot.value() << "\n";
 		}
 	}
 }
