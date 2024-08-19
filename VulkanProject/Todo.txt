@@ -1,13 +1,46 @@
 do UI rendering before world rendering and write depthbuffer to save resources
 
-maybe convert MemoryLocation to use startOffset and size (performance)
-
 optimize vertex size
-
-make 2d vertices
 
 Fix runtime library to use /MD and not /MDd.
 
-Vulkan types are created with new
-
 check if can bind multiple buffers with vkCmdBindVertexBuffers
+
+
+ECS
+- inventory
+- block network
+  - pipes
+  - multiblocks
+- AE2
+- directional access
+
+- create archetypes that contain different components.
+- own array for every archetype.
+- have unordered_map to find index of archetype for example when placing blocks.
+- ECS for items?
+
+
+ECS structure:
+
+  worldLocation => entityIndex
+
+  EntityIndex => list of components, component list index => component
+
+  1. index entity list
+  2. check if component
+  3. calculate component index
+  4. index component list
+
+(does not work)
+alternative ECS structure:
+
+  worldLocation => entityIndex
+
+  EntityIndex => archetype ID(component bitset), archetype list index
+
+  component bit + archetype list index => component
+
+    archetype ID(component bitset) => archetype list
+
+    archetype list [archetype list index] => component

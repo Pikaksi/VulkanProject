@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ECS\EntityManager.cpp" />
     <ClCompile Include="Source\Inventory\InventoryRenderer.cpp" />
     <ClCompile Include="Source\2dRendering\DebugMenu.cpp" />
     <ClCompile Include="Source\2dRendering\DefaultWindow.cpp" />
@@ -38,6 +39,9 @@
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClInclude Include="Source\ECS\Components.hpp" />
+    <ClInclude Include="Source\ECS\EntityManager.hpp" />
+    <ClInclude Include="Source\ECS\Archetypes.hpp" />
     <ClInclude Include="Source\2dRendering\ItemToTexLayer.hpp" />
     <ClInclude Include="Source\Inventory\Inventory.hpp" />
     <ClInclude Include="Source\Inventory\InventoryRenderer.hpp" />

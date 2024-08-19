@@ -135,6 +135,9 @@
     <ClCompile Include="Source\Inventory\InventoryRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\EntityManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader3d.vert">
@@ -295,6 +298,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\ItemToTexLayer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Archetypes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\EntityManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
