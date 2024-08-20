@@ -39,6 +39,9 @@
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClInclude Include="Source\ECS\ComponentManager.hpp" />
+    <ClInclude Include="Source\ECS\BitmaskFunctions.hpp" />
+    <ClInclude Include="Source\ECS\Entity.hpp" />
     <ClInclude Include="Source\ECS\Components.hpp" />
     <ClInclude Include="Source\ECS\EntityManager.hpp" />
     <ClInclude Include="Source\ECS\Archetypes.hpp" />

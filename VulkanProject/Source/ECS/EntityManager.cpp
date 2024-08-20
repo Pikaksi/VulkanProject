@@ -1,6 +1,8 @@
 #include "EntityManager.hpp"
 
+#include "ComponentManager.hpp"
+
 void updateEntities()
 {
-    for (int i = inventoryArchetype)
+    getComponentPool(0);
 }
