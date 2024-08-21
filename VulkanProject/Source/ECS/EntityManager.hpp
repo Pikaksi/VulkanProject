@@ -1,5 +1,8 @@
 #pragma once
 
-#include "Archetypes.hpp"
+#include "Entity.hpp"
+#include "EntityCreator.hpp"
 
-void updateEntities();
+#include <vector>
+
+std::vector<Entity> entities;

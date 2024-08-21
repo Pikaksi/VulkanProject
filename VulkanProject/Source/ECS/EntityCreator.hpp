@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+
 #include <vector>
 
 #include "Inventory/Inventory.hpp"
@@ -10,4 +12,4 @@ enum class EntityArchetype
     inventoryAndConnector = 1
 };
 
-std::vector<Inventory> inventoryArchetype;
+uint32_t createInventoryBlockEntity(glm::ivec3 blockLocation);
