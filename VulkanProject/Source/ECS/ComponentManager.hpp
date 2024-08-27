@@ -3,5 +3,4 @@
 #include <vector>
 
 #include "Components.hpp"
-
-std::vector<Inventory> inventoryComponents;
+#include "Inventory/Inventory.hpp"

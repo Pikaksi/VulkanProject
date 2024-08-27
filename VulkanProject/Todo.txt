@@ -32,15 +32,11 @@ ECS structure:
   3. calculate component index
   4. index component list
 
-(does not work)
-alternative ECS structure:
-
-  worldLocation => entityIndex
-
-  EntityIndex => archetype ID(component bitset), archetype list index
-
-  component bit + archetype list index => component
-
-    archetype ID(component bitset) => archetype list
-
-    archetype list [archetype list index] => component
+createEntity():
+  1. Add to entity list
+  2. create its components
+    1. create a custom adder
+    or
+    1. get component bits and address into the correct arrays
+  3. add components to point to entity
+  
