@@ -5,34 +5,29 @@
 
 #include <vector>
 
-const uint64_t inventoryComponentBitmask = 0b1 << 0;
-const uint64_t blockNetworkComponentBitmask = 0b1 << 1;
+const int inventoryComponentIndex = 0;
+const uint64_t inventoryComponentBitmask = 0b1 << inventoryComponentIndex;
+const int blockNetworkComponentIndex = 1;
+const uint64_t blockNetworkComponentBitmask = 0b1 << blockNetworkComponentIndex;
+typedef uint32_t entityID;
 
-class ComponentPool
+class ComponentPoolManager
 {
-    virtual ~ComponentPool();
-    virtual void removeComponent(uint32_t entityID) = 0;
-    virtual void addComponent(uint32_t entityID) = 0;
-};
+    std::vector<void*> componentPools;
 
-class InventoryComponentPool : public ComponentPool
-{
-    std::vector<Inventory> inventoryComponents;
-    std::vector<uint32_t> componentOwners;
-
-    virtual void removeComponent(uint32_t entityID)
+    template<typename T>
+    std::vector<T> getComponentPool(std::bitset<64> componentBitset)
     {
-
+        componentBitset.
     }
-    virtual void addComponent(uint32_t entityID) = 0;
 };
 
 struct Entity
 {
     std::bitset<64> componentBitset;
-    std::vector<uint32_t> componentIndecies;
+    std::vector<entityID> componentIndecies;
 
-    Entity(uint64_t componentBitmask, std::vector<uint32_t> componentIndecies)
+    Entity(uint64_t componentBitmask, std::vector<entityID> componentIndecies)
         : componentIndecies(componentIndecies)
     {
         componentBitset |= componentBitmask;
