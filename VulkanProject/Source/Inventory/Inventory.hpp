@@ -8,7 +8,14 @@
 class Inventory
 {
 public:
-    Inventory(uint32_t size) {
+    Inventory(uint32_t size)
+    {
+        setSize(size);
+    }
+    Inventory() {}
+
+    void setSize(uint32_t size)
+    {
         itemStacks.resize(size);
     }
 
