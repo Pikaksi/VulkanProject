@@ -66,6 +66,7 @@ extern ComponentPoolManager componentPoolManager;
 class Entity
 {
 public:
+    EntityArchetype entityArchetype;
     std::bitset<64> componentBitset;
     uint32_t componentIndecies[64];
 
@@ -76,6 +77,11 @@ public:
     {
         std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPoolManager.componentPools[componentIndex]);
         return (*componentPool)[componentIndecies[componentIndex]];
+    }
+
+    void deleteEntity()
+    {
+
     }
 };
 
