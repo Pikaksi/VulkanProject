@@ -23,18 +23,22 @@ public:
 		VertexBufferManager& vertexBufferManager, 
 		glm::i32vec3 playerChunkLocation);
 
+	void rerenderChunk(glm::i32vec3 chunkLocation);
+
 private:
-	const int renderDistance = 8;
+	const int renderDistance = 6;
 	const int extraRangeToDerenderChunk = 1;
 	
+	std::vector<glm::i32vec3> chunksToRerender;
 	std::queue<glm::i32vec3> chunksToRender;
 	std::unordered_map<glm::i32vec3, uint32_t> renderedChunks; // holds GPU memory pointer to delete chunks
 	glm::i32vec3 peviousPlayerChunkLocation = glm::i32vec3(9999, 9999, 9999);
 
-	void addChunksToBeRendered(glm::i32vec3 playerChunkLocation, int newChunkMinDistance);
-	void derenderChunks(glm::i32vec3 playerChunkLocation, VertexBufferManager& vertexBufferManager);
-	void tryAddChunksToRender(glm::i32vec3 chunkLocation);
-	void renderNewChunks(
+	void derenderChunksOutOfRenderdistance(glm::i32vec3 playerChunkLocation, VertexBufferManager& vertexBufferManager);
+	void renderNewChunksInRenderdistance(glm::i32vec3 playerChunkLocation, int newChunkMinDistance);
+	void tryAddChunkToRender(glm::i32vec3 chunkLocation);
+	bool chunkIsInRenderDistance(glm::i32vec3 playerChunkLocation, glm::i32vec3 chunkLocation);
+	void addQueuedChunkMeshes(
 		VulkanCoreInfo& vulkanCoreInfo,
 		VkCommandPool commandPool,
 		WorldManager& worldManager,

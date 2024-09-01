@@ -7,23 +7,35 @@
 #include <glm/vec3.hpp>
 
 #include "BlockType.hpp"
+#include "ECS/Components.hpp"
 
 enum class BlockRenderType : uint8_t
 {
 	dontRender = 0,
-	renderSolidBlock = 1,
-	renderTransparentBlock = 2,
-	renderCustom = 3
+	solid = 1,
+	transparent = 2,
+	custom = 3
 };
 
-const BlockRenderType blockRenderType[7]{
+struct BlockProperties
+{
+	BlockType blockType;
+	BlockRenderType blockRenderType;
+	bool isInteractable;
+	uint64_t blockComponents;
+};
+
+extern BlockProperties blockPropertiesLookup[BlockType::maxEnum];
+
+const BlockRenderType blockRenderType[8] {
 	BlockRenderType::dontRender,
-	BlockRenderType::renderSolidBlock,
-	BlockRenderType::renderSolidBlock,
-	BlockRenderType::renderSolidBlock,
-	BlockRenderType::renderSolidBlock,
-	BlockRenderType::renderSolidBlock,
-	BlockRenderType::renderCustom
+	BlockRenderType::solid,
+	BlockRenderType::solid,
+	BlockRenderType::solid,
+	BlockRenderType::solid,
+	BlockRenderType::solid,
+	BlockRenderType::custom,
+	BlockRenderType::solid
 };
 
 extern const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNames;

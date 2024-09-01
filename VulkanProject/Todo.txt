@@ -6,6 +6,7 @@ Fix runtime library to use /MD and not /MDd.
 
 check if can bind multiple buffers with vkCmdBindVertexBuffers
 
+use enum class with BlockType
 
 ECS
 - inventory

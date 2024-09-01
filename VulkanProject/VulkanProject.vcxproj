@@ -35,11 +35,15 @@
     <ClCompile Include="Source\Inventory\Inventory.cpp" />
     <ClCompile Include="Source\Inventory\InventoryLayouts.cpp" />
     <ClCompile Include="Source\Inventory\PlayerInventory.cpp" />
+    <ClCompile Include="Source\Player\PlaceBlock.cpp" />
+    <ClCompile Include="Source\Player\PlayerControls.cpp" />
     <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp" />
     <ClCompile Include="Source\VulkanRendering\Buffers.cpp" />
     <ClCompile Include="Source\VulkanRendering\Commands.cpp" />
     <ClCompile Include="Source\VulkanRendering\Descriptor.cpp" />
     <ClCompile Include="Source\VulkanRendering\FrameDrawer.cpp" />
+    <ClInclude Include="Source\Player\PlayerControls.hpp" />
+    <ClInclude Include="Source\Player\PlaceBlock.hpp" />
     <ClInclude Include="Source\ECS\ComponentManager.hpp" />
     <ClInclude Include="Source\ECS\BitmaskFunctions.hpp" />
     <ClInclude Include="Source\ECS\Entity.hpp" />

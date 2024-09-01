@@ -43,6 +43,7 @@
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
 #include "Inventory/PlayerInventory.hpp"
+#include "Player/PlayerControls.hpp"
 
 class Application
 {

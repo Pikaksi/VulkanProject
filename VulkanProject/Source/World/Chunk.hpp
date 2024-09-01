@@ -38,3 +38,4 @@ BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk& 
 glm::ivec3 getChunkLocation(int x, int y, int z);
 glm::ivec3 getChunkLocation(glm::ivec3 blockLocation);
 void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk);
+int negativeModulo(int value, unsigned int m);

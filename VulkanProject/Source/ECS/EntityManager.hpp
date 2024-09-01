@@ -6,18 +6,38 @@
 #include "Components.hpp"
 #include "Inventory/Inventory.hpp"
 
-const int inventoryComponentIndex = 0;
-const uint64_t inventoryComponentBitmask = 0b1 << inventoryComponentIndex;
-const int blockNetworkComponentIndex = 1;
-const uint64_t blockNetworkComponentBitmask = 0b1 << blockNetworkComponentIndex;
 typedef uint32_t EntityID;
 
-enum class EntityArchetype
+enum class EntityPreset
 {
     inventory = 0,
     network = 1,
     inventoryAndNetwork = 2
 };
+
+class Entity
+{
+public:
+    std::bitset<64> componentBitset;
+    uint32_t componentIndecies[64];
+
+    Entity() {};
+
+    template<typename T>
+    T& getComponent();
+};
+
+class EntityManager
+{
+public:
+    std::vector<Entity> entities;
+    std::vector<EntityID> freeEntities; 
+
+    void addEntity(uint64_t componentBitmask);
+    void deleteEntity(EntityID entityID);
+};
+
+extern EntityManager entityManager;
 
 class ComponentPoolManager
 {
@@ -40,57 +60,48 @@ public:
         }
     }
 
+    // Creates a new component and marks that the component is owned by the entity.
+    // Returns the index of the new component.
     template<typename T>
-    uint32_t addComponent(EntityID entityID, int componentIndex)
+    uint32_t addComponent(EntityID entityID)
     {
-        std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPools[componentIndex]);
+        constexpr int componentPoolIndex = getComponentIndex<T>();
+        std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPools[componentPoolIndex]);
         componentPool->push_back(T());
 
-        componentOwners[componentIndex].push_back(entityID);
+        componentOwners[componentPoolIndex].push_back(entityID);
 
         return componentPool->size() - 1;
     }
 
     template<typename T>
-    std::vector<T> getComponentPool(std::bitset<64> componentBitmask)
+    std::vector<T> getComponentPool()
     {
-        int componentIndex = std::_Countr_zero(componentBitmask.to_ullong());
+        constexpr int componentPoolIndex = getComponentIndex<T>();
+        return static_cast<std::vector<T>*>(componentPools[componentPoolIndex]);
+    }
 
-        void* componentPool = componentPools[componentIndex];
-        return static_cast<std::vector<T>*>(componentPool);
+    template<typename T>
+    void deleteComponent(uint32_t componentIndexToDelete)
+    {
+        constexpr int componentPoolIndex = getComponentIndex<T>();
+        std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPools[componentPoolIndex]);
+
+        std::swap((*componentPool)[componentIndexToDelete], componentPool->back());
+        componentPool->pop_back();
+
+        entityManager.entities[componentOwners[componentPoolIndex].back()].componentIndecies[componentPoolIndex] = componentIndexToDelete;
+        std::swap(componentOwners[componentPoolIndex][componentIndexToDelete], componentOwners[componentPoolIndex].back());
+        componentOwners[componentPoolIndex].pop_back();
     }
 };
 
 extern ComponentPoolManager componentPoolManager;
 
-class Entity
+template<typename T>
+T& Entity::getComponent()
 {
-public:
-    EntityArchetype entityArchetype;
-    std::bitset<64> componentBitset;
-    uint32_t componentIndecies[64];
-
-    Entity() {};
-
-    template<typename T>
-    T& getComponent(uint64_t componentIndex)
-    {
-        std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPoolManager.componentPools[componentIndex]);
-        return (*componentPool)[componentIndecies[componentIndex]];
-    }
-
-    void deleteEntity()
-    {
-
-    }
-};
-
-class EntityManager
-{
-public:
-    std::vector<Entity> entities;
-
-    void addEntity(EntityArchetype entityArchetype);
-};
-
-extern EntityManager entityManager;
+    constexpr int componentPoolIndex = getComponentIndex<T>();
+    std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPoolManager.componentPools[componentPoolIndex]);
+    return (*componentPool)[componentIndecies[componentPoolIndex]];
+}

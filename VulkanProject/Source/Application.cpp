@@ -139,6 +139,8 @@ void Application::gameMainLoop()
 
     playerInventory.update(uiManager);
 
+    updatePlayerControls(cameraHandler.position, worldManager, chunkRenderer);
+
     debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);
 }
 

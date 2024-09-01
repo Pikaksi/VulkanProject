@@ -13,7 +13,8 @@ const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNam
 	{BlockType::dirt, {"Dirt"}},
 	{BlockType::oakLog, {"OakLogTop", "OakLogSide"}},
 	{BlockType::oakLeaf, {"OakLeafOpaque"}},
-	{BlockType::grassPlant, {"GrassPlant"}}
+	{BlockType::grassPlant, {"GrassPlant"}},
+	{BlockType::furnace, {"FurnaceTop", "FurnaceSide"}}
 };
 
 const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVertexOffsets = {
@@ -25,14 +26,66 @@ const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVer
 	}}
 };
 
+BlockProperties blockPropertiesLookup[BlockType::maxEnum]
+{
+	BlockProperties {
+		.blockType = BlockType::air,
+		.blockRenderType = BlockRenderType::dontRender,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::stone,
+		.blockRenderType = BlockRenderType::solid,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::grass,
+		.blockRenderType = BlockRenderType::solid,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::dirt,
+		.blockRenderType = BlockRenderType::solid,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::oakLog,
+		.blockRenderType = BlockRenderType::solid,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::oakLeaf,
+		.blockRenderType = BlockRenderType::solid,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::grassPlant,
+		.blockRenderType = BlockRenderType::custom,
+		.isInteractable = false,
+		.blockComponents = 0
+	},
+	BlockProperties {
+		.blockType = BlockType::furnace,
+		.blockRenderType = BlockRenderType::solid,
+		.isInteractable = true,
+		.blockComponents = inventoryComponentBitmask
+	},
+};
+
 bool isBlockSolid(BlockType blocktype)
 {
-	return blockRenderType[blocktype] == BlockRenderType::renderSolidBlock;
+	return blockRenderType[blocktype] == BlockRenderType::solid;
 }
 
 bool isRenderableNonSolid(BlockType blocktype)
 {
-	return !(blockRenderType[blocktype] == BlockRenderType::renderSolidBlock || blockRenderType[blocktype] == BlockRenderType::dontRender);
+	return !(blockRenderType[blocktype] == BlockRenderType::solid || blockRenderType[blocktype] == BlockRenderType::dontRender);
 }
 
 BlockRenderType getRenderType(BlockType blockType) {

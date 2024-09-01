@@ -131,10 +131,10 @@ void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 				blockBitMask |= (BlockBitMask)isBlockSolid(block) << (x + 1);
 			
 				// also check for non solid block rendering here
-				if (getRenderType(block) == BlockRenderType::renderTransparentBlock) {
+				if (getRenderType(block) == BlockRenderType::transparent) {
 					RenderNonSolidBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
 				}
-				if (getRenderType(block) == BlockRenderType::renderCustom) {
+				if (getRenderType(block) == BlockRenderType::custom) {
 					RenderCustomBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
 				}
 			}

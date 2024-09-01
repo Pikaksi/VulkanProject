@@ -37,19 +37,12 @@ int treeNoiseChunkLocationToIndex(const int x, const int y, const int z)
 	return z + y * treeNoiseWidth + x * treeNoiseHeight * treeNoiseWidth;
 }
 
-int modulo(int value, unsigned int m) {
-	int mod = value % m;
-	if (mod < 0) {
-		mod += m;
-	}
-	return mod;
-}
 
 // Does not care if x, y and z are outside of chunk.
 void placeStructureBlock(int x, int y, int z, glm::ivec3 chunkLocationOffset, BlockType block, WorldManager* worldManager)
 {
 	glm::ivec3 chunkLocation = getChunkLocation(x, y, z) + chunkLocationOffset;
-	glm::ivec3 blockLocation = glm::ivec3(modulo(x, 32), modulo(y, 32), modulo(z, 32));
+	glm::ivec3 blockLocation = glm::ivec3(negativeModulo(x, 32), negativeModulo(y, 32), negativeModulo(z, 32));
 
 	if (worldManager->chunks.contains(chunkLocation)) {
 		Chunk& chunk = worldManager->chunks.at(chunkLocation);

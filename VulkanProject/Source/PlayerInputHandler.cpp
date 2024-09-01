@@ -72,7 +72,7 @@ void PlayerInputHandler::handleMouseMovement(GLFWwindow* window, double xPos, do
 void PlayerInputHandler::handleMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     toggleKeyHeld(GLFW_MOUSE_BUTTON_LEFT, mouseLeftHeld, button, action);
-    toggleKeyHeld(GLFW_MOUSE_BUTTON_LEFT, mouseRightHeld, button, action);
+    toggleKeyHeld(GLFW_MOUSE_BUTTON_RIGHT, mouseRightHeld, button, action);
 }
 
 void PlayerInputHandler::handleKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)

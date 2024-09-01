@@ -105,3 +105,11 @@ void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk)
 		chunk.blocks[chunkLocationToIndex(x, y, z)] = blockType;
 	}
 }
+
+int negativeModulo(int value, unsigned int m) {
+	int mod = value % m;
+	if (mod < 0) {
+		mod += m;
+	}
+	return mod;
+}

@@ -46,8 +46,8 @@ void CameraHandler::updateCameraTransform()
         position -= cameraUpDirection() * speed * timePassed;
     }
 
-    std::cout << std::setprecision(2) << std::fixed;
-    /*std::cout << "coordinates are   " << position.x << "   " << position.y << "   " << position.z <<
+    /*std::cout << std::setprecision(2) << std::fixed;
+    std::cout << "coordinates are   " << position.x << "   " << position.y << "   " << position.z <<
         "  time passed is: " << timePassed <<
         "  rotation = " << rotationX << "   " << rotationY << "\n";*/
 
@@ -75,7 +75,7 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
         glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),
         glm::vec3(0.0f, -1.0f, 0.0f) // Up is down and the screen is not flipped like usual to make the positive right axis appear on the right of the screen.
     );
-    ubo.model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.model = glm::mat4(1.0f); //glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
 
     ubo.proj = glm::perspective(glm::radians(85.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
     //ubo.proj[1][1] *= -1;
