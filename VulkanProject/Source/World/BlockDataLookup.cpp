@@ -26,6 +26,14 @@ const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVer
 	}}
 };
 
+struct BlockProperties
+{
+	BlockType blockType;
+	BlockRenderType blockRenderType;
+	bool isInteractable;
+	uint64_t blockComponents;
+};
+
 const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
 {
 	BlockProperties {
@@ -80,24 +88,24 @@ const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
 
 bool isBlockSolid(BlockType blocktype)
 {
-	return blockRenderTypes[blocktype] == BlockRenderType::solid;
+	return blockTypeRenderType[blocktype] == BlockRenderType::solid;
 }
 
 bool isRenderableNonSolid(BlockType blocktype)
 {
-	return !(blockRenderTypes[blocktype] == BlockRenderType::solid || blockRenderTypes[blocktype] == BlockRenderType::dontRender);
+	return !(blockTypeRenderType[blocktype] == BlockRenderType::solid || blockTypeRenderType[blocktype] == BlockRenderType::dontRender);
 }
 
 BlockRenderType getRenderType(BlockType blockType) {
-	return blockRenderTypes[blockType];
+	return blockTypeRenderType[blockType];
 }
 
 BlockRenderType getBlockRenderType(BlockType blockType)
 {
-	return blockRenderTypes[blockType];
+	return blockTypeRenderType[blockType];
 }
 
-const BlockRenderType blockRenderTypes[BlockType::maxEnum] = {
+const BlockRenderType blockTypeRenderType[BlockType::maxEnum] = {
 	blockPropertiesLookup[0].blockRenderType,
 	blockPropertiesLookup[1].blockRenderType,
 	blockPropertiesLookup[2].blockRenderType,
@@ -108,7 +116,7 @@ const BlockRenderType blockRenderTypes[BlockType::maxEnum] = {
 	blockPropertiesLookup[7].blockRenderType
 };
 
-const bool blockIsInteractable[BlockType::maxEnum] = {
+const bool blockTypeIsInteractable[BlockType::maxEnum] = {
 	blockPropertiesLookup[0].isInteractable,
 	blockPropertiesLookup[1].isInteractable,
 	blockPropertiesLookup[2].isInteractable,
@@ -119,7 +127,7 @@ const bool blockIsInteractable[BlockType::maxEnum] = {
 	blockPropertiesLookup[7].isInteractable
 };
 
-const uint64_t blockComponents[BlockType::maxEnum] = {
+const uint64_t blockTypeComponents[BlockType::maxEnum] = {
 	blockPropertiesLookup[0].blockComponents,
 	blockPropertiesLookup[1].blockComponents,
 	blockPropertiesLookup[2].blockComponents,

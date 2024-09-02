@@ -7,6 +7,13 @@
 void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk, BlockType blockToPlace, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
 {
     chunkSetBlock(blockLocation.x, blockLocation.y, blockLocation.z, blockToPlace, chunk);
+
+    uint64_t blockComponents = blockTypeComponents[blockToPlace];
+    if (blockComponents != 0) {
+        EntityID entityID = entityManager.createEntity(blockComponents);
+        worldManager.blockEntities[chunkLocation][blockLocation] = entityID;
+    }
+
     if (blockLocation.x == CHUNK_SIZE - 1) {
         chunkRenderer.rerenderChunk({chunkLocation.x + 1, chunkLocation.y, chunkLocation.z});
     }
@@ -28,7 +35,14 @@ void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk
     chunkRenderer.rerenderChunk(chunkLocation);
 }
 
-void processInteracting(glm::vec3 position, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
+void processInteracting(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, BlockType blockAtLocation, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
+{
+    if (blockTypeComponents[blockAtLocation] & inventoryComponentBitmask != 0) {
+        
+    }
+}
+
+void processRightClick(glm::vec3 position, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
 {
     glm::ivec3 worldBlockLocation = floor(position);
     glm::ivec3 chunkLocation = getChunkLocation(worldBlockLocation);
@@ -41,7 +55,7 @@ void processInteracting(glm::vec3 position, WorldManager& worldManager, ChunkRen
     Chunk& chunk = worldManager.chunks.at(chunkLocation);
     BlockType blockAtLocation = chunkGetBlockAtLocation(blockLocation.x, blockLocation.y, blockLocation.z, chunk);
 
-    if (blockIsInteractable[blockAtLocation]) {
+    if (blockTypeIsInteractable[blockAtLocation]) {
         
     }
     if (blockAtLocation == BlockType::air) {

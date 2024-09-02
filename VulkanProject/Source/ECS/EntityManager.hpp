@@ -33,7 +33,7 @@ public:
     std::vector<Entity> entities;
     std::vector<EntityID> freeEntities; 
 
-    void addEntity(uint64_t componentBitmask);
+    EntityID createEntity(uint64_t componentBitmask);
     void deleteEntity(EntityID entityID);
 };
 

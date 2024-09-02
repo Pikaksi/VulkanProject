@@ -1,13 +1,14 @@
-#include "PlayerInventory.hpp"
+#include "PlayerInventoryManager.hpp"
 
 #include "PlayerInputHandler.hpp"
 
-void PlayerInventory::update(UIManager& uiManager)
+void PlayerInventoryManager::update(UIManager& uiManager)
 {
 	if (PlayerInputHandler::getInstance().rPressed) {
 		if (inventoryIsActive) {
 			inventoryIsActive = false;
 			PlayerInputHandler::getInstance().disableCursor();
+			previousClickedSlot = std::nullopt;
 			std::cout << "disabled\n";
 		}
 		else {
@@ -20,7 +21,7 @@ void PlayerInventory::update(UIManager& uiManager)
 	if (inventoryIsActive) {
 		std::optional<int> clickedSlot, howerOverSlot;
 
-		renderInventory(uiManager, clickedSlot, howerOverSlot, inventory, inventoryLayout);
+		renderInventory(uiManager, clickedSlot, howerOverSlot, playerInventory, playerInventoryLayout);
 
 		if (clickedSlot.has_value()) {
 			if (previousClickedSlot.has_value()) {

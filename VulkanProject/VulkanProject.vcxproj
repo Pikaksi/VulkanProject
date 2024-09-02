@@ -34,7 +34,7 @@
     <ClCompile Include="Source\3dRendering\QuadStripIndexBuffer.cpp" />
     <ClCompile Include="Source\Inventory\Inventory.cpp" />
     <ClCompile Include="Source\Inventory\InventoryLayouts.cpp" />
-    <ClCompile Include="Source\Inventory\PlayerInventory.cpp" />
+    <ClCompile Include="Source\Player\PlayerInventoryManager.cpp" />
     <ClCompile Include="Source\Player\PlaceBlock.cpp" />
     <ClCompile Include="Source\Player\PlayerControls.cpp" />
     <ClCompile Include="Source\Rendering\GPUMemoryBlock.cpp" />
@@ -54,7 +54,7 @@
     <ClInclude Include="Source\Inventory\Inventory.hpp" />
     <ClInclude Include="Source\Inventory\InventoryRenderer.hpp" />
     <ClInclude Include="Source\Inventory\InventoryLayouts.hpp" />
-    <ClInclude Include="Source\Inventory\PlayerInventory.hpp" />
+    <ClInclude Include="Source\Player\PlayerInventoryManager.hpp" />
     <ClInclude Include="Source\2dRendering\DefaultWindow.hpp" />
     <ClInclude Include="Source\Inventory\ItemStack.hpp" />
     <ClInclude Include="Source\Inventory\Item.hpp" />

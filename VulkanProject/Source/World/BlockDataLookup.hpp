@@ -17,19 +17,9 @@ enum class BlockRenderType : uint8_t
 	custom = 3
 };
 
-struct BlockProperties
-{
-	BlockType blockType;
-	BlockRenderType blockRenderType;
-	bool isInteractable;
-	uint64_t blockComponents;
-};
-
-extern const BlockProperties blockPropertiesLookup[BlockType::maxEnum];
-
-extern const BlockRenderType blockRenderTypes[BlockType::maxEnum];
-extern const bool blockIsInteractable[BlockType::maxEnum];
-extern const uint64_t blockComponents[BlockType::maxEnum];
+extern const BlockRenderType blockTypeRenderType[BlockType::maxEnum];
+extern const bool blockTypeIsInteractable[BlockType::maxEnum];
+extern const uint64_t blockTypeComponents[BlockType::maxEnum];
 
 extern const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNames;
 extern const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVertexOffsets;

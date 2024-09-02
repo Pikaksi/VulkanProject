@@ -29,7 +29,7 @@ void deleteComponent(uint32_t componentIndex, uint64_t componentBitmask)
     }
 }
 
-void EntityManager::addEntity(uint64_t componentBitmask)
+EntityID EntityManager::createEntity(uint64_t componentBitmask)
 {
     EntityID entityID;
     if (freeEntities.size() == 0) {
@@ -50,6 +50,7 @@ void EntityManager::addEntity(uint64_t componentBitmask)
 
         componentBitmask &= componentBitmask - 1; // remove lsb and loop to next
     }
+    return entityID;
 }
 
 void EntityManager::deleteEntity(EntityID entityID)

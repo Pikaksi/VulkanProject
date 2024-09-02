@@ -120,7 +120,7 @@
     <ClCompile Include="Source\2dRendering\DefaultWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Inventory\PlayerInventory.cpp">
+    <ClCompile Include="Source\Player\PlayerInventoryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\2dRendering\UIHelperFunctions.cpp">
@@ -291,7 +291,7 @@
     <ClInclude Include="Source\2dRendering\UICenteringMode.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Inventory\PlayerInventory.hpp">
+    <ClInclude Include="Source\Player\PlayerInventoryManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\2dRendering\UIHelperFunctions.hpp">
