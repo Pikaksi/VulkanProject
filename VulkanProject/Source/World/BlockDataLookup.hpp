@@ -25,18 +25,11 @@ struct BlockProperties
 	uint64_t blockComponents;
 };
 
-extern BlockProperties blockPropertiesLookup[BlockType::maxEnum];
+extern const BlockProperties blockPropertiesLookup[BlockType::maxEnum];
 
-const BlockRenderType blockRenderType[8] {
-	BlockRenderType::dontRender,
-	BlockRenderType::solid,
-	BlockRenderType::solid,
-	BlockRenderType::solid,
-	BlockRenderType::solid,
-	BlockRenderType::solid,
-	BlockRenderType::custom,
-	BlockRenderType::solid
-};
+extern const BlockRenderType blockRenderTypes[BlockType::maxEnum];
+extern const bool blockIsInteractable[BlockType::maxEnum];
+extern const uint64_t blockComponents[BlockType::maxEnum];
 
 extern const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNames;
 extern const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVertexOffsets;

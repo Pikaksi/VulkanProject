@@ -26,7 +26,7 @@ const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVer
 	}}
 };
 
-BlockProperties blockPropertiesLookup[BlockType::maxEnum]
+const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
 {
 	BlockProperties {
 		.blockType = BlockType::air,
@@ -75,24 +75,57 @@ BlockProperties blockPropertiesLookup[BlockType::maxEnum]
 		.blockRenderType = BlockRenderType::solid,
 		.isInteractable = true,
 		.blockComponents = inventoryComponentBitmask
-	},
+	}
 };
 
 bool isBlockSolid(BlockType blocktype)
 {
-	return blockRenderType[blocktype] == BlockRenderType::solid;
+	return blockRenderTypes[blocktype] == BlockRenderType::solid;
 }
 
 bool isRenderableNonSolid(BlockType blocktype)
 {
-	return !(blockRenderType[blocktype] == BlockRenderType::solid || blockRenderType[blocktype] == BlockRenderType::dontRender);
+	return !(blockRenderTypes[blocktype] == BlockRenderType::solid || blockRenderTypes[blocktype] == BlockRenderType::dontRender);
 }
 
 BlockRenderType getRenderType(BlockType blockType) {
-	return blockRenderType[blockType];
+	return blockRenderTypes[blockType];
 }
 
 BlockRenderType getBlockRenderType(BlockType blockType)
 {
-	return blockRenderType[blockType];
+	return blockRenderTypes[blockType];
 }
+
+const BlockRenderType blockRenderTypes[BlockType::maxEnum] = {
+	blockPropertiesLookup[0].blockRenderType,
+	blockPropertiesLookup[1].blockRenderType,
+	blockPropertiesLookup[2].blockRenderType,
+	blockPropertiesLookup[3].blockRenderType,
+	blockPropertiesLookup[4].blockRenderType,
+	blockPropertiesLookup[5].blockRenderType,
+	blockPropertiesLookup[6].blockRenderType,
+	blockPropertiesLookup[7].blockRenderType
+};
+
+const bool blockIsInteractable[BlockType::maxEnum] = {
+	blockPropertiesLookup[0].isInteractable,
+	blockPropertiesLookup[1].isInteractable,
+	blockPropertiesLookup[2].isInteractable,
+	blockPropertiesLookup[3].isInteractable,
+	blockPropertiesLookup[4].isInteractable,
+	blockPropertiesLookup[5].isInteractable,
+	blockPropertiesLookup[6].isInteractable,
+	blockPropertiesLookup[7].isInteractable
+};
+
+const uint64_t blockComponents[BlockType::maxEnum] = {
+	blockPropertiesLookup[0].blockComponents,
+	blockPropertiesLookup[1].blockComponents,
+	blockPropertiesLookup[2].blockComponents,
+	blockPropertiesLookup[3].blockComponents,
+	blockPropertiesLookup[4].blockComponents,
+	blockPropertiesLookup[5].blockComponents,
+	blockPropertiesLookup[6].blockComponents,
+	blockPropertiesLookup[7].blockComponents
+};

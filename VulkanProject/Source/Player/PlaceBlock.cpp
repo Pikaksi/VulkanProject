@@ -41,10 +41,10 @@ void processInteracting(glm::vec3 position, WorldManager& worldManager, ChunkRen
     Chunk& chunk = worldManager.chunks.at(chunkLocation);
     BlockType blockAtLocation = chunkGetBlockAtLocation(blockLocation.x, blockLocation.y, blockLocation.z, chunk);
 
-    if (isBlockInteractable[blockAtLocation]) {
+    if (blockIsInteractable[blockAtLocation]) {
         
     }
-    else if (blockAtLocation != BlockType::air) {
+    if (blockAtLocation == BlockType::air) {
         placeBlock(chunkLocation, blockLocation, chunk, BlockType::furnace, worldManager, chunkRenderer);
     }
 }
