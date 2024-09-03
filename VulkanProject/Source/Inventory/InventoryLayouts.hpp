@@ -7,7 +7,8 @@
 
 enum class InventoryLayout
 {
-    grid10x4Inventory = 0
+    grid10x4Inventory = 0,
+    output1Input1 = 1
 };
 
 struct InventorySlotLocation

@@ -9,10 +9,19 @@
 #include "InventoryRenderer.hpp"
 #include "ECS/EntityManager.hpp"
 
+struct SelectedSlotInfo
+{
+	int slotNumber;
+	bool isPlayerInventory;
+	EntityID inventoryEntityID; // if is not playerInventory
+};
+
 class PlayerInventoryManager
 {
 public:
 	void update(UIManager& uiManager);
+	void openInventory(std::optional<EntityID> additionalInventoryEntityID = std::nullopt);
+
 	PlayerInventoryManager() :
 		playerInventory(Inventory(getInventoryLayoutSize(playerInventoryLayout)))
 	{
@@ -20,11 +29,13 @@ public:
 	}
 
 private:
+	void closeInventory();
+	void processOpenInventory(UIManager& uiManager);
+
 	bool inventoryIsActive = false;
-	std::optional<int> previousClickedSlot = std::nullopt;
+	std::optional<SelectedSlotInfo> previousClickedSlot = std::nullopt;
+	std::optional<EntityID> additionalOpenInventory;
 	
 	const static InventoryLayout playerInventoryLayout = InventoryLayout::grid10x4Inventory;
 	Inventory playerInventory;
-
-	std::optional<EntityID> additionalOpenInventory;
 };
