@@ -40,9 +40,9 @@ void PlayerInventoryManager::processOpenInventory(UIManager& uiManager)
 		clickedSlotPlayerInventory, 
 		howerOverSlotPlayerInventory, 
 		playerInventory, 
-		playerInventoryLayout);
-	SelectedSlotInfo selectedSlotInfo
-	{
+		playerInventoryLayout,
+		true);
+	SelectedSlotInfo selectedSlotInfo {
 		clickedSlotPlayerInventory,
 		std::nullopt
 	};
@@ -55,7 +55,8 @@ void PlayerInventoryManager::processOpenInventory(UIManager& uiManager)
 			clickedSlotAdditionalInventory, 
 			howerOverSlotAdditionalInventory, 
 			entityManager.entities[additionalOpenInventory.value()].getComponent<Inventory>(), 
-			InventoryLayout::output1Input1);
+			InventoryLayout::output1Input1,
+			false);
 
 		if (clickedSlotAdditionalInventory.has_value()) {
 			selectedSlotInfo.slotNumber = clickedSlotAdditionalInventory;

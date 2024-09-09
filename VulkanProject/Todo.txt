@@ -1,12 +1,19 @@
 do UI rendering before world rendering and write depthbuffer to save resources
 
-optimize vertex size
-
 Fix runtime library to use /MD and not /MDd.
 
 check if can bind multiple buffers with vkCmdBindVertexBuffers
 
-use enum class with BlockType
+maybe use enum class with BlockType
+
+optimize vertex size
+  Per face:
+    4*u8 darkness
+    u16 texture
+    2*u8 greedy meshing
+    4*3*f16 face location
+    
+    4+2+2+4*3*2=32
 
 ECS
 - inventory
