@@ -7,11 +7,21 @@
 void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk, BlockType blockToPlace, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
 {
     chunkSetBlock(blockLocation.x, blockLocation.y, blockLocation.z, blockToPlace, chunk);
-
-    uint64_t blockComponents = blockTypeComponents[blockToPlace];
-    if (blockComponents != 0) {
-        EntityID entityID = entityManager.createEntity(blockComponents);
+    if (blockHasComponent(blockToPlace)) {
+        uint64_t components = blockTypeComponents[blockToPlace];
+        EntityID entityID = worldManager.generateEntity(chunkLocation, blockLocation, components);
         worldManager.blockEntities[chunkLocation][blockLocation] = entityID;
+
+        std::cout << "entityID creation = " << entityID << "\n";
+
+        if (blockHasComponent(blockToPlace, inventoryComponentBitmask)) {
+            entityManager.entities[entityID].getComponent<Inventory>().setSize(blockTypeInventorySize.at(blockToPlace));
+            
+            std::cout << "set size\n";
+            std::cout << entityManager.entities[entityID].getComponent<Inventory>().getSize() << "\n";
+        }
+        std::cout << "creation chunk = " << chunkLocation.x << chunkLocation.y << chunkLocation.z << blockLocation.x << blockLocation.y << blockLocation.z << "\n";
+        std::cout << "entityID after creation = " << worldManager.blockEntities.at(chunkLocation).at(blockLocation) << "\n";
     }
 
     if (blockLocation.x == CHUNK_SIZE - 1) {
@@ -35,14 +45,27 @@ void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk
     chunkRenderer.rerenderChunk(chunkLocation);
 }
 
-void processInteracting(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, BlockType blockAtLocation, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
+void interactWithBlock(
+    glm::ivec3 chunkLocation,
+    glm::ivec3 blockLocation,
+    BlockType blockAtLocation,
+    WorldManager& worldManager,
+    ChunkRenderer& chunkRenderer,
+    PlayerInventoryManager& playerInventoryManager)
 {
-    if (blockTypeComponents[blockAtLocation] & inventoryComponentBitmask != 0) {
-        
+    if (blockHasComponent(blockAtLocation, inventoryComponentBitmask)) {
+        EntityID entityID = worldManager.blockEntities.at(chunkLocation).at(blockLocation);
+        std::cout << "creation chunk = " << chunkLocation.x << chunkLocation.y << chunkLocation.z << blockLocation.x << blockLocation.y << blockLocation.z << "\n";
+        std::cout << "entityID open = " << entityID << "\n";
+        playerInventoryManager.openInventory(entityID);
     }
 }
 
-void processRightClick(glm::vec3 position, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
+void processRightClick(
+    glm::vec3 position,
+    WorldManager& worldManager,
+    ChunkRenderer& chunkRenderer,
+    PlayerInventoryManager& playerInventoryManager)
 {
     glm::ivec3 worldBlockLocation = floor(position);
     glm::ivec3 chunkLocation = getChunkLocation(worldBlockLocation);
@@ -56,7 +79,7 @@ void processRightClick(glm::vec3 position, WorldManager& worldManager, ChunkRend
     BlockType blockAtLocation = chunkGetBlockAtLocation(blockLocation.x, blockLocation.y, blockLocation.z, chunk);
 
     if (blockTypeIsInteractable[blockAtLocation]) {
-        
+        interactWithBlock(chunkLocation, blockLocation, BlockType::furnace, worldManager, chunkRenderer, playerInventoryManager);
     }
     if (blockAtLocation == BlockType::air) {
         placeBlock(chunkLocation, blockLocation, chunk, BlockType::furnace, worldManager, chunkRenderer);

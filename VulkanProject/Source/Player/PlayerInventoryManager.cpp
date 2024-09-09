@@ -9,7 +9,7 @@ void PlayerInventoryManager::update(UIManager& uiManager)
 			closeInventory();
 		}
 		else {
-			openInventory();
+			openInventory(std::nullopt);
 		}
 	}
 
@@ -18,39 +18,65 @@ void PlayerInventoryManager::update(UIManager& uiManager)
 	}
 }
 
-void PlayerInventoryManager::openInventory(std::optional<EntityID> additionalInventoryEntityID = std::nullopt)
+void PlayerInventoryManager::openInventory(std::optional<EntityID> additionalInventoryEntityID)
 {
 	inventoryIsActive = true;
 	PlayerInputHandler::getInstance().enableCursor();
+	additionalOpenInventory = additionalInventoryEntityID;
 }
 
 void PlayerInventoryManager::closeInventory()
 {
 	inventoryIsActive = false;
 	PlayerInputHandler::getInstance().disableCursor();
-	previousClickedSlot = std::nullopt;
 }
 
 void PlayerInventoryManager::processOpenInventory(UIManager& uiManager)
 {
-	std::optional<int> clickedSlot, howerOverSlot;
+	std::optional<int> clickedSlotPlayerInventory, howerOverSlotPlayerInventory, clickedSlotAdditionalInventory, howerOverSlotAdditionalInventory;
 
-	renderInventory(uiManager, clickedSlot, howerOverSlot, playerInventory, playerInventoryLayout);
+	renderInventory(
+		uiManager, 
+		clickedSlotPlayerInventory, 
+		howerOverSlotPlayerInventory, 
+		playerInventory, 
+		playerInventoryLayout);
+	SelectedSlotInfo selectedSlotInfo
+	{
+		clickedSlotPlayerInventory,
+		std::nullopt
+	};
 
 	if (additionalOpenInventory.has_value()) {
-		renderInventory(uiManager, clickedSlot, howerOverSlot, entityManager.entities[additionalOpenInventory.value()].getComponent<Inventory>(), )
+		std::cout << "additional inventory\n";
+		std::cout << "entityID = " << additionalOpenInventory.value() << "\n";
+		renderInventory(
+			uiManager, 
+			clickedSlotAdditionalInventory, 
+			howerOverSlotAdditionalInventory, 
+			entityManager.entities[additionalOpenInventory.value()].getComponent<Inventory>(), 
+			InventoryLayout::output1Input1);
+
+		if (clickedSlotAdditionalInventory.has_value()) {
+			selectedSlotInfo.slotNumber = clickedSlotAdditionalInventory;
+			selectedSlotInfo.inventoryEntityID = additionalOpenInventory;
+		}
 	}
 
-	if (clickedSlot.has_value()) {
-		if (previousClickedSlot.has_value()) {
-			playerInventory.swapSlots(previousClickedSlot.value(), clickedSlot.value());
-			previousClickedSlot = std::nullopt;
-		}
-		else {
-			previousClickedSlot = clickedSlot.value();
-		}
-		std::cout << "Clicked slot " << clickedSlot.value() << "\n";
-	}
-	if (howerOverSlot.has_value()) {
-	}
+	handleClickedSlot(selectedSlotInfo);
 }
+
+void PlayerInventoryManager::handleClickedSlot(SelectedSlotInfo selectedSlotInfo)
+{
+	if (!selectedSlotInfo.slotNumber.has_value()) {
+		return;
+	}
+
+	Inventory& otherInventory = 
+		selectedSlotInfo.inventoryEntityID.has_value()
+		? entityManager.entities[selectedSlotInfo.inventoryEntityID.value()].getComponent<Inventory>()
+		: playerInventory;
+
+	swapSlots(0, selectedSlotInfo.slotNumber.value(), cursorInventory, otherInventory);
+}
+

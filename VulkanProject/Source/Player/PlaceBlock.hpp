@@ -5,5 +5,10 @@
 #include "World/WorldManager.hpp"
 #include "World/BlockType.hpp"
 #include "3dRendering/ChunkRenderer.hpp"
+#include "Player/PlayerInventoryManager.hpp"
 
-void processInteracting(glm::vec3 position, WorldManager& worldManager, ChunkRenderer& chunkRenderer);
+void processRightClick(
+    glm::vec3 position,
+    WorldManager& worldManager,
+    ChunkRenderer& chunkRenderer,
+    PlayerInventoryManager& playerInventoryManager);

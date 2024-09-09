@@ -4,7 +4,7 @@
 
 #include "Constants.hpp"
 
-bool moveItemFromInventory(int itemSlot, Inventory srcInventory, Inventory dstInventory)
+bool moveItemFromInventory(int itemSlot, Inventory& srcInventory, Inventory& dstInventory)
 {
     ItemStack itemStackToMove = srcInventory.getItem(itemSlot);
 
@@ -20,7 +20,7 @@ bool moveItemFromInventory(int itemSlot, Inventory srcInventory, Inventory dstIn
     return false;
 }
 
-void swapSlots(int firstSlot, int secondSlot, Inventory firstInventory, Inventory secondInventory)
+void swapSlots(int firstSlot, int secondSlot, Inventory& firstInventory, Inventory& secondInventory)
 {
     ItemStack temporaryItemStack = firstInventory.getItem(firstSlot);
     firstInventory.setItem(firstSlot, secondInventory.getItem(secondSlot));

@@ -42,7 +42,7 @@
 #include "PlayerInputHandler.hpp"
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
-#include "Inventory/PlayerInventory.hpp"
+#include "Player/PlayerInventoryManager.hpp"
 #include "Player/PlayerControls.hpp"
 
 class Application
@@ -100,7 +100,7 @@ private:
     WorldManager worldManager;
     UIManager uiManager;
     DebugMenu debugMenu;
-    PlayerInventory playerInventory;
+    PlayerInventoryManager playerInventoryManager;
 
     std::chrono::steady_clock::time_point fpsTimer;
 

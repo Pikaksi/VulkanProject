@@ -2,6 +2,7 @@
 
 #include <numbers>
 #include <unordered_map>
+#include <map>
 #include <string>
 
 #include <glm/vec3.hpp>
@@ -23,7 +24,11 @@ extern const uint64_t blockTypeComponents[BlockType::maxEnum];
 
 extern const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNames;
 extern const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVertexOffsets;
+extern const std::map<BlockType, int> blockTypeInventorySize;
+
 bool isBlockSolid(BlockType blocktype);
 BlockRenderType getRenderType(BlockType blockType);
 bool isRenderableNonSolid(BlockType blocktype);
 BlockRenderType getBlockRenderType(BlockType blockType);
+bool blockHasComponent(BlockType blockType, uint64_t componentBitmask);
+bool blockHasComponent(BlockType blockType);

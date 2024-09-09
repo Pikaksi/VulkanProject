@@ -9,7 +9,6 @@
 #include "Rendering/TextureCreator.hpp"
 #include "3dRendering/BlockTexCoordinateLookup.hpp"
 #include "2dRendering/UITextureCreator.hpp"
-#include "Inventory/InventoryLayouts.hpp"
 
 #include <thread>
 
@@ -46,7 +45,7 @@ void Application::initGame()
     generateInventoryLayouts();
 
     debugMenu = DebugMenu(0.25f);
-    playerInventory = PlayerInventory();
+    playerInventoryManager = PlayerInventoryManager();
 
     int worldMaxVertexCount = 10000000;
     int uiMaxVertexCount = 50000;
@@ -137,9 +136,9 @@ void Application::gameMainLoop()
     );
     chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
 
-    playerInventory.update(uiManager);
+    playerInventoryManager.update(uiManager);
 
-    updatePlayerControls(cameraHandler.position, worldManager, chunkRenderer);
+    updatePlayerControls(cameraHandler.position, worldManager, chunkRenderer, playerInventoryManager);
 
     debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);
 }
@@ -178,7 +177,7 @@ void Application::cleanup()
     vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayout3d, nullptr);
     vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayout2d, nullptr);
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(vulkanCoreInfo.device, renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(vulkanCoreInfo.device, imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(vulkanCoreInfo.device, inFlightFences[i], nullptr);

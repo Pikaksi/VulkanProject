@@ -11,8 +11,9 @@ uint32_t getInventoryLayoutSize(InventoryLayout inventoryLayout)
     return inventoryLayoutSizes.at(inventoryLayout);
 }
 
-void generategrid10x4InventoryLayout(std::vector<InventorySlotLocation>& inventorySlotLocations)
+std::vector<InventorySlotLocation> generategrid10x4InventoryLayout()
 {
+    std::vector<InventorySlotLocation> inventorySlotLocations;
     glm::vec2 startingOffset = { 0.01f, 0.1f };
     glm::vec2 slotSize = { 0.08f, 0.08f };
     glm::vec2 slotGap { 0.02f, 0.02f };
@@ -33,18 +34,21 @@ void generategrid10x4InventoryLayout(std::vector<InventorySlotLocation>& invento
         InventorySlotLocation inventorySlotPosition(screenLocation, screenSize);
         inventorySlotLocations.push_back(inventorySlotPosition);
     }
+    return inventorySlotLocations;
 }
 
-void generateInput1Output1InventoryLayout(std::vector<InventorySlotLocation>& inventorySlotLocations)
+std::vector<InventorySlotLocation> generateInput1Output1InventoryLayout()
 {
-    inventorySlotLocations.push_back
+    std::vector<InventorySlotLocation> inventorySlotLocations;
+    inventorySlotLocations.push_back({{-0.5f, 0.8f}, {0.1f, 0.1f}});
+    inventorySlotLocations.push_back({{0.5f, 0.8f}, {0.1f, 0.1f}});
+    return inventorySlotLocations;
 }
 
 void generateInventoryLayouts()
 {
-    std::vector<InventorySlotLocation> grid10x4InventorySlotLocations;
-    inventoryLayouts.insert(std::make_pair(InventoryLayout::grid10x4Inventory, grid10x4InventorySlotLocations));
-    generategrid10x4InventoryLayout(inventoryLayouts.at(InventoryLayout::grid10x4Inventory));
+    inventoryLayouts.insert(std::make_pair(InventoryLayout::grid10x4Inventory, generategrid10x4InventoryLayout()));
+    inventoryLayouts.insert(std::make_pair(InventoryLayout::output1Input1, generateInput1Output1InventoryLayout()));
 }
 
 std::vector<InventorySlotLocation>& getInventoryLayoutPositions(InventoryLayout inventoryLayout)

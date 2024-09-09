@@ -2,18 +2,17 @@
 
 #include <optional>
 
-#include "ItemStack.hpp"
+#include "Inventory/ItemStack.hpp"
+#include "Inventory/InventoryLayouts.hpp"
+#include "Inventory/Inventory.hpp"
+#include "Inventory/InventoryRenderer.hpp"
 #include "2dRendering/UIManager.hpp"
-#include "InventoryLayouts.hpp"
-#include "Inventory.hpp"
-#include "InventoryRenderer.hpp"
 #include "ECS/EntityManager.hpp"
 
 struct SelectedSlotInfo
 {
-	int slotNumber;
-	bool isPlayerInventory;
-	EntityID inventoryEntityID; // if is not playerInventory
+	std::optional<int> slotNumber;
+	std::optional<EntityID> inventoryEntityID; // is player inventory if there is no value
 };
 
 class PlayerInventoryManager
@@ -23,7 +22,8 @@ public:
 	void openInventory(std::optional<EntityID> additionalInventoryEntityID = std::nullopt);
 
 	PlayerInventoryManager() :
-		playerInventory(Inventory(getInventoryLayoutSize(playerInventoryLayout)))
+		playerInventory(Inventory(getInventoryLayoutSize(playerInventoryLayout))),
+		cursorInventory(Inventory(1))
 	{
 		playerInventory.insertItem(ItemStack(Item::dirt, 3));
 	}
@@ -31,11 +31,12 @@ public:
 private:
 	void closeInventory();
 	void processOpenInventory(UIManager& uiManager);
+	void handleClickedSlot(SelectedSlotInfo selectedSlotInfo);
 
+	const static InventoryLayout playerInventoryLayout = InventoryLayout::grid10x4Inventory;
 	bool inventoryIsActive = false;
-	std::optional<SelectedSlotInfo> previousClickedSlot = std::nullopt;
 	std::optional<EntityID> additionalOpenInventory;
 	
-	const static InventoryLayout playerInventoryLayout = InventoryLayout::grid10x4Inventory;
 	Inventory playerInventory;
+	Inventory cursorInventory;
 };

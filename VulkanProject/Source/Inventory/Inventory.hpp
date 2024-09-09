@@ -33,5 +33,5 @@ private:
 };
 
 // Returns true if the item was moved. If moved item is empty return true.
-bool moveItemFromInventory(int itemSlot, Inventory srcInventory, Inventory dstInventory);
-void swapSlots(int firstSlot, int secondSlot, Inventory firstInventory, Inventory secondInventory);
+bool moveItemFromInventory(int itemSlot, Inventory& srcInventory, Inventory& dstInventory);
+void swapSlots(int firstSlot, int secondSlot, Inventory& firstInventory, Inventory& secondInventory);

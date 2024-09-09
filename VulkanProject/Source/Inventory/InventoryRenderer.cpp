@@ -7,7 +7,7 @@
 #include "PlayerInputHandler.hpp"
 #include "2dRendering/DefaultWindow.hpp"
 
-void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std::optional<int>& howerOverSlot, Inventory& inventory, InventoryLayout inventoryLayout)
+void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std::optional<int>& howerOverSlot, Inventory& inventory, InventoryLayout inventoryLayout, bool renderWindow)
 {
     auto startingTime = std::chrono::high_resolution_clock::now();
 
@@ -20,14 +20,16 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     windowSize *= uiManager.getScalar();
     centerLocation(windowLocation, windowSize, UICenteringMode::center);
 
-	createDefaultWindow(
-        uiManager,
-		windowLocation,
-		windowSize,
-		topBarHeight,
-		"Inventory",
-		{0.1f, 0.2, 0.8f, 1.0f},
-		{0.05f, 0.05f, 0.07f, 1.0f});
+    if (renderWindow) {
+        createDefaultWindow(
+            uiManager,
+            windowLocation,
+            windowSize,
+            topBarHeight,
+            "Inventory",
+            {0.1f, 0.2, 0.8f, 1.0f},
+            {0.05f, 0.05f, 0.07f, 1.0f});
+    }
 
     glm::vec2 windowBodyLocation = windowLocation + glm::vec2(0.0f, topBarHeight);
     glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
@@ -35,6 +37,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
 
     glm::vec2 mouseLocation = uiManager.getMousePositionScreenSpace();
     for (int i = 0; i < inventorySlotLocations.size(); i++) {
+        std::cout << i << "\n";
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
         scaleBoxToWindow(windowBodyLocation, windowBodySize, slotLocation);
 
@@ -56,7 +59,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
                 clickedSlot = i;
             }
         }
-
+        std::cout << inventory.getSize() << "\n";
         ItemStack itemStackInSlot = inventory.getItem(i);
 
         if (itemStackInSlot.item != Item::empty) {

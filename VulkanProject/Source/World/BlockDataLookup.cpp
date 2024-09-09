@@ -86,6 +86,11 @@ const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
 	}
 };
 
+const std::map<BlockType, int> blockTypeInventorySize
+{
+	{BlockType::furnace, 2}
+};
+
 bool isBlockSolid(BlockType blocktype)
 {
 	return blockTypeRenderType[blocktype] == BlockRenderType::solid;
@@ -103,6 +108,16 @@ BlockRenderType getRenderType(BlockType blockType) {
 BlockRenderType getBlockRenderType(BlockType blockType)
 {
 	return blockTypeRenderType[blockType];
+}
+
+bool blockHasComponent(BlockType blockType, uint64_t componentBitmask)
+{
+	return blockTypeComponents[blockType] & componentBitmask != 0;
+}
+
+bool blockHasComponent(BlockType blockType)
+{
+	return blockTypeComponents[blockType] != 0;
 }
 
 const BlockRenderType blockTypeRenderType[BlockType::maxEnum] = {

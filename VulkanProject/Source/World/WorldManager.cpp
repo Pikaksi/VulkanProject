@@ -14,3 +14,10 @@ void WorldManager::tryGeneratingNewChunk(glm::i32vec3 chunkLocation, std::unorde
 	generateChunk(chunkLocation, this, chunksToRerender);
 }
 
+EntityID WorldManager::generateEntity(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, uint64_t componentBitmask)
+{
+	EntityID entityID = entityManager.createEntity(componentBitmask);
+	blockEntities[chunkLocation][blockLocation] = entityID;
+	return entityID;
+}
+
