@@ -8,12 +8,18 @@ maybe use enum class with BlockType
 
 optimize vertex size
   Per face:
+    3*u5 = u16 blockLocation
+    u16 textureIndex
+    u16 modelIndex
     4*u8 darkness
-    u16 texture
-    2*u8 greedy meshing
-    4*3*f16 face location
     
-    4+2+2+4*3*2=32
+    2+2+2+4=10
+  
+  model buffer:
+    4*3*f32 quad vertex locations
+    4*f32 UV coordinates for greedy meshing
+    3*f32 normal
+
 
 ECS
 - inventory
