@@ -112,6 +112,9 @@ void recordCommandBuffer(
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.layout, 0, 1, &descriptorSet3d, 0, nullptr);
 
+        PushConstant3d pushConstant = {{0.0f, 10.0f, 0.0f}};
+        vkCmdPushConstants(commandBuffer, graphicsPipelineInfo3d.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant3d), &pushConstant);
+
         // get index count by multiplying vertex count by 1.5
         vkCmdDrawIndexed(commandBuffer, worldBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
     }
