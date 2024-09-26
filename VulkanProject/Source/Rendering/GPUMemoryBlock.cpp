@@ -17,7 +17,7 @@ GPUMemoryBlock::GPUMemoryBlock(VulkanCoreInfo& vulkanCoreInfo, uint32_t sizeofDa
 // returns true if successful
 bool GPUMemoryBlock::allocateMemory(uint32_t size, uint32_t& location)
 {
-    for (auto pair : emptyMemoryLocationsStartLookup) {
+    for (const auto pair : emptyMemoryLocationsStartLookup) {
         if (pair.second.getSize() > size) {
 
             trackAddedMemoryLocation(pair.second.startOffset, size);
@@ -138,6 +138,18 @@ void GPUMemoryBlock::getVertexDataMerged(VkBuffer& outVertexBuffer, std::vector<
             iteratorLocation = emptyMemoryLocationsStartLookup.at(iteratorLocation).endOffset + 1;
             gapsBetweenLastMemory = true;
         }
+    }
+}
+
+void GPUMemoryBlock::getVertexData(VkBuffer& outVertexBuffer, std::vector<VkDeviceSize>& vertexOffsets, std::vector<uint32_t>& batchVertexCounts)
+{
+    outVertexBuffer = buffer;
+
+    for (auto pair : usedMemoryLocationsStartLookup) {
+        vertexOffsets.push_back(pair.first);
+
+        uint32_t dataCount = pair.second.getSize() / sizeofData;
+        batchVertexCounts.push_back(dataCount);
     }
 }
 
