@@ -92,20 +92,19 @@ void recordCommandBuffer(
 
     // Render world.
     VkBuffer worldVertexBuffer;
-    std::vector<VkDeviceSize> worldVertexOffsets;
-    std::vector<uint32_t> worldBatchVertexCounts;
+    std::vector<WorldDrawCallData> worldDrawCallData;
     VkBuffer worldIndexBuffer;
     vertexBufferManager.getWorldGeometryForRendering(
         worldVertexBuffer,
-        worldVertexOffsets,
-        worldBatchVertexCounts,
+        worldDrawCallData,
         worldIndexBuffer);
 
-    for (int i = 0; i < worldVertexOffsets.size(); i++) {
+    for (int i = 0; i < worldDrawCallData.size(); i++) {
+        WorldDrawCallData drawCallData = worldDrawCallData[i];
 
         VkBuffer vertexBuffers[] = { worldVertexBuffer };
 
-        VkDeviceSize offsets[] = { worldVertexOffsets[i] };
+        VkDeviceSize offsets[] = { drawCallData.memoryLocation };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
@@ -116,7 +115,7 @@ void recordCommandBuffer(
         vkCmdPushConstants(commandBuffer, graphicsPipelineInfo3d.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant3d), &pushConstant);
 
         // get index count by multiplying vertex count by 1.5
-        vkCmdDrawIndexed(commandBuffer, worldBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount * 1.5f, 1, 0, 0, 0);
     }
 
     // Render UI.

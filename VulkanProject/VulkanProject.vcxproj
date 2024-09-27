@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\3dRendering\WorldVertexTracker.cpp" />
     <ClCompile Include="Source\ECS\EntityCreator.cpp" />
     <ClCompile Include="Source\ECS\EntityManager.cpp" />
     <ClCompile Include="Source\Inventory\InventoryRenderer.cpp" />
@@ -85,6 +86,7 @@
     <ClInclude Include="Source\2dRendering\UITexLayer.hpp" />
     <ClInclude Include="Source\2dRendering\UICenteringMode.hpp" />
     <ClInclude Include="Source\2dRendering\UIHelperFunctions.hpp" />
+    <ClInclude Include="Source\3dRendering\WorldVertexTracker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\FastNoise2\bin\FastNoise.dll">

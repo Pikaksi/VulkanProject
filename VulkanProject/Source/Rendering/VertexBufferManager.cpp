@@ -8,16 +8,18 @@ VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo, VkComma
     uiGPUMemoryBlock = GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex2D), uiMaxVertexCount, quadStripIndexBuffer.getVertexCount());
 }
 
-uint32_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices)
+uint32_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, glm::vec3 chunkLocation)
 {
     uint32_t memoryLocation;
     worldGPUMemoryBlock.addData<Vertex>(vulkanCoreInfo, commandPool, memoryLocation, vertices);
+    worldVertexTracker.addLocation(static_cast<VkDeviceSize>(memoryLocation), vertices.size(), chunkLocation);
     return memoryLocation;
 }
 
 void VertexBufferManager::freeWorldVerticesMemory(uint32_t memoryBlockLocation)
 {
     worldGPUMemoryBlock.freeMemory(memoryBlockLocation);
+    worldVertexTracker.removeLocation(static_cast<VkDeviceSize>(memoryBlockLocation));
 }
 
 
@@ -35,14 +37,11 @@ void VertexBufferManager::freeUIVerticesMemory(uint32_t memoryBlockLocation)
 
 void VertexBufferManager::getWorldGeometryForRendering(
     VkBuffer& vertexBuffer,
-    std::vector<VkDeviceSize>& vertexOffsets,
-    std::vector<uint32_t>& batchIndexCounts,
+    std::vector<WorldDrawCallData>& vertexOffsets,
     VkBuffer& indexBuffer)
 {
-    worldGPUMemoryBlock.getVertexDataMerged(
-        vertexBuffer,
-        vertexOffsets,
-        batchIndexCounts);
+    vertexBuffer = worldGPUMemoryBlock.buffer;
+    vertexOffsets = worldVertexTracker.getData();
     indexBuffer = quadStripIndexBuffer.getBuffer();
 }
 
