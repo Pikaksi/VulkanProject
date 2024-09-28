@@ -5,6 +5,7 @@
 #include "FrameDrawer.hpp"
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
+#include "World/Chunk.hpp"
 
 void createSyncObjects(
     VulkanCoreInfo& vulkanCoreInfo,
@@ -39,6 +40,30 @@ void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo>& 
     memcpy(uniformBufferInfos[currentFrame].mappingPointer, &ubo, sizeof(ubo));
 }
 
+struct ChunkCenterOffsets
+{
+    glm::ivec3 top;
+    glm::ivec3 bottom;
+    glm::ivec3 right;
+    glm::ivec3 left;
+};
+
+void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
+{
+    chunkCenterOffsets.top = {viewingFrustumNormals.top.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.top.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.top.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
+    chunkCenterOffsets.bottom = {viewingFrustumNormals.bottom.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.bottom.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.bottom.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
+    chunkCenterOffsets.right = {viewingFrustumNormals.right.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.right.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.right.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
+    chunkCenterOffsets.left = {viewingFrustumNormals.left.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.left.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.left.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
+}
+
+bool chunkIsInViewingFrustum(glm::vec3& cameraLocation, glm::ivec3& chunkLocation, ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
+{
+    return glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/), viewingFrustumNormals.top) > 0.0f
+        || glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.bottom*/), viewingFrustumNormals.bottom) > 0.0f
+        || glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.right*/), viewingFrustumNormals.right) > 0.0f
+        || glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.left*/), viewingFrustumNormals.left) > 0.0f;
+}
+
 void recordCommandBuffer(
     SwapChainInfo& swapChainInfo,
     GraphicsPipelineInfo& graphicsPipelineInfo3d,
@@ -47,7 +72,8 @@ void recordCommandBuffer(
     VkDescriptorSet descriptorSet2d,
     VkCommandBuffer commandBuffer, 
     uint32_t imageIndex,
-    VertexBufferManager& vertexBufferManager)
+    VertexBufferManager& vertexBufferManager,
+    CameraHandler& cameraHandler)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -90,6 +116,11 @@ void recordCommandBuffer(
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    ViewingFrustumNormals viewingFrustumNormals;
+    cameraHandler.getViewingFrustumNormals(swapChainInfo.extent, viewingFrustumNormals);
+    ChunkCenterOffsets chunkCenterOffsets;
+    getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
+
     // Render world.
     VkBuffer worldVertexBuffer;
     std::vector<WorldDrawCallData> worldDrawCallData;
@@ -98,9 +129,16 @@ void recordCommandBuffer(
         worldVertexBuffer,
         worldDrawCallData,
         worldIndexBuffer);
+    
+    int chunksSkipped = 0;
 
     for (int i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];
+
+        if (!chunkIsInViewingFrustum(cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
+            chunksSkipped += 1;
+            continue;
+        }
 
         VkBuffer vertexBuffers[] = { worldVertexBuffer };
 
@@ -117,6 +155,7 @@ void recordCommandBuffer(
         // get index count by multiplying vertex count by 1.5
         vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount * 1.5f, 1, 0, 0, 0);
     }
+    std::cout << "chunks Skipped = " << chunksSkipped << "\n";
 
     // Render UI.
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
@@ -202,7 +241,8 @@ void drawFrame(
         descriptorSets2d[currentFrame],
         commandBuffers[currentFrame],
         imageIndex,
-        vertexBufferManager);
+        vertexBufferManager,
+        cameraHandler);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -15,7 +15,7 @@ public:
     VertexBufferManager() {}
     VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint32_t worldVertexCount, uint32_t uiMaxVertexCount);
 
-    uint32_t addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, glm::vec3 chunkLocation);
+    uint32_t addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, glm::ivec3 chunkLocation);
     void freeWorldVerticesMemory(uint32_t memoryBlockLocation);
     uint32_t addVerticesToUI(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex2D>& vertices);
     void freeUIVerticesMemory(uint32_t memoryBlockLocation);

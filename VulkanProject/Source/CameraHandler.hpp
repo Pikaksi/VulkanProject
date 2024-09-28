@@ -7,7 +7,7 @@
 
 #include "VulkanRendering/Buffers.hpp"
 
-struct ClipPlaneNormals
+struct ViewingFrustumNormals
 {
 	glm::vec3 top;
 	glm::vec3 bottom;
@@ -41,5 +41,5 @@ public:
 	glm::vec3 cameraForwardDirection();
 	void updateCameraTransform();
 	void getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo);
-	ClipPlaneNormals getClipPlaneNormals();
+	ViewingFrustumNormals getViewingFrustumNormals(VkExtent2D extent, ViewingFrustumNormals& viewingFrustumNormals);
 };

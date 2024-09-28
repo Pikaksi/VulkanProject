@@ -1,22 +1,32 @@
 #include "WorldVertexTracker.hpp"
 
+#include <iostream>
+#include <stdexcept>
 
-void WorldVertexTracker::addLocation(VkDeviceSize memoryLocation, uint32_t dataCount, glm::vec3 chunkLocation)
+void WorldVertexTracker::addLocation(VkDeviceSize memoryLocation, uint32_t dataCount, glm::ivec3 chunkLocation)
 {
     WorldDrawCallData vertexBatchData(memoryLocation, dataCount, chunkLocation);
 
     trackedDrawCallData.push_back(vertexBatchData);
-    DrawCallDataLookup.insert(std::make_pair(memoryLocation, trackedDrawCallData.size() - 1));
+    drawCallDataLookup.insert(std::make_pair(memoryLocation, trackedDrawCallData.size() - 1));
+    std::cout << "Added: " << memoryLocation << " New size = " << trackedDrawCallData.size() << "\n";
 }
 
 void WorldVertexTracker::removeLocation(VkDeviceSize memoryLocation)
 {
-    uint32_t index = DrawCallDataLookup.at(memoryLocation);
-    VkDeviceSize backMemoryLocation = trackedDrawCallData.back().memoryLocation;
+    VkDeviceSize newMemoryLocation = trackedDrawCallData.back().memoryLocation;
 
-    DrawCallDataLookup.erase(memoryLocation);
-    DrawCallDataLookup.at(backMemoryLocation) = index;
+    uint32_t oldIndex = drawCallDataLookup.at(memoryLocation);
+    if (trackedDrawCallData[oldIndex].memoryLocation != trackedDrawCallData.back().memoryLocation) {
+        std::swap(trackedDrawCallData[oldIndex], trackedDrawCallData.back());
 
-    std::swap(trackedDrawCallData[index], trackedDrawCallData.back());
+#ifndef NDEBUG
+        if (!drawCallDataLookup.contains(newMemoryLocation)) {
+            throw std::runtime_error("Removing tracked chunk failed");
+        }
+#endif
+        drawCallDataLookup.at(newMemoryLocation) = oldIndex;
+    }
     trackedDrawCallData.pop_back();
+    drawCallDataLookup.erase(memoryLocation);
 }

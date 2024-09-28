@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include <algorithm>
+#include <glm/geometric.hpp>
 
 #include "CameraHandler.hpp"
 #include "PlayerInputHandler.hpp"
@@ -17,7 +18,6 @@
 
 void CameraHandler::updateCameraTransform()
 {
-    getClipPlaneNormals();
     auto currentTime = std::chrono::high_resolution_clock::now();
     float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - timeLastFrame).count();
     timeLastFrame = currentTime;
@@ -60,11 +60,11 @@ void CameraHandler::updateCameraTransform()
     // Has to be done because mouse movement is only updated if the mouse is moved.
     PlayerInputHandler::getInstance().mouseMovementX = 0.0f;
     PlayerInputHandler::getInstance().mouseMovementY = 0.0f;
-
 }
 
 void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo)
 {
+
     ubo.view = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),
@@ -97,18 +97,26 @@ glm::vec3 CameraHandler::cameraForwardDirection()
     return glm::rotate(frontXRotated, rotationY, sideXRotated);
 }
 
-ClipPlaneNormals CameraHandler::getClipPlaneNormals()
+ViewingFrustumNormals CameraHandler::getViewingFrustumNormals(VkExtent2D extent, ViewingFrustumNormals& viewingFrustumNormals)
 {
-    ClipPlaneNormals clipPlaneNormals;
     glm::vec3 forwardDirection = cameraForwardDirection();
     glm::vec3 rightDirection = cameraRightDirection();
+    glm::vec3 upDirection = cameraUpDirection();
 
-    glm::vec3 top = forwardDirection;
-    glm::vec3 bottom = forwardDirection;
-    glm::vec3 left = forwardDirection;
-    glm::vec3 right = forwardDirection;
+    viewingFrustumNormals.top = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), -rightDirection);
+    viewingFrustumNormals.bottom = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), rightDirection);
 
-    clipPlaneNormals.top = glm::rotate(top, fovY / 2.0f, rightDirection);
-    std::cout << clipPlaneNormals.top.x << " " << clipPlaneNormals.top.y << " " << clipPlaneNormals.top.z << "\n";
-    return clipPlaneNormals;
+    float fovX = glm::atan((float)extent.width / (float)extent.height * tan(fovY / 2.0f));
+
+    viewingFrustumNormals.right = glm::rotate(forwardDirection, fovX + glm::radians(90.0f), upDirection);
+    viewingFrustumNormals.left = glm::rotate(forwardDirection, fovX + glm::radians(90.0f), -upDirection);
+
+    /*std::cout 
+        << " top = " << glm::dot(clipPlaneNormals.top, position)
+        << " bottom = " << glm::dot(clipPlaneNormals.bottom, position)
+        << " right = " << glm::dot(clipPlaneNormals.right, position)
+        << " left = " << glm::dot(clipPlaneNormals.left, position)
+        << "right vector is " << clipPlaneNormals.right.x << " " << clipPlaneNormals.right.y << " " << clipPlaneNormals.right.z << "\n";*/
+    
+    return viewingFrustumNormals;
 }

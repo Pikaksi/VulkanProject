@@ -8,7 +8,7 @@ VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo, VkComma
     uiGPUMemoryBlock = GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex2D), uiMaxVertexCount, quadStripIndexBuffer.getVertexCount());
 }
 
-uint32_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, glm::vec3 chunkLocation)
+uint32_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex>& vertices, glm::ivec3 chunkLocation)
 {
     uint32_t memoryLocation;
     worldGPUMemoryBlock.addData<Vertex>(vulkanCoreInfo, commandPool, memoryLocation, vertices);
@@ -21,7 +21,6 @@ void VertexBufferManager::freeWorldVerticesMemory(uint32_t memoryBlockLocation)
     worldGPUMemoryBlock.freeMemory(memoryBlockLocation);
     worldVertexTracker.removeLocation(static_cast<VkDeviceSize>(memoryBlockLocation));
 }
-
 
 uint32_t VertexBufferManager::addVerticesToUI(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, std::vector<Vertex2D>& vertices)
 {
