@@ -17,6 +17,7 @@
 
 void CameraHandler::updateCameraTransform()
 {
+    getClipPlaneNormals();
     auto currentTime = std::chrono::high_resolution_clock::now();
     float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - timeLastFrame).count();
     timeLastFrame = currentTime;
@@ -64,12 +65,6 @@ void CameraHandler::updateCameraTransform()
 
 void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo)
 {
-    // camera x rotation is handled in lookAt and y rotation in ubo.model
-    static auto startTime = std::chrono::high_resolution_clock::now();
-
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
     ubo.view = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),
@@ -77,7 +72,7 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
     );
     ubo.model = glm::mat4(1.0f); //glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    ubo.proj = glm::perspective(glm::radians(85.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
+    ubo.proj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
     //ubo.proj[1][1] *= -1;
 }
 
@@ -100,4 +95,20 @@ glm::vec3 CameraHandler::cameraForwardDirection()
     glm::vec3 sideXRotated = glm::rotate(frontXRotated, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
     return glm::rotate(frontXRotated, rotationY, sideXRotated);
+}
+
+ClipPlaneNormals CameraHandler::getClipPlaneNormals()
+{
+    ClipPlaneNormals clipPlaneNormals;
+    glm::vec3 forwardDirection = cameraForwardDirection();
+    glm::vec3 rightDirection = cameraRightDirection();
+
+    glm::vec3 top = forwardDirection;
+    glm::vec3 bottom = forwardDirection;
+    glm::vec3 left = forwardDirection;
+    glm::vec3 right = forwardDirection;
+
+    clipPlaneNormals.top = glm::rotate(top, fovY / 2.0f, rightDirection);
+    std::cout << clipPlaneNormals.top.x << " " << clipPlaneNormals.top.y << " " << clipPlaneNormals.top.z << "\n";
+    return clipPlaneNormals;
 }

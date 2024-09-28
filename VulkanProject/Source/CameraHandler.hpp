@@ -7,6 +7,14 @@
 
 #include "VulkanRendering/Buffers.hpp"
 
+struct ClipPlaneNormals
+{
+	glm::vec3 top;
+	glm::vec3 bottom;
+	glm::vec3 right;
+	glm::vec3 left;
+};
+
 class CameraHandler
 {
 public:
@@ -15,6 +23,7 @@ public:
 		timeLastFrame = std::chrono::high_resolution_clock::now();
 	}
 
+	float fovY = glm::radians(85.0f);
 	float sensitivity = 0.004f;
 	float speedNormal = 4.0f;
 	float slowerSpeedMultiplier = 5.0f;
@@ -32,4 +41,5 @@ public:
 	glm::vec3 cameraForwardDirection();
 	void updateCameraTransform();
 	void getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo);
+	ClipPlaneNormals getClipPlaneNormals();
 };
