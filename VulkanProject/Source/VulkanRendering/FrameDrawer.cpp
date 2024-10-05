@@ -50,18 +50,28 @@ struct ChunkCenterOffsets
 
 void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
 {
-    chunkCenterOffsets.top = {viewingFrustumNormals.top.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.top.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.top.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
-    chunkCenterOffsets.bottom = {viewingFrustumNormals.bottom.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.bottom.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.bottom.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
-    chunkCenterOffsets.right = {viewingFrustumNormals.right.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.right.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.right.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
-    chunkCenterOffsets.left = {viewingFrustumNormals.left.x > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.left.y > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE, viewingFrustumNormals.left.z > 0.0f ? CHUNK_SIZE : -CHUNK_SIZE};
+    chunkCenterOffsets.top =    {viewingFrustumNormals.top.x    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.top.y    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.top.z    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.bottom = {viewingFrustumNormals.bottom.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.bottom.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.bottom.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.right =  {viewingFrustumNormals.right.x  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.right.y  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.right.z  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.left =   {viewingFrustumNormals.left.x   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.left.y   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.left.z   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
 }
 
 bool chunkIsInViewingFrustum(glm::vec3& cameraLocation, glm::ivec3& chunkLocation, ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
 {
-    return glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/), viewingFrustumNormals.top) > 0.0f
-        || glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.bottom*/), viewingFrustumNormals.bottom) > 0.0f
-        || glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.right*/), viewingFrustumNormals.right) > 0.0f
-        || glm::dot(cameraLocation - static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.left*/), viewingFrustumNormals.left) > 0.0f;
+    //glm::vec3 toChunkTop = static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/) - cameraLocation;
+    //std::cout << "to chunk: " << toChunkTop.x << " " << toChunkTop.y << " " << toChunkTop.z << " frustum normal " << viewingFrustumNormals.top.x << " " << viewingFrustumNormals.top.y << " " << viewingFrustumNormals.top.z << "\n";
+    return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top) - cameraLocation, viewingFrustumNormals.top) < 0.0f
+        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom) - cameraLocation, viewingFrustumNormals.bottom) < 0.0f
+        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.right) - cameraLocation, viewingFrustumNormals.right) < 0.0f
+        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.left) - cameraLocation, viewingFrustumNormals.left) < 0.0f;
 }
 
 void recordCommandBuffer(
@@ -131,10 +141,12 @@ void recordCommandBuffer(
         worldIndexBuffer);
     
     int chunksSkipped = 0;
+    int chunksTotal = 0;
 
     for (int i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];
 
+        chunksTotal += 1;
         if (!chunkIsInViewingFrustum(cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
             chunksSkipped += 1;
             continue;
@@ -155,7 +167,7 @@ void recordCommandBuffer(
         // get index count by multiplying vertex count by 1.5
         vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount * 1.5f, 1, 0, 0, 0);
     }
-    std::cout << "chunks Skipped = " << chunksSkipped << "\n";
+    //std::cout << "chunks Skipped = " << chunksSkipped << " chunks total = " << chunksTotal << "\n";
 
     // Render UI.
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);

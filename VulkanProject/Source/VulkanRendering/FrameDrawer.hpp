@@ -6,6 +6,8 @@
 #include "2dRendering/UIManager.hpp"
 #include "CameraHandler.hpp"
 
+const int viewingFrustumSafetyOffset = 0;
+
 void drawFrame(
     VulkanCoreInfo& vulkanCoreInfo,
     SwapChainInfo& swapChainInfo,

@@ -9,7 +9,6 @@ void WorldVertexTracker::addLocation(VkDeviceSize memoryLocation, uint32_t dataC
 
     trackedDrawCallData.push_back(vertexBatchData);
     drawCallDataLookup.insert(std::make_pair(memoryLocation, trackedDrawCallData.size() - 1));
-    std::cout << "Added: " << memoryLocation << " New size = " << trackedDrawCallData.size() << "\n";
 }
 
 void WorldVertexTracker::removeLocation(VkDeviceSize memoryLocation)

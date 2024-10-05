@@ -47,7 +47,7 @@ void Application::initGame()
     debugMenu = DebugMenu(0.25f);
     playerInventoryManager = PlayerInventoryManager();
 
-    int worldMaxVertexCount = 10000000;
+    int worldMaxVertexCount = 35000000;
     int uiMaxVertexCount = 50000;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldMaxVertexCount, uiMaxVertexCount);
 

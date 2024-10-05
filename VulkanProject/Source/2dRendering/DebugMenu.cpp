@@ -38,7 +38,7 @@ void DebugMenu::drawUI(UIManager& uiManager, VertexBufferManager& vertexBufferMa
         "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) + " z: " + std::to_string(cameraHandler.position.z) + '\n' +
         "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX) + "\n" +
-        "2d GPUMemoryBlock is using " + std::to_string(vertexBufferManager.uiGPUMemoryBlock.getDataCount()) + " of data");
+        "world GPUMemoryBlock is using " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + " of data");
 }
 
 void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)

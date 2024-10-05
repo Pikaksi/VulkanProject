@@ -72,7 +72,7 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
     );
     ubo.model = glm::mat4(1.0f); //glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    ubo.proj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
+    ubo.proj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
     //ubo.proj[1][1] *= -1;
 }
 
@@ -102,6 +102,9 @@ ViewingFrustumNormals CameraHandler::getViewingFrustumNormals(VkExtent2D extent,
     glm::vec3 forwardDirection = cameraForwardDirection();
     glm::vec3 rightDirection = cameraRightDirection();
     glm::vec3 upDirection = cameraUpDirection();
+    //glm::vec3 forwardDirection = {0, 0, 1};
+    //glm::vec3 rightDirection = {1, 0, 0};
+    //glm::vec3 upDirection = {0, 1, 0};
 
     viewingFrustumNormals.top = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), -rightDirection);
     viewingFrustumNormals.bottom = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), rightDirection);
