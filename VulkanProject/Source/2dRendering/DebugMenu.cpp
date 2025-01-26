@@ -37,8 +37,9 @@ void DebugMenu::drawUI(UIManager& uiManager, VertexBufferManager& vertexBufferMa
         "vertex count: " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + '\n' +
         "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) + " z: " + std::to_string(cameraHandler.position.z) + '\n' +
-        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX) + "\n" +
-        "world GPUMemoryBlock is using " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + " of data");
+        "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX) + "\n"
+        //+ "world GPUMemoryBlock is using " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + " bytes of data"
+    );
 }
 
 void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)
