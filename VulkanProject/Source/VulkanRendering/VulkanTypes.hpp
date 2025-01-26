@@ -65,3 +65,7 @@ struct CameraUniformBufferObject {
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
 };
+
+struct PushConstant3d {
+	glm::vec3 chunkWorldLocation;
+};

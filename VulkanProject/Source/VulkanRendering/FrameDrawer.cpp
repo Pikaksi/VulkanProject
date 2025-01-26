@@ -5,6 +5,7 @@
 #include "FrameDrawer.hpp"
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
+#include "World/Chunk.hpp"
 
 void createSyncObjects(
     VulkanCoreInfo& vulkanCoreInfo,
@@ -39,6 +40,40 @@ void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo>& 
     memcpy(uniformBufferInfos[currentFrame].mappingPointer, &ubo, sizeof(ubo));
 }
 
+struct ChunkCenterOffsets
+{
+    glm::ivec3 top;
+    glm::ivec3 bottom;
+    glm::ivec3 right;
+    glm::ivec3 left;
+};
+
+void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
+{
+    chunkCenterOffsets.top =    {viewingFrustumNormals.top.x    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.top.y    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.top.z    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.bottom = {viewingFrustumNormals.bottom.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.bottom.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.bottom.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.right =  {viewingFrustumNormals.right.x  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.right.y  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.right.z  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.left =   {viewingFrustumNormals.left.x   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.left.y   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+                                 viewingFrustumNormals.left.z   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+}
+
+bool chunkIsInViewingFrustum(glm::vec3& cameraLocation, glm::ivec3& chunkLocation, ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
+{
+    //glm::vec3 toChunkTop = static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/) - cameraLocation;
+    //std::cout << "to chunk: " << toChunkTop.x << " " << toChunkTop.y << " " << toChunkTop.z << " frustum normal " << viewingFrustumNormals.top.x << " " << viewingFrustumNormals.top.y << " " << viewingFrustumNormals.top.z << "\n";
+    return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top) - cameraLocation, viewingFrustumNormals.top) < 0.0f
+        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom) - cameraLocation, viewingFrustumNormals.bottom) < 0.0f
+        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.right) - cameraLocation, viewingFrustumNormals.right) < 0.0f
+        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.left) - cameraLocation, viewingFrustumNormals.left) < 0.0f;
+}
+
 void recordCommandBuffer(
     SwapChainInfo& swapChainInfo,
     GraphicsPipelineInfo& graphicsPipelineInfo3d,
@@ -47,7 +82,8 @@ void recordCommandBuffer(
     VkDescriptorSet descriptorSet2d,
     VkCommandBuffer commandBuffer, 
     uint32_t imageIndex,
-    VertexBufferManager& vertexBufferManager)
+    VertexBufferManager& vertexBufferManager,
+    CameraHandler& cameraHandler)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -90,31 +126,48 @@ void recordCommandBuffer(
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+    ViewingFrustumNormals viewingFrustumNormals;
+    cameraHandler.getViewingFrustumNormals(swapChainInfo.extent, viewingFrustumNormals);
+    ChunkCenterOffsets chunkCenterOffsets;
+    getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
+
     // Render world.
     VkBuffer worldVertexBuffer;
-    std::vector<VkDeviceSize> worldVertexOffsets;
-    std::vector<uint32_t> worldBatchVertexCounts;
+    std::vector<WorldDrawCallData> worldDrawCallData;
     VkBuffer worldIndexBuffer;
     vertexBufferManager.getWorldGeometryForRendering(
         worldVertexBuffer,
-        worldVertexOffsets,
-        worldBatchVertexCounts,
+        worldDrawCallData,
         worldIndexBuffer);
+    
+    int chunksSkipped = 0;
+    int chunksTotal = 0;
 
-    for (int i = 0; i < worldVertexOffsets.size(); i++) {
+    for (int i = 0; i < worldDrawCallData.size(); i++) {
+        WorldDrawCallData drawCallData = worldDrawCallData[i];
+
+        chunksTotal += 1;
+        if (!chunkIsInViewingFrustum(cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
+            chunksSkipped += 1;
+            continue;
+        }
 
         VkBuffer vertexBuffers[] = { worldVertexBuffer };
 
-        VkDeviceSize offsets[] = { worldVertexOffsets[i] };
+        VkDeviceSize offsets[] = { drawCallData.memoryLocation };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.layout, 0, 1, &descriptorSet3d, 0, nullptr);
 
+        PushConstant3d pushConstant = {{0.0f, 10.0f, 0.0f}};
+        vkCmdPushConstants(commandBuffer, graphicsPipelineInfo3d.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant3d), &pushConstant);
+
         // get index count by multiplying vertex count by 1.5
-        vkCmdDrawIndexed(commandBuffer, worldBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount * 1.5f, 1, 0, 0, 0);
     }
+    //std::cout << "chunks Skipped = " << chunksSkipped << " chunks total = " << chunksTotal << "\n";
 
     // Render UI.
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
@@ -200,7 +253,8 @@ void drawFrame(
         descriptorSets2d[currentFrame],
         commandBuffers[currentFrame],
         imageIndex,
-        vertexBufferManager);
+        vertexBufferManager,
+        cameraHandler);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

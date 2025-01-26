@@ -6,14 +6,29 @@ check if can bind multiple buffers with vkCmdBindVertexBuffers
 
 maybe use enum class with BlockType
 
+
+chunk culling
+- 4 normals
+- dont check every corner
+- determine one corner that needs to be checked (stays same for every normal)
+- do dot product on normal and vector to the chunks corner
+  - if negative then discard chunk.
+
+
 optimize vertex size
   Per face:
-    4*u8 darkness
-    u16 texture
-    2*u8 greedy meshing
-    4*3*f16 face location
+    3*u5 = u16 blockLocation
+    u16 textureIndex
+    u16 modelIndex
+    4*u8 lightings
     
-    4+2+2+4*3*2=32
+    2+2+2+4=10
+  
+  model buffer:
+    4*3*f32 quad vertex locations
+    4*f32 UV coordinates for greedy meshing
+    3*f32 normal
+
 
 ECS
 - inventory

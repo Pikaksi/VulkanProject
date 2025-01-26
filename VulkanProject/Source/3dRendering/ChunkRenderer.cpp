@@ -202,7 +202,7 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool co
 	if (vertices.size() == 0) {
 		return;
 	}
-	uint32_t memoryBlockPointer = vertexBufferManager.addVerticesToWorld(vulkanCoreInfo, commandPool, vertices);
+	uint32_t memoryBlockPointer = vertexBufferManager.addVerticesToWorld(vulkanCoreInfo, commandPool, vertices, chunkLocation);
 
 	renderedChunks.insert(std::make_pair(chunkLocation, memoryBlockPointer));
 }

@@ -16,7 +16,7 @@ struct MemoryLocation
 	uint32_t endOffset;
 
 	MemoryLocation(uint32_t startOffset, uint32_t endOffset) : startOffset(startOffset), endOffset(endOffset) {}
-	uint32_t getSize()
+	uint32_t getSize() const
 	{
 		return endOffset - startOffset + 1;
 	}
@@ -28,6 +28,7 @@ class GPUMemoryBlock
 public:
 	void freeMemory(uint32_t& allocationStartOffset);
 	void getVertexDataMerged(VkBuffer& buffer, std::vector<VkDeviceSize>& offsets, std::vector<uint32_t>& batchCounts);
+	void getVertexData(VkBuffer& outVertexBuffer, std::vector<VkDeviceSize>& vertexOffsets, std::vector<uint32_t>& batchVertexCounts);
 	void cleanup(VulkanCoreInfo& vulkanCoreInfo);
 
 	GPUMemoryBlock() {}

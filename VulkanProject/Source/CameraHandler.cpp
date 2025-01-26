@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iostream>
 #include <algorithm>
+#include <glm/geometric.hpp>
 
 #include "CameraHandler.hpp"
 #include "PlayerInputHandler.hpp"
@@ -59,16 +60,10 @@ void CameraHandler::updateCameraTransform()
     // Has to be done because mouse movement is only updated if the mouse is moved.
     PlayerInputHandler::getInstance().mouseMovementX = 0.0f;
     PlayerInputHandler::getInstance().mouseMovementY = 0.0f;
-
 }
 
 void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo)
 {
-    // camera x rotation is handled in lookAt and y rotation in ubo.model
-    static auto startTime = std::chrono::high_resolution_clock::now();
-
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
     ubo.view = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
@@ -77,7 +72,7 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
     );
     ubo.model = glm::mat4(1.0f); //glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    ubo.proj = glm::perspective(glm::radians(85.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
+    ubo.proj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
     //ubo.proj[1][1] *= -1;
 }
 
@@ -100,4 +95,31 @@ glm::vec3 CameraHandler::cameraForwardDirection()
     glm::vec3 sideXRotated = glm::rotate(frontXRotated, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
     return glm::rotate(frontXRotated, rotationY, sideXRotated);
+}
+
+ViewingFrustumNormals CameraHandler::getViewingFrustumNormals(VkExtent2D extent, ViewingFrustumNormals& viewingFrustumNormals)
+{
+    glm::vec3 forwardDirection = cameraForwardDirection();
+    glm::vec3 rightDirection = cameraRightDirection();
+    glm::vec3 upDirection = cameraUpDirection();
+    //glm::vec3 forwardDirection = {0, 0, 1};
+    //glm::vec3 rightDirection = {1, 0, 0};
+    //glm::vec3 upDirection = {0, 1, 0};
+
+    viewingFrustumNormals.top = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), -rightDirection);
+    viewingFrustumNormals.bottom = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), rightDirection);
+
+    float fovX = glm::atan((float)extent.width / (float)extent.height * tan(fovY / 2.0f));
+
+    viewingFrustumNormals.right = glm::rotate(forwardDirection, fovX + glm::radians(90.0f), upDirection);
+    viewingFrustumNormals.left = glm::rotate(forwardDirection, fovX + glm::radians(90.0f), -upDirection);
+
+    /*std::cout 
+        << " top = " << glm::dot(clipPlaneNormals.top, position)
+        << " bottom = " << glm::dot(clipPlaneNormals.bottom, position)
+        << " right = " << glm::dot(clipPlaneNormals.right, position)
+        << " left = " << glm::dot(clipPlaneNormals.left, position)
+        << "right vector is " << clipPlaneNormals.right.x << " " << clipPlaneNormals.right.y << " " << clipPlaneNormals.right.z << "\n";*/
+    
+    return viewingFrustumNormals;
 }
