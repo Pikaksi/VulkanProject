@@ -14,4 +14,6 @@ WIP entity component system and inventory
 
 ### compiling
 
-Compiling is done with Visual Studio and the MSVC compiler.
+meson setup --wipe build --native-file clang.ini
+cd build/
+meson compile
