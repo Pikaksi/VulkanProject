@@ -47,7 +47,7 @@ void Application::initGame()
     debugMenu = DebugMenu(0.25f);
     playerInventoryManager = PlayerInventoryManager();
 
-    int worldMaxVertexCount = 35000000;
+    int worldMaxVertexCount = 100000000;
     int uiMaxVertexCount = 50000;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldMaxVertexCount, uiMaxVertexCount);
 
@@ -134,6 +134,7 @@ void Application::gameMainLoop()
         std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
         std::floor(cameraHandler.position.z / (float)CHUNK_SIZE)
     );
+
     chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
 
     playerInventoryManager.update(uiManager);

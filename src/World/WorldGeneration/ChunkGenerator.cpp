@@ -2,6 +2,7 @@
 #include <random>
 
 #include "ChunkGenerator.hpp"
+#include "ChunkRenderer.hpp"
 #include "FastNoise/FastNoise.h"
 
 const int grassDirtLayerHeight = 3;
@@ -39,10 +40,10 @@ int treeNoiseChunkLocationToIndex(const int x, const int y, const int z)
 
 
 // Does not care if x, y and z are outside of chunk.
-void placeStructureBlock(int x, int y, int z, glm::ivec3 chunkLocationOffset, BlockType block, WorldManager* worldManager)
+void placeStructureBlock(int x, int y, int z, glm::ivec3 chunkLocationOffset, BlockType block, WorldManager* worldManager, ChunkRenderer& chunkRenderer)
 {
 	glm::ivec3 chunkLocation = getChunkLocation(x, y, z) + chunkLocationOffset;
-	glm::ivec3 blockLocation = glm::ivec3(negativeModulo(x, 32), negativeModulo(y, 32), negativeModulo(z, 32));
+	glm::ivec3 blockLocation = glm::ivec3(alwaysPosModulo(x, 32), alwaysPosModulo(y, 32), alwaysPosModulo(z, 32));
 
 	if (worldManager->chunks.contains(chunkLocation)) {
 		Chunk& chunk = worldManager->chunks.at(chunkLocation);
@@ -50,6 +51,7 @@ void placeStructureBlock(int x, int y, int z, glm::ivec3 chunkLocationOffset, Bl
 
 		if (blockToReplace == BlockType::air) {
 			chunkSetBlock(blockLocation.x, blockLocation.y, blockLocation.z, block, worldManager->chunks.at(chunkLocation));
+            chunkRenderer.rerenderChunk(chunkLocation);
 		}
 		return;
 	}
@@ -61,16 +63,20 @@ void placeStructureBlock(int x, int y, int z, glm::ivec3 chunkLocationOffset, Bl
 }
 
 // X, y and z might not be in chunk.
-void generateTree(int x, int y, int z, glm::i32vec3 chunkLocation, WorldManager* worldManager, std::unordered_set<glm::ivec3>& chunksToRerender)
+void generateTree(int x, int y, int z, glm::i32vec3 chunkLocation, WorldManager* worldManager, std::unordered_set<glm::ivec3>& chunksToRerender, ChunkRenderer& chunkRenderer)
 {
 	// for the tool:
 	// log: GwAZABsAJwABAAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAABmZqY/ARkABAAAAAAAKVwPPgAAAAAAAAAAAAAAAIXrkUAAAAAAAAAAAADNzEy/ARkAGQAbABkAHgAdABkAEwCamZk+GgABEQACAAAAAADgQBAAAACIQR8AFgABAAAACwADAAAAAgAAAAMAAAAEAAAAAAAAAD8BFAD//wYAAAAAAD8AAAAAPwAAAAA/AAAAAD8BFwAAAIC/AACAPz0KF0BSuB5AEwAAAKBABgAAj8J1PACamZk+AAAAAAAA4XoUPwAAAAAAAAAAgD8AAACAvwEbABkAHgAdABsABQAAAAAAAAAAAAAAAAAAAAAAAAAAAABmZuY+AAAAgD8AAAAAPwAAAAC/AAAAgMAAAACAvwD0/VS8ARsAGQAeAB0AGwAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM3MDD8AAACAPwAAAAA/AAAAAL8AAACAQA==
 	// leaf: GQAbABkAHgAdABkAEwCamZk+GgABEQACAAAAAADgQBAAAACIQR8AFgABAAAACwADAAAAAgAAAAMAAAAEAAAAAAAAAD8BFAD//wAAAAAAAD8AAAAAPwAAAAA/AAAAAD8BFwAAAIC/AACAPz0KF0BSuB5AEwAAAKBABgAAj8J1PACamZk+AAAAAAAA4XoUPwAAAAAAAAAAgD8AAACAvwEbABkAHgAdABsABQAAAAAAAAAAAAAAAAAAAAAAAAAAAABmZuY+AAAAgD8AAAAAPwAAAAC/AAAAgMAAAACAvwC4HoW9
 
 	// The string is generated with the FastNoise2 noisetool.
-	static FastNoise::SmartNode<> treeNoiseGenerator = FastNoise::NewFromEncodedNodeTree("GwAZAB4AHQAZABMAmpmZPhoAAREAAgAAAAAA4EAQAAAAiEEfABYAAQAAAAsAAwAAAAIAAAADAAAABAAAAAAAAAA/ARQA//8AAAAAAAA/AAAAAD8AAAAAPwAAAAA/ARcAAACAvwAAgD89ChdAUrgeQBMAAACgQAYAAI/CdTwAmpmZPgAAAAAAAOF6FD8AAAAAAAAAAIA/AAAAgL8BGwAbABkAHgAdABsABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxCOw+AAAAgD8AAAAAPwAAAAC/AAAAgL8AAACAQAAAAIC/");
-	static FastNoise::SmartNode<> logExtraNoiseGenerator = FastNoise::NewFromEncodedNodeTree("GwAZAB4AHQAbAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzcwMPwAAAIA/AAAAAD8AAAAAvwAAAIBA");
-	static FastNoise::SmartNode<> treeTrunkNoiseGenerator = FastNoise::NewFromEncodedNodeTree("GQAbAB0AGQAEAAAAAAD2KJw/AAAAAAAAAAAAAAAACtcjQAAAAAAAAAAAAM3MTL8AAAAAAAEcAAEZAAgAAFyPgj8AAABAQAEZABsAJwABAAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAABmZqY/ARkABAAAAAAAaJFtPQAAAAAAAAAAAAAAAOxRKEEAAAAAAAAAAADNzEy/");
+	//static FastNoise::SmartNode<> treeNoiseGenerator = FastNoise::NewFromEncodedNodeTree("GwAZAB4AHQAZABMAmpmZPhoAAREAAgAAAAAA4EAQAAAAiEEfABYAAQAAAAsAAwAAAAIAAAADAAAABAAAAAAAAAA/ARQA//8AAAAAAAA/AAAAAD8AAAAAPwAAAAA/ARcAAACAvwAAgD89ChdAUrgeQBMAAACgQAYAAI/CdTwAmpmZPgAAAAAAAOF6FD8AAAAAAAAAAIA/AAAAgL8BGwAbABkAHgAdABsABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxCOw+AAAAgD8AAAAAPwAAAAC/AAAAgL8AAACAQAAAAIC/");
+	//static FastNoise::SmartNode<> logExtraNoiseGenerator = FastNoise::NewFromEncodedNodeTree("GwAZAB4AHQAbAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzcwMPwAAAIA/AAAAAD8AAAAAvwAAAIBA");
+	//static FastNoise::SmartNode<> treeTrunkNoiseGenerator = FastNoise::NewFromEncodedNodeTree("GQAbAB0AGQAEAAAAAAD2KJw/AAAAAAAAAAAAAAAACtcjQAAAAAAAAAAAAM3MTL8AAAAAAAEcAAEZAAgAAFyPgj8AAABAQAEZABsAJwABAAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAABmZqY/ARkABAAAAAAAaJFtPQAAAAAAAAAAAAAAAOxRKEEAAAAAAAAAAADNzEy/");
+
+	static FastNoise::SmartNode<> treeNoiseGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
+	static FastNoise::SmartNode<> logExtraNoiseGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
+	static FastNoise::SmartNode<> treeTrunkNoiseGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
 
 	std::vector<float> treeNoiseOutput(treeNoiseWidth * treeNoiseHeight * treeNoiseWidth);
 	std::vector<float> logExtraNoiseOutput(treeNoiseWidth * treeNoiseHeight * treeNoiseWidth);
@@ -108,10 +114,10 @@ void generateTree(int x, int y, int z, glm::i32vec3 chunkLocation, WorldManager*
 
 
 				if (treeNoiseValue + logExtraNoiseValue < 0.013f || treeTrunkNoiseValue < 0.0f) { // value is adjusted by testing the tree generator in FastNoise2 noise tool by substracting that amount from the 
-					placeStructureBlock(x + xOffset - treetopNoiseMapRadius, y + yOffset + treeStructureHeightOffset, z + zOffset - treetopNoiseMapRadius, chunkLocation, BlockType::oakLog, worldManager);
+					placeStructureBlock(x + xOffset - treetopNoiseMapRadius, y + yOffset + treeStructureHeightOffset, z + zOffset - treetopNoiseMapRadius, chunkLocation, BlockType::oakLog, worldManager, chunkRenderer);
 				}
 				else if (treeNoiseValue < 0.12f) {
-					placeStructureBlock(x + xOffset - treetopNoiseMapRadius, y + yOffset + treeStructureHeightOffset, z + zOffset - treetopNoiseMapRadius, chunkLocation, BlockType::oakLeaf, worldManager);
+					placeStructureBlock(x + xOffset - treetopNoiseMapRadius, y + yOffset + treeStructureHeightOffset, z + zOffset - treetopNoiseMapRadius, chunkLocation, BlockType::oakLeaf, worldManager, chunkRenderer);
 				}
 			}
 		}
@@ -136,10 +142,10 @@ float randomFloat01()
 	return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 }
 
-void generateChunk(glm::i32vec3 chunkLocation, WorldManager* worldManager, std::unordered_set<glm::ivec3>& chunksToRerender)
+void generateChunk(glm::i32vec3 chunkLocation, WorldManager* worldManager, std::unordered_set<glm::ivec3>& chunksToRerender, ChunkRenderer& chunkRenderer)
 {
 	// The string is generated with the FastNoise2 noisetool.
-	static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree("GQANAAQAAAAAAABACAAAAAAAPwAAAAAAAQQAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
+	static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
 
 	std::vector<float> noiseOutput(CHUNK_SIZE * (CHUNK_SIZE + grassDirtLayerHeight) * CHUNK_SIZE);
 
@@ -181,10 +187,10 @@ void generateChunk(glm::i32vec3 chunkLocation, WorldManager* worldManager, std::
 							worldManager->chunks.at(chunkLocation).blocks[chunkLocationToIndex(x, y, z)] = BlockType::grass;
 							
 							if (randomFloat01() < 0.3f) {
-								placeStructureBlock(x, y + 1, z, chunkLocation, BlockType::grassPlant, worldManager);
+								placeStructureBlock(x, y + 1, z, chunkLocation, BlockType::grassPlant, worldManager, chunkRenderer);
 							}
 							if (randomFloat01() < 0.002f) {
-								generateTree(x, y + 1, z, chunkLocation, worldManager, chunksToRerender);
+								generateTree(x, y + 1, z, chunkLocation, worldManager, chunksToRerender, chunkRenderer);
 							}
 						}
 						else {

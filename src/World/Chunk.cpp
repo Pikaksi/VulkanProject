@@ -107,7 +107,7 @@ void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk)
 	}
 }
 
-int negativeModulo(int value, unsigned int m) {
+int alwaysPosModulo(int value, unsigned int m) {
 	int mod = value % m;
 	if (mod < 0) {
 		mod += m;

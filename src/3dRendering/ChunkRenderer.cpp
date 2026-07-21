@@ -13,6 +13,7 @@ void ChunkRenderer::update(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool command
 	if (peviousPlayerChunkLocation == playerChunkLocation) {
 		return;
 	}
+
 	derenderChunksOutOfRenderdistance(playerChunkLocation, vertexBufferManager);
 
 	int minDistanceToNewChunk = 
@@ -95,7 +96,10 @@ void ChunkRenderer::derenderChunksOutOfRenderdistance(glm::i32vec3 playerChunkLo
 
 void ChunkRenderer::rerenderChunk(glm::i32vec3 chunkLocation)
 {
-	for (int i = 0; i < chunksToRerender.size(); i++) {
+	if (!renderedChunks.contains(chunkLocation)) {
+        return;
+    }
+	for (size_t i = 0; i < chunksToRerender.size(); i++) {
 		if (chunksToRerender[i] == chunkLocation) {
 			return;
 		}
@@ -158,24 +162,24 @@ void ChunkRenderer::addQueuedChunkMeshes(VulkanCoreInfo& vulkanCoreInfo, VkComma
 void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, glm::i32vec3 chunkLocation, WorldManager& worldManager, VertexBufferManager& vertexBufferManager)
 {
 	std::unordered_set<glm::ivec3> chunksToRerender;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	// generate adjacent chunks so that we dont have to rerender this chunk when they are generated
 	chunkLocation.x -= 1;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	chunkLocation.x += 2;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	chunkLocation.x -= 1;
 
 	chunkLocation.y -= 1;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	chunkLocation.y += 2;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	chunkLocation.y -= 1;
 
 	chunkLocation.z -= 1;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	chunkLocation.z += 2;
-	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender);
+	worldManager.tryGeneratingNewChunk(chunkLocation, chunksToRerender, *this);
 	chunkLocation.z -= 1;
 
 	for (auto chunk : chunksToRerender) {
@@ -190,6 +194,7 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool co
 
 	std::vector<Vertex> vertices;
 	//generateChunkMeshData(worldManager, chunkLocation, vertices);
+
 	binaryGreedyMeshChunk(worldManager, chunkLocation, vertices);
 
 	/*auto endTime = std::chrono::high_resolution_clock::now();
@@ -203,6 +208,5 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool co
 		return;
 	}
 	uint32_t memoryBlockPointer = vertexBufferManager.addVerticesToWorld(vulkanCoreInfo, commandPool, vertices, chunkLocation);
-
 	renderedChunks.insert(std::make_pair(chunkLocation, memoryBlockPointer));
 }

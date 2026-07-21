@@ -70,9 +70,9 @@ void processRightClick(
     glm::ivec3 worldBlockLocation = floor(position);
     glm::ivec3 chunkLocation = getChunkLocation(worldBlockLocation);
     glm::ivec3 blockLocation =  {
-        negativeModulo(worldBlockLocation.x, CHUNK_SIZE),
-        negativeModulo(worldBlockLocation.y, CHUNK_SIZE),
-        negativeModulo(worldBlockLocation.z, CHUNK_SIZE),
+        alwaysPosModulo(worldBlockLocation.x, CHUNK_SIZE),
+        alwaysPosModulo(worldBlockLocation.y, CHUNK_SIZE),
+        alwaysPosModulo(worldBlockLocation.z, CHUNK_SIZE),
     };
 
     Chunk& chunk = worldManager.chunks.at(chunkLocation);

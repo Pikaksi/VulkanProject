@@ -16,4 +16,4 @@ WIP entity component system and inventory
 
 meson setup --wipe build --native-file clang.ini
 cd build/
-meson compile
+meson compile run

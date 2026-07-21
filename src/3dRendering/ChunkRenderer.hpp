@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <queue>
 
+class WorldManager;
+class ChunkRenderer;
+
 #include "Rendering/Vertex.hpp"
 #include "World/WorldManager.hpp"
 #include "VertexCreator.hpp"
@@ -26,7 +29,7 @@ public:
 	void rerenderChunk(glm::i32vec3 chunkLocation);
 
 private:
-	const int renderDistance = 20;
+	const int renderDistance = 10;
 	const int extraRangeToDerenderChunk = 1;
 	
 	std::vector<glm::i32vec3> chunksToRerender;
