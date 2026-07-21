@@ -3,6 +3,7 @@ project('my_app', 'cpp',
   default_options : ['warning_level=3'])
 
 src = [
+  'src/util/tlsfAllocator.cpp',
   'src/World/WorldGeneration/ChunkGenerator.cpp',
   'src/3dRendering/BlockTexCoordinateLookup.cpp',
   'src/3dRendering/QuadStripIndexBuffer.cpp',
@@ -105,6 +106,7 @@ include_dirs = [
   include_directories('shaders'),
   include_directories('src/World'),
   include_directories('src/VulkanRendering'),
+  include_directories('src/util'),
 ]
 
 if meson.get_compiler('cpp').get_id() == 'clang++'
