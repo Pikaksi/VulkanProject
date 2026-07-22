@@ -2,15 +2,16 @@
 
 ![image](https://github.com/user-attachments/assets/a0656f21-b1bc-4760-862b-cb3390fe99dd)
 
+Plan is to make a factory building game.
+Inspired by minecraft mods like gregtech.
+
 ### Features
+
+Infinite build height
 
 Binary greedy meshing
 
-View frustum culling
-
-Custom GPU memory allocator
-
-WIP entity component system and inventory
+WPI inventory and factory components
 
 ### compiling
 
