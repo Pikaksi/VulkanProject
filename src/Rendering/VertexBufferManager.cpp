@@ -1,4 +1,5 @@
 #include "VertexBufferManager.hpp"
+#include "GPUMemoryBlock.hpp"
 
 VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
                                          VkCommandPool commandPool,
@@ -7,10 +8,19 @@ VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
 {
     uint32_t indexBufferQuadCount = 100000;
     quadStripIndexBuffer = QuadStripIndexBuffer(vulkanCoreInfo, commandPool, indexBufferQuadCount);
-    worldGPUMemoryBlock =
-        GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex), worldMaxVertexCount, quadStripIndexBuffer.getVertexCount());
-    uiGPUMemoryBlock =
-        GPUMemoryBlock(vulkanCoreInfo, sizeof(Vertex2D), uiMaxVertexCount, quadStripIndexBuffer.getVertexCount());
+    worldGpuMemoryBlock = new GpuMemoryBlock;
+    gpuMemoryBlockInit(vulkanCoreInfo,
+                       *worldGpuMemoryBlock,
+                       sizeof(Vertex),
+                       sizeof(Vertex) * worldMaxVertexCount,
+                       quadStripIndexBuffer.getVertexCount());
+
+    uiGpuMemoryBlock = new GpuMemoryBlock;
+    gpuMemoryBlockInit(vulkanCoreInfo,
+                       *uiGpuMemoryBlock,
+                       sizeof(Vertex2D),
+                       sizeof(Vertex2D) * uiMaxVertexCount,
+                       quadStripIndexBuffer.getVertexCount());
 }
 
 uint32_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
@@ -18,37 +28,37 @@ uint32_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
                                                  std::vector<Vertex>& vertices,
                                                  glm::ivec3 chunkLocation)
 {
-    uint32_t memoryLocation;
-    worldGPUMemoryBlock.addData<Vertex>(vulkanCoreInfo, commandPool, memoryLocation, vertices);
+    uint32_t memoryLocation = gpuMemoryBlockAdd(
+        vulkanCoreInfo, commandPool, *worldGpuMemoryBlock, (void*)vertices.data(), sizeof(Vertex) * vertices.size());
     worldVertexTracker.addLocation(static_cast<VkDeviceSize>(memoryLocation), vertices.size(), chunkLocation);
     return memoryLocation;
 }
 
 void VertexBufferManager::freeWorldVerticesMemory(uint32_t memoryBlockLocation)
 {
-    worldGPUMemoryBlock.freeMemory(memoryBlockLocation);
+    gpuMemoryBlockFree(*worldGpuMemoryBlock, memoryBlockLocation);
     worldVertexTracker.removeLocation(static_cast<VkDeviceSize>(memoryBlockLocation));
 }
 
-uint32_t VertexBufferManager::addVerticesToUI(VulkanCoreInfo& vulkanCoreInfo,
+uint64_t VertexBufferManager::addVerticesToUI(VulkanCoreInfo& vulkanCoreInfo,
                                               VkCommandPool commandPool,
                                               std::vector<Vertex2D>& vertices)
 {
-    uint32_t memoryLocation;
-    uiGPUMemoryBlock.addData<Vertex2D>(vulkanCoreInfo, commandPool, memoryLocation, vertices);
+    uint64_t memoryLocation = gpuMemoryBlockAdd(
+        vulkanCoreInfo, commandPool, *uiGpuMemoryBlock, (void*)vertices.data(), sizeof(Vertex2D) * vertices.size());
     return memoryLocation;
 }
 
-void VertexBufferManager::freeUIVerticesMemory(uint32_t memoryBlockLocation)
+void VertexBufferManager::freeUIVerticesMemory(uint64_t memoryLocation)
 {
-    uiGPUMemoryBlock.freeMemory(memoryBlockLocation);
+    gpuMemoryBlockFree(*uiGpuMemoryBlock, memoryLocation);
 }
 
 void VertexBufferManager::getWorldGeometryForRendering(VkBuffer& vertexBuffer,
                                                        std::vector<WorldDrawCallData>& vertexOffsets,
                                                        VkBuffer& indexBuffer)
 {
-    vertexBuffer = worldGPUMemoryBlock.buffer;
+    vertexBuffer = worldGpuMemoryBlock->buffer;
     vertexOffsets = worldVertexTracker.getData();
     indexBuffer = quadStripIndexBuffer.getBuffer();
 }
@@ -58,13 +68,13 @@ void VertexBufferManager::getUIGeometryForRendering(VkBuffer& vertexBuffer,
                                                     std::vector<uint32_t>& batchIndexCounts,
                                                     VkBuffer& indexBuffer)
 {
-    uiGPUMemoryBlock.getVertexDataMerged(vertexBuffer, vertexOffsets, batchIndexCounts);
+    gpuMemoryBlockGetDataMerged(vertexBuffer, *uiGpuMemoryBlock, vertexOffsets, batchIndexCounts);
     indexBuffer = quadStripIndexBuffer.getBuffer();
 }
 
 void VertexBufferManager::cleanUp(VulkanCoreInfo& vulkanCoreInfo)
 {
-    worldGPUMemoryBlock.cleanup(vulkanCoreInfo);
-    uiGPUMemoryBlock.cleanup(vulkanCoreInfo);
+    gpuMemoryBlockDestroy(vulkanCoreInfo, *worldGpuMemoryBlock);
+    gpuMemoryBlockDestroy(vulkanCoreInfo, *uiGpuMemoryBlock);
     quadStripIndexBuffer.cleanUp(vulkanCoreInfo);
 }

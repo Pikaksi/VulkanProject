@@ -1,7 +1,7 @@
 #include "DebugMenu.hpp"
 
-#include <iostream>
 
+#include "GPUMemoryBlock.hpp"
 #include "UIText.hpp"
 
 void DebugMenu::update(UIManager& uiManager, VertexBufferManager& vertexBufferManager, WorldManager& worldManager, CameraHandler& cameraHandler)
@@ -34,7 +34,7 @@ void DebugMenu::drawUI(UIManager& uiManager, VertexBufferManager& vertexBufferMa
         UICenteringMode::topLeft,
         UICenteringMode::topLeft,
         "Fps: " + std::to_string(fps) + '\n' +
-        "vertex count: " + std::to_string(vertexBufferManager.worldGPUMemoryBlock.getDataCount()) + '\n' +
+        "vertex count: " + std::to_string(gpuMemoryBlockDataCount(*vertexBufferManager.worldGpuMemoryBlock)) + '\n' +
         "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) + " z: " + std::to_string(cameraHandler.position.z) + '\n' +
         "pitch: " + std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX) + "\n"
