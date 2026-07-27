@@ -5,10 +5,12 @@
 #include <array>
 #include <iostream>
 
+#include "Constants.hpp"
 #include "DeviceCreator.hpp"
 #include "ImageCreator.hpp"
 #include "VulkanUtilities.hpp"
 #include "RenderPass.hpp"
+#include "vulkan/vulkan_core.h"
 
 SwapChainSupportDetails querySwapChainSupport(VulkanCoreInfo& vulkanCoreInfo) {
     SwapChainSupportDetails details;
@@ -75,31 +77,6 @@ VkExtent2D chooseSwapExtent(VulkanCoreInfo& vulkanCoreInfo, const VkSurfaceCapab
     }
 }
 
-void createSwapChainImageViews(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {
-    swapChainInfo.imageViews.resize(swapChainInfo.images.size());
-
-    for (uint32_t i = 0; i < swapChainInfo.images.size(); i++) {
-        fillImageView(vulkanCoreInfo, swapChainInfo.images[i], swapChainInfo.imageViews[i], swapChainInfo.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1, VK_IMAGE_VIEW_TYPE_2D);
-    }
-}
-
-void createColorResources(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {
-    createImageInfo(
-        vulkanCoreInfo, 
-        swapChainInfo.colorImage,
-        swapChainInfo.extent.width, 
-        swapChainInfo.extent.height, 
-        1, 
-        vulkanCoreInfo.msaaSamples, 
-        swapChainInfo.imageFormat,
-        VK_IMAGE_TILING_OPTIMAL, 
-        VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        1,
-        VK_IMAGE_VIEW_TYPE_2D);
-}
-
 VkFormat findDepthFormat(VulkanCoreInfo& vulkanCoreInfo) {
     return findSupportedFormat(
         vulkanCoreInfo,
@@ -107,48 +84,6 @@ VkFormat findDepthFormat(VulkanCoreInfo& vulkanCoreInfo) {
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
     );
-}
-
-void createDepthResources(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {
-    createImageInfo(
-        vulkanCoreInfo,
-        swapChainInfo.depthImage, 
-        swapChainInfo.extent.width, 
-        swapChainInfo.extent.height, 
-        1, 
-        vulkanCoreInfo.msaaSamples, 
-        findDepthFormat(vulkanCoreInfo),
-        VK_IMAGE_TILING_OPTIMAL, 
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_IMAGE_ASPECT_DEPTH_BIT,
-        1,
-        VK_IMAGE_VIEW_TYPE_2D);
-}
-
-void createFramebuffers(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {
-    swapChainInfo.framebuffers.resize(swapChainInfo.imageViews.size());
-
-    for (size_t i = 0; i < swapChainInfo.imageViews.size(); i++) {
-        std::array<VkImageView, 3> attachments = {
-            swapChainInfo.colorImage.view,
-            swapChainInfo.depthImage.view,
-            swapChainInfo.imageViews[i]
-        };
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = swapChainInfo.renderPass;
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = swapChainInfo.extent.width;
-        framebufferInfo.height = swapChainInfo.extent.height;
-        framebufferInfo.layers = 1;
-
-        if (vkCreateFramebuffer(vulkanCoreInfo.device, &framebufferInfo, nullptr, &swapChainInfo.framebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
 }
 
 void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo)
@@ -203,12 +138,136 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
     swapChainInfo.imageFormat = surfaceFormat.format;
     swapChainInfo.extent = extent;
 
-    swapChainInfo.renderPass = createRenderPass(vulkanCoreInfo, swapChainInfo);
+    swapChainInfo.imageViews.resize(swapChainInfo.images.size());
+    for (uint32_t i = 0; i < swapChainInfo.images.size(); i++) {
+        fillImageView(vulkanCoreInfo, swapChainInfo.images[i], swapChainInfo.imageViews[i], swapChainInfo.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1, VK_IMAGE_VIEW_TYPE_2D);
+    }
 
-    createSwapChainImageViews(vulkanCoreInfo, swapChainInfo);
-    createColorResources(vulkanCoreInfo, swapChainInfo);
-    createDepthResources(vulkanCoreInfo, swapChainInfo);
-    createFramebuffers(vulkanCoreInfo, swapChainInfo);
+    createImageInfo(
+        vulkanCoreInfo, 
+        swapChainInfo.colorImage,
+        swapChainInfo.extent.width, 
+        swapChainInfo.extent.height, 
+        1, 
+        vulkanCoreInfo.msaaSamples, 
+        swapChainInfo.imageFormat,
+        VK_IMAGE_TILING_OPTIMAL, 
+        VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        1,
+        VK_IMAGE_VIEW_TYPE_2D);
+
+    createImageInfo(
+        vulkanCoreInfo,
+        swapChainInfo.depthImage, 
+        swapChainInfo.extent.width, 
+        swapChainInfo.extent.height, 
+        1, 
+        vulkanCoreInfo.msaaSamples, 
+        findDepthFormat(vulkanCoreInfo),
+        VK_IMAGE_TILING_OPTIMAL, 
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        VK_IMAGE_ASPECT_DEPTH_BIT,
+        1,
+        VK_IMAGE_VIEW_TYPE_2D);
+
+
+
+
+
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = swapChainInfo.imageFormat;
+    colorAttachment.samples = vulkanCoreInfo.msaaSamples;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = findDepthFormat(vulkanCoreInfo);
+    depthAttachment.samples = vulkanCoreInfo.msaaSamples;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentDescription colorAttachmentResolve{};
+    colorAttachmentResolve.format = swapChainInfo.imageFormat;
+    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference colorAttachmentResolveRef{};
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+    subpass.pResolveAttachments = &colorAttachmentResolveRef;
+
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    std::array<VkAttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments = attachments.data();
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
+
+    VkRenderPass renderPass;
+    if (vkCreateRenderPass(vulkanCoreInfo.device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create render pass!");
+    }
+
+
+
+    VkRenderingAttachmentInfo colorAttachmentInfo{};
+    colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachmentInfo.imageView = swapChainInfo.colorImage.view;
+    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //attachmentInfo.resolveImageLayout = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    //attachmentInfo.resolveMode = VK_ATTACHMENT_STORE_OP_STORE;
+    //attachmentInfo.resolveImageView = VK_NULL_HANDLE;
+    colorAttachmentInfo.clearValue = VkClearValue{
+        .color = VkClearColorValue{.float32 = {0.2, 0.1, 0.7, 1.0}},
+        .depthStencil = VkClearDepthStencilValue{1.0, 0}
+    };
+    colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+    VkRenderingInfoKHR renderingInfo{};
+    renderingInfo.pColorAttachments
+    return renderPass;
 }
 
 void cleanupSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {

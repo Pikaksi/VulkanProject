@@ -9,15 +9,12 @@
 #include "SwapChain.hpp"
 #include "Constants.hpp"
 
-const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-};
+const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
-const std::vector<const char*> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-bool checkValidationLayerSupport() {
+bool checkValidationLayerSupport()
+{
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -42,7 +39,8 @@ bool checkValidationLayerSupport() {
     return true;
 }
 
-std::vector<const char*> getRequiredExtensions() {
+std::vector<const char*> getRequiredExtensions()
+{
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -56,7 +54,10 @@ std::vector<const char*> getRequiredExtensions() {
     return extensions;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                             void* pUserData)
 {
     std::cerr << "validation layer: " << pCallbackData->pMessage << "\n";
     return VK_FALSE;
@@ -66,11 +67,14 @@ void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
 }
-
 
 void createInstance(VulkanCoreInfo& vulkanCoreInfo)
 {
@@ -98,7 +102,7 @@ void createInstance(VulkanCoreInfo& vulkanCoreInfo)
     if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
-        //createInfo.enabledLayerCount = 0;
+        // createInfo.enabledLayerCount = 0;
 
         populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
@@ -113,7 +117,10 @@ void createInstance(VulkanCoreInfo& vulkanCoreInfo)
     }
 }
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -133,24 +140,30 @@ void initWindow(VulkanCoreInfo& vulkanCoreInfo)
     vulkanCoreInfo.window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 }
 
-void createSurface(VulkanCoreInfo& vulkanCoreInfo) {
-    if (glfwCreateWindowSurface(vulkanCoreInfo.instance, vulkanCoreInfo.window, nullptr, &vulkanCoreInfo.surface) != VK_SUCCESS) {
+void createSurface(VulkanCoreInfo& vulkanCoreInfo)
+{
+    if (glfwCreateWindowSurface(vulkanCoreInfo.instance, vulkanCoreInfo.window, nullptr, &vulkanCoreInfo.surface) !=
+        VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }
 }
 
-void setupDebugMessenger(VulkanCoreInfo& vulkanCoreInfo) {
-    if (!enableValidationLayers) return;
+void setupDebugMessenger(VulkanCoreInfo& vulkanCoreInfo)
+{
+    if (!enableValidationLayers)
+        return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(vulkanCoreInfo.instance, &createInfo, nullptr, &vulkanCoreInfo.debugMessenger) != VK_SUCCESS) {
+    if (CreateDebugUtilsMessengerEXT(vulkanCoreInfo.instance, &createInfo, nullptr, &vulkanCoreInfo.debugMessenger) !=
+        VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
 
-QueueFamilyIndices findQueueFamilies(VulkanCoreInfo& vulkanCoreInfo) {
+QueueFamilyIndices findQueueFamilies(VulkanCoreInfo& vulkanCoreInfo)
+{
     QueueFamilyIndices indices;
 
     uint32_t queueFamilyCount = 0;
@@ -182,7 +195,8 @@ QueueFamilyIndices findQueueFamilies(VulkanCoreInfo& vulkanCoreInfo) {
     return indices;
 }
 
-bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool checkDeviceExtensionSupport(VkPhysicalDevice device)
+{
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -198,7 +212,8 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
     return requiredExtensions.empty();
 }
 
-bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo) {
+bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo)
+{
     QueueFamilyIndices indices = findQueueFamilies(vulkanCoreInfo);
 
     bool extensionsSupported = checkDeviceExtensionSupport(vulkanCoreInfo.physicalDevice);
@@ -215,24 +230,35 @@ bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo) {
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice) {
+VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
+{
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-    //return VK_SAMPLE_COUNT_1_BIT;
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+    // return VK_SAMPLE_COUNT_1_BIT;
 
-    //if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-    //if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+    // if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    // if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) {
+        return VK_SAMPLE_COUNT_16_BIT;
+    }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) {
+        return VK_SAMPLE_COUNT_8_BIT;
+    }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) {
+        return VK_SAMPLE_COUNT_4_BIT;
+    }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) {
+        return VK_SAMPLE_COUNT_2_BIT;
+    }
 
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-void pickPhysicalDevice(VulkanCoreInfo& vulkanCoreInfo) {
+void pickPhysicalDevice(VulkanCoreInfo& vulkanCoreInfo)
+{
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(vulkanCoreInfo.instance, &deviceCount, nullptr);
 
@@ -258,11 +284,12 @@ void pickPhysicalDevice(VulkanCoreInfo& vulkanCoreInfo) {
     }
 }
 
-void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo) {
+void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo)
+{
     QueueFamilyIndices indices = findQueueFamilies(vulkanCoreInfo);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -277,19 +304,30 @@ void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo) {
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+    VkPhysicalDeviceVulkan12Features enabledVk12Features{};
+    enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    //enabledVk12Features.descriptorIndexing = true;
+    //enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
+    //enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
+    //enabledVk12Features.runtimeDescriptorArray = true;
+    //enabledVk12Features.bufferDeviceAddress = true;
+    
+    VkPhysicalDeviceVulkan13Features enabledVk13Features{};
+    enabledVk13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    enabledVk13Features.pNext = &enabledVk12Features;
+    enabledVk13Features.synchronization2 = true;
+    enabledVk13Features.dynamicRendering = true;
+
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
     createInfo.pEnabledFeatures = &deviceFeatures;
-
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-
     // Vulkan does not want layers on logical devices anymore.
     createInfo.enabledLayerCount = 0;
+    createInfo.pNext = &enabledVk13Features;
 
     if (vkCreateDevice(vulkanCoreInfo.physicalDevice, &createInfo, nullptr, &vulkanCoreInfo.device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");

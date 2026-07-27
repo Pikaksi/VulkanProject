@@ -39,9 +39,6 @@ struct SwapChainInfo
     VkExtent2D extent;
     std::vector<VkImageView> imageViews;
     std::vector<VkImage> images;
-    std::vector<VkFramebuffer> framebuffers;
-
-    VkRenderPass renderPass;
 
     ImageInfo colorImage = ImageInfo();
     ImageInfo depthImage = ImageInfo();
