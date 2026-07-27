@@ -4,7 +4,6 @@
 #include "RenderPass.hpp"
 #include "SwapChain.hpp"
 
-// gets called from CreateSwapChain
 VkRenderPass createRenderPass(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapChainInfo.imageFormat;

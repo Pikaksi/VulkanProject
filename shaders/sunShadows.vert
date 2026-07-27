@@ -16,13 +16,6 @@ layout(push_constant) uniform constants
     vec3 chunkWorldLocation;
 } pushConstant;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
-layout(location = 2) out float fragTexLayer;
-
 void main() {
-    gl_Position = ubo.camera * vec4(inPosition, 1.0);
-    fragColor = inColor;
-    fragTexCoord = inTexCoord;
-    fragTexLayer = inTexLayer;
+    gl_Position = ubo.sun * vec4(inPosition, 1.0);
 }

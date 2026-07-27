@@ -65,15 +65,23 @@ void CameraHandler::updateCameraTransform()
 void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo)
 {
 
-    ubo.view = glm::lookAt(
+    glm::mat4x4 cameraView = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),
-        glm::vec3(0.0f, -1.0f, 0.0f) // Up is down and the screen is not flipped like usual to make the positive right axis appear on the right of the screen.
+        glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the positive right axis appear on the right of the screen.
     );
-    ubo.model = glm::mat4(1.0f); //glm::rotate(glm::mat4(1.0f), rotationY, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4x4 cameraProj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
 
-    ubo.proj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
-    //ubo.proj[1][1] *= -1;
+    ubo.camera = cameraProj * cameraView;
+    //ubo.camera[1][1] *= -1;
+
+    glm::mat4x4 sunView = glm::lookAt(
+        glm::vec3(0, 0, 0),
+        glm::vec3(-0.2, -1, -0.2),
+        glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the positive right axis appear on the right of the screen.
+    );
+    glm::mat4x4 sunProj = glm::ortho(-100, 100, -100, 100, -100, 100);
+    ubo.sun = sunProj * sunView;
 }
 
 glm::vec3 CameraHandler::cameraRightDirection()

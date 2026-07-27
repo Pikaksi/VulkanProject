@@ -7,11 +7,10 @@
 #include "CameraHandler.hpp"
 #include "World/Chunk.hpp"
 
-void createSyncObjects(
-    VulkanCoreInfo& vulkanCoreInfo,
-    std::vector<VkSemaphore>& imageAvailableSemaphores, 
-    std::vector<VkSemaphore>& renderFinishedSemaphores, 
-    std::vector<VkFence>& inFlightFences)
+void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
+                       std::vector<VkSemaphore>& imageAvailableSemaphores,
+                       std::vector<VkSemaphore>& renderFinishedSemaphores,
+                       std::vector<VkFence>& inFlightFences)
 {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -25,15 +24,21 @@ void createSyncObjects(
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        if (vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) !=
+                VK_SUCCESS ||
+            vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
+                VK_SUCCESS ||
             vkCreateFence(vulkanCoreInfo.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
     }
 }
 
-void updateUniformBuffer(uint32_t currentFrame, std::vector<UniformBufferInfo>& uniformBufferInfos, CameraHandler& cameraHandler, VkExtent2D swapChainExtent) {
+void updateUniformBuffer(uint32_t currentFrame,
+                         std::vector<UniformBufferInfo>& uniformBufferInfos,
+                         CameraHandler& cameraHandler,
+                         VkExtent2D swapChainExtent)
+{
     CameraUniformBufferObject ubo;
     cameraHandler.getCameraMatrix(swapChainExtent, ubo);
 
@@ -50,40 +55,51 @@ struct ChunkCenterOffsets
 
 void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
 {
-    chunkCenterOffsets.top =    {viewingFrustumNormals.top.x    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.top.y    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.top.z    > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
-    chunkCenterOffsets.bottom = {viewingFrustumNormals.bottom.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.bottom.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.bottom.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
-    chunkCenterOffsets.right =  {viewingFrustumNormals.right.x  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.right.y  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.right.z  > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
-    chunkCenterOffsets.left =   {viewingFrustumNormals.left.x   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.left.y   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
-                                 viewingFrustumNormals.left.z   > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.top = {
+        viewingFrustumNormals.top.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.top.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.top.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.bottom = {
+        viewingFrustumNormals.bottom.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.bottom.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.bottom.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.right = {
+        viewingFrustumNormals.right.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.right.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.right.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
+    chunkCenterOffsets.left = {
+        viewingFrustumNormals.left.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.left.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
+        viewingFrustumNormals.left.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
 }
 
-bool chunkIsInViewingFrustum(glm::vec3& cameraLocation, glm::ivec3& chunkLocation, ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
+bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
+                             glm::ivec3& chunkLocation,
+                             ChunkCenterOffsets& chunkCenterOffsets,
+                             ViewingFrustumNormals& viewingFrustumNormals)
 {
-    //glm::vec3 toChunkTop = static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/) - cameraLocation;
-    //std::cout << "to chunk: " << toChunkTop.x << " " << toChunkTop.y << " " << toChunkTop.z << " frustum normal " << viewingFrustumNormals.top.x << " " << viewingFrustumNormals.top.y << " " << viewingFrustumNormals.top.z << "\n";
-    return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top) - cameraLocation, viewingFrustumNormals.top) < 0.0f
-        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom) - cameraLocation, viewingFrustumNormals.bottom) < 0.0f
-        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.right) - cameraLocation, viewingFrustumNormals.right) < 0.0f
-        && glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.left) - cameraLocation, viewingFrustumNormals.left) < 0.0f;
+    // glm::vec3 toChunkTop = static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/) - cameraLocation;
+    // std::cout << "to chunk: " << toChunkTop.x << " " << toChunkTop.y << " " << toChunkTop.z << " frustum normal " <<
+    // viewingFrustumNormals.top.x << " " << viewingFrustumNormals.top.y << " " << viewingFrustumNormals.top.z << "\n";
+    return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top) - cameraLocation,
+                    viewingFrustumNormals.top) < 0.0f &&
+           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom) - cameraLocation,
+                    viewingFrustumNormals.bottom) < 0.0f &&
+           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.right) - cameraLocation,
+                    viewingFrustumNormals.right) < 0.0f &&
+           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.left) - cameraLocation,
+                    viewingFrustumNormals.left) < 0.0f;
 }
 
-void recordCommandBuffer(
-    SwapChainInfo& swapChainInfo,
-    GraphicsPipelineInfo& graphicsPipelineInfo3d,
-    GraphicsPipelineInfo& graphicsPipelineInfo2d,
-    VkDescriptorSet descriptorSet3d,
-    VkDescriptorSet descriptorSet2d,
-    VkCommandBuffer commandBuffer, 
-    uint32_t imageIndex,
-    VertexBufferManager& vertexBufferManager,
-    CameraHandler& cameraHandler)
+void recordCommandBuffer(SwapChainInfo& swapChainInfo,
+                         GraphicsPipelineInfo& graphicsPipelineInfo3d,
+                         GraphicsPipelineInfo& graphicsPipelineInfo2d,
+                         VkDescriptorSet descriptorSet3d,
+                         VkDescriptorSet descriptorSet2d,
+                         VkCommandBuffer commandBuffer,
+                         uint32_t imageIndex,
+                         VertexBufferManager& vertexBufferManager,
+                         CameraHandler& cameraHandler)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -96,12 +112,14 @@ void recordCommandBuffer(
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = swapChainInfo.renderPass;
     renderPassInfo.framebuffer = swapChainInfo.framebuffers[imageIndex];
-    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapChainInfo.extent;
 
     std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = { {0.3f, 0.7f, 0.9f, 1.0f} };
-    clearValues[1].depthStencil = { 1.0f, 0 };
+    clearValues[0].color = {
+        {0.3f, 0.7f, 0.9f, 1.0f}
+    };
+    clearValues[1].depthStencil = {1.0f, 0};
 
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
@@ -117,9 +135,8 @@ void recordCommandBuffer(
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
-    scissor.offset = { 0, 0 };
+    scissor.offset = {0, 0};
     scissor.extent = swapChainInfo.extent;
-
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.pipeline);
 
@@ -135,11 +152,8 @@ void recordCommandBuffer(
     VkBuffer worldVertexBuffer;
     std::vector<WorldDrawCallData> worldDrawCallData;
     VkBuffer worldIndexBuffer;
-    vertexBufferManager.getWorldGeometryForRendering(
-        worldVertexBuffer,
-        worldDrawCallData,
-        worldIndexBuffer);
-    
+    vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
+
     int chunksSkipped = 0;
     int chunksTotal = 0;
 
@@ -147,27 +161,42 @@ void recordCommandBuffer(
         WorldDrawCallData drawCallData = worldDrawCallData[i];
 
         chunksTotal += 1;
-        if (!chunkIsInViewingFrustum(cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
+        if (!chunkIsInViewingFrustum(
+                cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
             chunksSkipped += 1;
             continue;
         }
 
-        VkBuffer vertexBuffers[] = { worldVertexBuffer };
+        VkBuffer vertexBuffers[] = {worldVertexBuffer};
 
-        VkDeviceSize offsets[] = { drawCallData.memoryLocation };
+        VkDeviceSize offsets[] = {drawCallData.memoryLocation};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.layout, 0, 1, &descriptorSet3d, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                graphicsPipelineInfo3d.layout,
+                                0,
+                                1,
+                                &descriptorSet3d,
+                                0,
+                                nullptr);
 
-        PushConstant3d pushConstant = {{0.0f, 10.0f, 0.0f}};
-        vkCmdPushConstants(commandBuffer, graphicsPipelineInfo3d.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant3d), &pushConstant);
+        PushConstant3d pushConstant = {
+            {0.0f, 10.0f, 0.0f}
+        };
+        vkCmdPushConstants(commandBuffer,
+                           graphicsPipelineInfo3d.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(PushConstant3d),
+                           &pushConstant);
 
         // get index count by multiplying vertex count by 1.5
-        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount * 1.5f, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, 0, 0);
     }
-    //std::cout << "chunks Skipped = " << chunksSkipped << " chunks total = " << chunksTotal << "\n";
+    // std::cout << "chunks Skipped = " << chunksSkipped << " chunks total = " << chunksTotal << "\n";
 
     // Render UI.
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
@@ -178,29 +207,31 @@ void recordCommandBuffer(
     std::vector<VkDeviceSize> uiVertexOffsets;
     std::vector<uint32_t> uiBatchVertexCounts;
     VkBuffer uiIndexBuffer;
-    vertexBufferManager.getUIGeometryForRendering(
-        uiVertexBuffer,
-        uiVertexOffsets,
-        uiBatchVertexCounts,
-        uiIndexBuffer);
+    vertexBufferManager.getUIGeometryForRendering(uiVertexBuffer, uiVertexOffsets, uiBatchVertexCounts, uiIndexBuffer);
     auto endingTime = std::chrono::high_resolution_clock::now();
     auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
-    //std::cout << "time taken to render UI in nanoseconds is " << timeTaken << "\n";
+    // std::cout << "time taken to render UI in nanoseconds is " << timeTaken << "\n";
 
     for (int i = 0; i < uiVertexOffsets.size(); i++) {
-        VkBuffer vertexBuffers[] = { uiVertexBuffer };
+        VkBuffer vertexBuffers[] = {uiVertexBuffer};
 
-        VkDeviceSize offsets[] = { uiVertexOffsets[i] };
+        VkDeviceSize offsets[] = {uiVertexOffsets[i]};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.layout, 0, 1, &descriptorSet2d, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                graphicsPipelineInfo2d.layout,
+                                0,
+                                1,
+                                &descriptorSet2d,
+                                0,
+                                nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] * 1.5f, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] / 2 * 3, 1, 0, 0, 0);
     }
 
-    
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -208,30 +239,33 @@ void recordCommandBuffer(
     }
 }
 
-
-void drawFrame(
-    VulkanCoreInfo& vulkanCoreInfo,
-    SwapChainInfo& swapChainInfo,
-    GraphicsPipelineInfo& graphicsPipelineInfo3d,
-    GraphicsPipelineInfo& graphicsPipelineInfo2d,
-    std::vector<VkDescriptorSet>& descriptorSets3d,
-    std::vector<VkDescriptorSet>& descriptorSets2d,
-    std::vector<UniformBufferInfo>& uniformBufferInfos,
-    uint32_t& currentFrame,
-    bool& framebufferResized,
-    std::vector<VkCommandBuffer>& commandBuffers,
-    std::vector<VkSemaphore>& imageAvailableSemaphores,
-    std::vector<VkSemaphore>& renderFinishedSemaphores,
-    std::vector<VkFence>& inFlightFences,
-    VkCommandPool commandPool,
-    CameraHandler& cameraHandler,
-    VertexBufferManager& vertexBufferManager,
-    UIManager& uIManager)
+void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
+               SwapChainInfo& swapChainInfo,
+               GraphicsPipelineInfo& graphicsPipelineInfo3d,
+               GraphicsPipelineInfo& graphicsPipelineInfo2d,
+               std::vector<VkDescriptorSet>& descriptorSets3d,
+               std::vector<VkDescriptorSet>& descriptorSets2d,
+               std::vector<UniformBufferInfo>& uniformBufferInfos,
+               uint32_t& currentFrame,
+               bool& framebufferResized,
+               std::vector<VkCommandBuffer>& commandBuffers,
+               std::vector<VkSemaphore>& imageAvailableSemaphores,
+               std::vector<VkSemaphore>& renderFinishedSemaphores,
+               std::vector<VkFence>& inFlightFences,
+               VkCommandPool commandPool,
+               CameraHandler& cameraHandler,
+               VertexBufferManager& vertexBufferManager,
+               UIManager& uIManager)
 {
     vkWaitForFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo.device, swapChainInfo.swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo.device,
+                                            swapChainInfo.swapChain,
+                                            UINT64_MAX,
+                                            imageAvailableSemaphores[currentFrame],
+                                            VK_NULL_HANDLE,
+                                            &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo);
@@ -245,22 +279,21 @@ void drawFrame(
     vkResetFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame]);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    recordCommandBuffer(
-        swapChainInfo,
-        graphicsPipelineInfo3d,
-        graphicsPipelineInfo2d,
-        descriptorSets3d[currentFrame],
-        descriptorSets2d[currentFrame],
-        commandBuffers[currentFrame],
-        imageIndex,
-        vertexBufferManager,
-        cameraHandler);
+    recordCommandBuffer(swapChainInfo,
+                        graphicsPipelineInfo3d,
+                        graphicsPipelineInfo2d,
+                        descriptorSets3d[currentFrame],
+                        descriptorSets2d[currentFrame],
+                        commandBuffers[currentFrame],
+                        imageIndex,
+                        vertexBufferManager,
+                        cameraHandler);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
@@ -268,7 +301,7 @@ void drawFrame(
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 
-    VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -282,7 +315,7 @@ void drawFrame(
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = { swapChainInfo.swapChain };
+    VkSwapchainKHR swapChains[] = {swapChainInfo.swapChain};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
 

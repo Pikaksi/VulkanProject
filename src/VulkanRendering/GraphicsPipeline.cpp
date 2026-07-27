@@ -23,11 +23,20 @@ VkShaderModule createShaderModule(VulkanCoreInfo& vulkanCoreInfo, const std::vec
 void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, GraphicsPipelineInfo& graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
     std::vector<char> vertShaderCode;
     std::vector<char> fragShaderCode;
+    std::vector<char> sunShadowShaderCode;
     readFile(GetShaderDirPath() + "/vert3d.spv", vertShaderCode);
     readFile(GetShaderDirPath() + "/frag3d.spv", fragShaderCode);
+    readFile(GetShaderDirPath() + "/sunShadows.spv", sunShadowShaderCode);
 
     VkShaderModule vertShaderModule = createShaderModule(vulkanCoreInfo, vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(vulkanCoreInfo, fragShaderCode);
+    VkShaderModule sunShadowShaderModule = createShaderModule(vulkanCoreInfo, sunShadowShaderCode);
+
+    VkPipelineShaderStageCreateInfo shadowShaderStageInfo{};
+    shadowShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shadowShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    shadowShaderStageInfo.module = sunShadowShaderModule;
+    shadowShaderStageInfo.pName = "shadow";
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

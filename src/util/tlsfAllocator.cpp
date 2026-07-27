@@ -26,7 +26,7 @@ BucketIndices bucketSlotLarger(TlsfAllocator& allocator, uint64_t size)
     int32_t index2 = (add ^ ((uint64_t)1 << msb)) >> (msb - allocator.layer2Size);
 
     assertm(index2 < ((uint64_t)1 << allocator.layer2Size), "Tlsf gave too big of an index 2 in slotLarger")
-    BucketIndices indices = {msb, index2};
+        BucketIndices indices = {msb, index2};
     return indices;
 }
 
@@ -42,7 +42,7 @@ BucketIndices bucketSlot(TlsfAllocator& allocator, uint64_t size)
     int32_t index2 = (size ^ ((uint64_t)1 << msb)) >> (msb - allocator.layer2Size);
 
     assertm(index2 < (1 << allocator.layer2Size), "Tlsf gave too big of an index 2 in slot")
-    BucketIndices indices = {msb, index2};
+        BucketIndices indices = {msb, index2};
     return indices;
 }
 
@@ -52,7 +52,6 @@ void placeEmptyBlockInBuckets(TlsfAllocator& allocator, TlsfBlockHeader* block)
     assertm(block->size != 0, "Tried to add a TlsfBlockHeader of size 0");
 
     BucketIndices indices = bucketSlot(allocator, block->size);
-    
 
     allocator.layer1BitMask |= (uint64_t)1 << indices.index1;
     allocator.layer2BitMask[indices.index1] |= (uint64_t)1 << indices.index2;
@@ -100,6 +99,7 @@ void removeFromBucketLinkedList(TlsfAllocator& allocator, TlsfBlockHeader* block
 
 void tlsfInit(TlsfAllocator& allocator, uint64_t size)
 {
+    allocator.size = size;
     allocator.layer1BitMask = (uint64_t)0;
     for (auto& a : allocator.layer2BitMask) {
         a = (uint64_t)0;
@@ -131,7 +131,8 @@ uint64_t tlsfAllocate(TlsfAllocator& allocator, uint64_t size)
     BucketIndices smallestIndices = bucketSlotLarger(allocator, size);
     BucketIndices foundIndices;
 
-    uint64_t smallestLayer2Mask = allocator.layer2BitMask[smallestIndices.index1] & (~(((uint64_t)1 << smallestIndices.index2) - 1));
+    uint64_t smallestLayer2Mask =
+        allocator.layer2BitMask[smallestIndices.index1] & (~(((uint64_t)1 << smallestIndices.index2) - 1));
 
     if (smallestLayer2Mask == 0) {
         uint64_t layer1Mask = allocator.layer1BitMask & (~(((uint64_t)1 << (smallestIndices.index1 + 1)) - 1));
@@ -152,7 +153,9 @@ uint64_t tlsfAllocate(TlsfAllocator& allocator, uint64_t size)
     TlsfBlockHeader* emptyBlock = allocator.layer2Blocks[foundIndices.index1][foundIndices.index2];
 
     assertm(emptyBlock != nullptr, "Memory block found was nullptr");
-    assertm(emptyBlock->size >= size, "Found empty memory block with less than required space. has space " << emptyBlock->size << " required " << size);
+    assertm(emptyBlock->size >= size,
+            "Found empty memory block with less than required space. has space " << emptyBlock->size << " required "
+                                                                                 << size);
 
     if (emptyBlock->nextFree != nullptr) {
         emptyBlock->nextFree->prevFree = nullptr;
@@ -169,6 +172,7 @@ uint64_t tlsfAllocate(TlsfAllocator& allocator, uint64_t size)
     emptyBlock->free = false;
     emptyBlock->nextFree = nullptr;
     emptyBlock->prevFree = nullptr;
+    assertm(emptyBlock->location <= allocator.size, "tlsf block location is too large");
     allocator.usedBlocksFromLocation.insert(std::make_pair(emptyBlock->location, emptyBlock));
 
     // If need to split block into used and free blocks
@@ -181,6 +185,10 @@ uint64_t tlsfAllocate(TlsfAllocator& allocator, uint64_t size)
         newEmptyHeader->nextPhysical = emptyBlock->nextPhysical;
         placeEmptyBlockInBuckets(allocator, newEmptyHeader);
 
+        if (emptyBlock->nextPhysical != nullptr) {
+            emptyBlock->nextPhysical->prevPhysical = newEmptyHeader;
+        }
+
         emptyBlock->size = size;
         emptyBlock->nextPhysical = newEmptyHeader;
     }
@@ -188,12 +196,12 @@ uint64_t tlsfAllocate(TlsfAllocator& allocator, uint64_t size)
     return emptyBlock->location;
 }
 
-
 void tlsfFree(TlsfAllocator& allocator, uint64_t location)
 {
     assertm(allocator.usedBlocksFromLocation.contains(location), "Tried to remove memory that was not allocated");
-
-    TlsfBlockHeader* usedBlock = allocator.usedBlocksFromLocation[location];
+    TlsfBlockHeader* usedBlock = allocator.usedBlocksFromLocation.extract(location).mapped();
+    assertm(usedBlock != nullptr, "tlsf free lookup block is null");
+    assertm(usedBlock->location <= allocator.size, "tlsf free lookup block location is too large");
 
     usedBlock->free = true;
 
@@ -239,16 +247,26 @@ void tlsfCheckHealth(TlsfAllocator& allocator)
 {
     TlsfBlockHeader* block = allocator.firstPhysicalBlock;
     while (block != nullptr) {
+        assertm(block->location + block->size <= allocator.size, "tlsf block outside of allocator");
+
         if (block->free == false) {
             assertm(block->nextFree == nullptr, "tlsf full next not null");
             assertm(block->prevFree == nullptr, "tlsf full prev not null");
         }
         else {
             BucketIndices indices = bucketSlot(allocator, block->size);
-            assertm(allocator.layer2Blocks[indices.index1][indices.index2] != nullptr, "nullptr stored where block should be");
+            assertm(allocator.layer2Blocks[indices.index1][indices.index2] != nullptr,
+                    "nullptr stored where block should be");
+        }
+        if (block->prevPhysical != nullptr) {
+            assertm(block->prevPhysical->location + block->prevPhysical->size == block->location, "tlsf block sizes dont match with prev. location = " << block->location << " size = " << block->size);
         }
         if (block->nextPhysical != nullptr) {
-            assertm(block->location + block->size == block->nextPhysical->location, "tlsf block sizes dont match");
+            assertm(block->location + block->size == block->nextPhysical->location, "tlsf block sizes dont match with next. location = " << block->location << " size = " << block->size);
+            assertm((block->free && block->nextPhysical->free) == false, "Tlsf two free blocks next to each other. Location = " << block->location);
+        }
+        else {
+            assertm(block->location + block->size == allocator.size, "tlsf total size wrong");
         }
 
         block = block->nextPhysical;
@@ -263,9 +281,14 @@ void tlsfCheckHealth(TlsfAllocator& allocator)
                 assertm((allocator.layer2Blocks[i][k]) != nullptr, "nullptr where block marked");
             }
             else {
-                assertm((allocator.layer2Blocks[i][k]) == nullptr, "nullptr not present when required " << i << " | " << k);
+                assertm((allocator.layer2Blocks[i][k]) == nullptr,
+                        "nullptr not present when required " << i << " | " << k);
             }
         }
+    }
+    for (auto& a : allocator.usedBlocksFromLocation) {
+        assertm(a.first == a.second->location, "tlsf lookup table locations dont match");
+        assertm(a.second->location <= allocator.size, "tlsf lookup table location too large");
     }
 }
 
@@ -276,7 +299,8 @@ void tlsfDebugPrint(TlsfAllocator& allocator)
 
     TlsfBlockHeader* block = allocator.firstPhysicalBlock;
     while (block != nullptr) {
-        std::cout << "  free = " << block->free << " | location = " << block->location << " | size = " << block->size << "\n";
+        std::cout << "  free = " << block->free << " | location = " << block->location << " | size = " << block->size
+                  << "\n";
 
         block = block->nextPhysical;
     }
@@ -325,4 +349,3 @@ void tlsfTest()
 
     tlsfDestroy(*allocator);
 }
-

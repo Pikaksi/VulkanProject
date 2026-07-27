@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <vector>
+#include <iostream>
 
 #include "Commands.hpp"
 #include "DeviceCreator.hpp"

@@ -9,63 +9,64 @@
 
 struct VulkanCoreInfo
 {
-	VkInstance instance;
-	VkPhysicalDevice physicalDevice;
-	VkDevice device;
+    VkInstance instance;
+    VkPhysicalDevice physicalDevice;
+    VkDevice device;
 
-	VkDebugUtilsMessengerEXT debugMessenger;
+    VkDebugUtilsMessengerEXT debugMessenger;
 
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
 
-	GLFWwindow* window;
-	VkSurfaceKHR surface;
+    GLFWwindow* window;
+    VkSurfaceKHR surface;
 
-	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT; //default value
+    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT; // default value
 };
 
 struct ImageInfo
 {
-	VkImage image;
-	VkDeviceMemory memory;
-	VkImageView view;
-	uint32_t mipLevels;
+    VkImage image;
+    VkDeviceMemory memory;
+    VkImageView view;
+    uint32_t mipLevels;
 };
 
 struct SwapChainInfo
 {
-	VkSwapchainKHR swapChain;
-	VkFormat imageFormat;
-	VkExtent2D extent;
-	std::vector<VkImageView> imageViews;
-	std::vector<VkImage> images;
-	std::vector<VkFramebuffer> framebuffers;
+    VkSwapchainKHR swapChain;
+    VkFormat imageFormat;
+    VkExtent2D extent;
+    std::vector<VkImageView> imageViews;
+    std::vector<VkImage> images;
+    std::vector<VkFramebuffer> framebuffers;
 
-	VkRenderPass renderPass;
+    VkRenderPass renderPass;
 
-	ImageInfo colorImage = ImageInfo();
-	ImageInfo depthImage = ImageInfo();
+    ImageInfo colorImage = ImageInfo();
+    ImageInfo depthImage = ImageInfo();
 };
 
 struct GraphicsPipelineInfo
 {
-	VkPipeline pipeline;
-	VkPipelineLayout layout;
+    VkPipeline pipeline;
+    VkPipelineLayout layout;
 };
 
 struct UniformBufferInfo
 {
-	VkBuffer buffer;
-	VkDeviceMemory memory;
-	void* mappingPointer;
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+    void* mappingPointer;
 };
 
-struct CameraUniformBufferObject {
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
+struct CameraUniformBufferObject
+{
+    alignas(16) glm::mat4 camera;
+    alignas(16) glm::mat4 sun;
 };
 
-struct PushConstant3d {
-	glm::vec3 chunkWorldLocation;
+struct PushConstant3d
+{
+    glm::vec3 chunkWorldLocation;
 };

@@ -18,6 +18,7 @@ struct TlsfAllocator
 {
     // Layer 2 bucket count is 1 << this var
     static const int32_t layer2Size = 4;
+    uint64_t size = 0;
     TlsfBlockHeader* firstPhysicalBlock = nullptr;
     std::unordered_map<uint64_t, TlsfBlockHeader*> usedBlocksFromLocation;
 
@@ -33,3 +34,4 @@ void tlsfFree(TlsfAllocator& allocator, uint64_t location);
 void tlsfDestroy(TlsfAllocator& allocator);
 void tlsfTest();
 void tlsfDebugPrint(TlsfAllocator& allocator);
+void tlsfCheckHealth(TlsfAllocator& allocator);
