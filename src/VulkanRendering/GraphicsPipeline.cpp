@@ -6,7 +6,8 @@
 #include "Rendering/Vertex.hpp"
 #include "Descriptor.hpp"
 
-VkShaderModule createShaderModule(VulkanCoreInfo& vulkanCoreInfo, const std::vector<char>& code) {
+VkShaderModule createShaderModule(VulkanCoreInfo& vulkanCoreInfo, const std::vector<char>& code)
+{
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
@@ -20,7 +21,11 @@ VkShaderModule createShaderModule(VulkanCoreInfo& vulkanCoreInfo, const std::vec
     return shaderModule;
 }
 
-void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, GraphicsPipelineInfo& graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
+void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo,
+                              SwapChainInfo& swapChainInfo,
+                              GraphicsPipelineInfo& graphicsPipelineInfo,
+                              VkDescriptorSetLayout descriptorSetLayout)
+{
     std::vector<char> vertShaderCode;
     std::vector<char> fragShaderCode;
     std::vector<char> sunShadowShaderCode;
@@ -50,7 +55,7 @@ void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     fragShaderStageInfo.module = fragShaderModule;
     fragShaderStageInfo.pName = "main";
 
-    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -97,7 +102,8 @@ void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     depthStencil.stencilTestEnable = VK_FALSE;
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
 
     VkPipelineColorBlendStateCreateInfo colorBlending{};
@@ -112,8 +118,7 @@ void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     colorBlending.blendConstants[3] = 0.0f;
 
     std::vector<VkDynamicState> dynamicStates = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR
+        VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
         //,VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE
     };
     VkPipelineDynamicStateCreateInfo dynamicState{};
@@ -138,8 +143,15 @@ void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
+    VkPipelineRenderingCreateInfo renderingCreateInfo{};
+    renderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    renderingCreateInfo.colorAttachmentCount = 1;
+    renderingCreateInfo.pColorAttachmentFormats = &swapChainInfo.imageFormat;
+    renderingCreateInfo.depthAttachmentFormat = swapChainInfo.depthImageFormat;
+
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext = &renderingCreateInfo;
     pipelineInfo.stageCount = 2;
     pipelineInfo.pStages = shaderStages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -151,12 +163,12 @@ void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = swapChainInfo.renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkPipeline graphicsPipeline;
-    if (vkCreateGraphicsPipelines(vulkanCoreInfo.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(
+            vulkanCoreInfo.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
@@ -167,7 +179,11 @@ void createGraphicsPipeline3d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     graphicsPipelineInfo.pipeline = graphicsPipeline;
 }
 
-void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, GraphicsPipelineInfo& graphicsPipelineInfo, VkDescriptorSetLayout descriptorSetLayout) {
+void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo,
+                              SwapChainInfo& swapChainInfo,
+                              GraphicsPipelineInfo& graphicsPipelineInfo,
+                              VkDescriptorSetLayout descriptorSetLayout)
+{
     std::vector<char> vertShaderCode;
     std::vector<char> fragShaderCode;
     readFile(GetShaderDirPath() + "/vert2d.spv", vertShaderCode);
@@ -188,7 +204,7 @@ void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     fragShaderStageInfo.module = fragShaderModule;
     fragShaderStageInfo.pName = "main";
 
-    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -235,7 +251,8 @@ void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     depthStencil.stencilTestEnable = VK_FALSE;
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.colorWriteMask =
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
 
     VkPipelineColorBlendStateCreateInfo colorBlending{};
@@ -249,10 +266,7 @@ void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     colorBlending.blendConstants[2] = 0.0f;
     colorBlending.blendConstants[3] = 0.0f;
 
-    std::vector<VkDynamicState> dynamicStates = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR
-    };
+    std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
     VkPipelineDynamicStateCreateInfo dynamicState{};
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -268,8 +282,15 @@ void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
+    VkPipelineRenderingCreateInfo renderingCreateInfo{};
+    renderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    renderingCreateInfo.colorAttachmentCount = 1;
+    renderingCreateInfo.pColorAttachmentFormats = &swapChainInfo.imageFormat;
+    renderingCreateInfo.depthAttachmentFormat = swapChainInfo.depthImageFormat;
+
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext = &renderingCreateInfo;
     pipelineInfo.stageCount = 2;
     pipelineInfo.pStages = shaderStages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
@@ -281,12 +302,12 @@ void createGraphicsPipeline2d(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swa
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = swapChainInfo.renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkPipeline graphicsPipeline;
-    if (vkCreateGraphicsPipelines(vulkanCoreInfo.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(
+            vulkanCoreInfo.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 

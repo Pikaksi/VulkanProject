@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <utility>
 #include <vector>
 #include <array>
 
@@ -6,6 +7,7 @@
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
 #include "World/Chunk.hpp"
+#include "vulkan/vulkan_core.h"
 
 void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
                        std::vector<VkSemaphore>& imageAvailableSemaphores,
@@ -97,7 +99,8 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo,
                          VkDescriptorSet descriptorSet3d,
                          VkDescriptorSet descriptorSet2d,
                          VkCommandBuffer commandBuffer,
-                         uint32_t imageIndex,
+                         uint32_t swapChainImageIndex,
+                         uint32_t currentFrame,
                          VertexBufferManager& vertexBufferManager,
                          CameraHandler& cameraHandler)
 {
@@ -108,23 +111,66 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo,
         throw std::runtime_error("failed to begin recording command buffer!");
     }
 
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = swapChainInfo.renderPass;
-    renderPassInfo.framebuffer = swapChainInfo.framebuffers[imageIndex];
-    renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapChainInfo.extent;
-
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = {
-        {0.3f, 0.7f, 0.9f, 1.0f}
+    std::array<VkImageMemoryBarrier2, 2> outputBarriers{
+        VkImageMemoryBarrier2{
+                              .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                              .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+                              .srcAccessMask = 0,
+                              .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+                              .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                              .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                              .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+                              .image = swapChainInfo.images[swapChainImageIndex],
+                              .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}},
+        VkImageMemoryBarrier2{
+                              .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                              .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+                              .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                              .dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+                              .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                              .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                              .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+                              .image = swapChainInfo.depthImage.image,
+                              .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                              .levelCount = 1,
+                              .layerCount = 1}                                                                            }
     };
-    clearValues[1].depthStencil = {1.0f, 0};
+    VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                           .imageMemoryBarrierCount = 2,
+                                           .pImageMemoryBarriers = outputBarriers.data()};
+    vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
 
-    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-    renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    
+    VkRenderingAttachmentInfo colorAttachmentInfo{};
+    colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachmentInfo.imageView = swapChainInfo.imageViews[swapChainImageIndex];
+    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    //attachmentInfo.resolveImageLayout = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    //attachmentInfo.resolveMode = VK_ATTACHMENT_STORE_OP_STORE;
+    //attachmentInfo.resolveImageView = VK_NULL_HANDLE;
+    colorAttachmentInfo.clearValue = VkClearValue{.color = VkClearColorValue{.float32 = {0.2, 0.1, 0.7, 1.0}}};
+    colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+
+    VkRenderingAttachmentInfo depthAttachmentInfo{};
+    depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthAttachmentInfo.imageView = swapChainInfo.depthImage.view;
+    depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    depthAttachmentInfo.clearValue = VkClearValue{.depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}};
+    depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &colorAttachmentInfo;
+    renderingInfo.pDepthAttachment = &depthAttachmentInfo;
+    renderingInfo.renderArea = VkRect2D{.extent{.width = swapChainInfo.extent.width, .height = swapChainInfo.extent.height}};
+    renderingInfo.layerCount = 1;
+
+    vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
     VkViewport viewport{};
     viewport.x = 0.0f;
@@ -133,10 +179,30 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo,
     viewport.height = (float)swapChainInfo.extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
     scissor.extent = swapChainInfo.extent;
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    /*VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = swapChainInfo.renderPass;
+    renderPassInfo.framebuffer = swapChainInfo.framebuffers[imageIndex];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapChainInfo.extent;*/
+
+    /*std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = {
+        {0.3f, 0.7f, 0.9f, 1.0f}
+    };
+    clearValues[1].depthStencil = {1.0f, 0};*/
+
+    //renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    //renderPassInfo.pClearValues = clearValues.data();
+
+    //vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.pipeline);
 
@@ -232,7 +298,7 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo,
         vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] / 2 * 3, 1, 0, 0, 0);
     }
 
-    vkCmdEndRenderPass(commandBuffer);
+    vkCmdEndRendering(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
@@ -259,13 +325,13 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
 {
     vkWaitForFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-    uint32_t imageIndex;
+    uint32_t swapChainImageIndex;
     VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo.device,
                                             swapChainInfo.swapChain,
                                             UINT64_MAX,
                                             imageAvailableSemaphores[currentFrame],
                                             VK_NULL_HANDLE,
-                                            &imageIndex);
+                                            &swapChainImageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo);
@@ -285,7 +351,8 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
                         descriptorSets3d[currentFrame],
                         descriptorSets2d[currentFrame],
                         commandBuffers[currentFrame],
-                        imageIndex,
+                        swapChainImageIndex,
+                        currentFrame,
                         vertexBufferManager,
                         cameraHandler);
 
@@ -319,7 +386,7 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
 
-    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pImageIndices = &swapChainImageIndex;
 
     result = vkQueuePresentKHR(vulkanCoreInfo.presentQueue, &presentInfo);
 

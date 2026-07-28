@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     // Instance
     VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                               .pApplicationName = "How to Vulkan",
-                              .apiVersion = VK_API_VERSION_1_3};
+                              .apiVersion = VK_API_VERSION_1_4};
     uint32_t instanceExtensionsCount{0};
     char const* const* instanceExtensions{SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount)};
     VkInstanceCreateInfo instanceCI{

@@ -19,7 +19,6 @@ src = [
   'src/VulkanRendering/ImageCreator.cpp',
   'src/VulkanRendering/FrameDrawer.cpp',
   'src/Inventory/InventoryRenderer.cpp',
-  'src/VulkanRendering/RenderPass.cpp',
   'src/VulkanRendering/Descriptor.cpp',
   'src/Inventory/InventoryLayouts.cpp',
   'src/3dRendering/ChunkRenderer.cpp',

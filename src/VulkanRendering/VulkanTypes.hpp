@@ -40,8 +40,8 @@ struct SwapChainInfo
     std::vector<VkImageView> imageViews;
     std::vector<VkImage> images;
 
-    ImageInfo colorImage = ImageInfo();
     ImageInfo depthImage = ImageInfo();
+    VkFormat depthImageFormat;
 };
 
 struct GraphicsPipelineInfo

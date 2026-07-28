@@ -9,7 +9,6 @@
 #include "DeviceCreator.hpp"
 #include "ImageCreator.hpp"
 #include "VulkanUtilities.hpp"
-#include "RenderPass.hpp"
 #include "vulkan/vulkan_core.h"
 
 SwapChainSupportDetails querySwapChainSupport(VulkanCoreInfo& vulkanCoreInfo) {
@@ -143,7 +142,7 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
         fillImageView(vulkanCoreInfo, swapChainInfo.images[i], swapChainInfo.imageViews[i], swapChainInfo.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1, VK_IMAGE_VIEW_TYPE_2D);
     }
 
-    createImageInfo(
+    /*createImageInfo(
         vulkanCoreInfo, 
         swapChainInfo.colorImage,
         swapChainInfo.extent.width, 
@@ -156,8 +155,9 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         VK_IMAGE_ASPECT_COLOR_BIT,
         1,
-        VK_IMAGE_VIEW_TYPE_2D);
+        VK_IMAGE_VIEW_TYPE_2D);*/
 
+    swapChainInfo.depthImageFormat = findDepthFormat(vulkanCoreInfo);
     createImageInfo(
         vulkanCoreInfo,
         swapChainInfo.depthImage, 
@@ -165,8 +165,8 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
         swapChainInfo.extent.height, 
         1, 
         vulkanCoreInfo.msaaSamples, 
-        findDepthFormat(vulkanCoreInfo),
-        VK_IMAGE_TILING_OPTIMAL, 
+        swapChainInfo.depthImageFormat,
+        VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         VK_IMAGE_ASPECT_DEPTH_BIT,
@@ -177,7 +177,7 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
 
 
 
-    VkAttachmentDescription colorAttachment{};
+    /*VkAttachmentDescription colorAttachment{};
     colorAttachment.format = swapChainInfo.imageFormat;
     colorAttachment.samples = vulkanCoreInfo.msaaSamples;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -247,27 +247,7 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
     VkRenderPass renderPass;
     if (vkCreateRenderPass(vulkanCoreInfo.device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
-    }
-
-
-
-    VkRenderingAttachmentInfo colorAttachmentInfo{};
-    colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttachmentInfo.imageView = swapChainInfo.colorImage.view;
-    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    //attachmentInfo.resolveImageLayout = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    //attachmentInfo.resolveMode = VK_ATTACHMENT_STORE_OP_STORE;
-    //attachmentInfo.resolveImageView = VK_NULL_HANDLE;
-    colorAttachmentInfo.clearValue = VkClearValue{
-        .color = VkClearColorValue{.float32 = {0.2, 0.1, 0.7, 1.0}},
-        .depthStencil = VkClearDepthStencilValue{1.0, 0}
-    };
-    colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-    VkRenderingInfoKHR renderingInfo{};
-    renderingInfo.pColorAttachments
-    return renderPass;
+    }*/
 }
 
 void cleanupSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo) {
@@ -276,18 +256,9 @@ void cleanupSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainIn
     vkDestroyImage(vulkanCoreInfo.device, swapChainInfo.depthImage.image, nullptr);
     vkFreeMemory(vulkanCoreInfo.device, swapChainInfo.depthImage.memory, nullptr);
 
-    vkDestroyImageView(vulkanCoreInfo.device, swapChainInfo.colorImage.view, nullptr);
-    vkDestroyImage(vulkanCoreInfo.device, swapChainInfo.colorImage.image, nullptr);
-    vkFreeMemory(vulkanCoreInfo.device, swapChainInfo.colorImage.memory, nullptr);
-
-    for (auto framebuffer : swapChainInfo.framebuffers) {
-        vkDestroyFramebuffer(vulkanCoreInfo.device, framebuffer, nullptr);
-    }
-
     for (auto imageView : swapChainInfo.imageViews) {
         vkDestroyImageView(vulkanCoreInfo.device, imageView, nullptr);
     }
-    vkDestroyRenderPass(vulkanCoreInfo.device, swapChainInfo.renderPass, nullptr);
     vkDestroySwapchainKHR(vulkanCoreInfo.device, swapChainInfo.swapChain, nullptr);
 }
 
