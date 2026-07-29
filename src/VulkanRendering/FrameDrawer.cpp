@@ -97,6 +97,7 @@ bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
 void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                          SwapChainInfo& swapChainInfo,
                          GraphicsPipelineInfo& graphicsPipelineInfo3d,
+                         GraphicsPipelineInfo& graphicsPipelineInfoSunShadow,
                          GraphicsPipelineInfo& graphicsPipelineInfo2d,
                          VkDescriptorSet descriptorSet3d,
                          VkDescriptorSet descriptorSet2d,
@@ -113,13 +114,119 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
         throw std::runtime_error("failed to begin recording command buffer!");
     }
 
+    VkBuffer worldVertexBuffer;
+    std::vector<WorldDrawCallData> worldDrawCallData;
+    VkBuffer worldIndexBuffer;
+    vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
+
+    // ---------------- SUN SHADOW PASS ----------------
+
+    {
+        VkImageMemoryBarrier2 presentImageToAttachmentBarrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+            .srcStageMask = VK_PIPELINE_STAGE_2_NONE,
+            .srcAccessMask = 0,
+            .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+            .dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+            .image = swapChainInfo.sunShadowImage.image,
+            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}
+        };
+        VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                               .imageMemoryBarrierCount = 1,
+                                               .pImageMemoryBarriers = &presentImageToAttachmentBarrier};
+        vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
+    }
+
+    VkRenderingAttachmentInfo sunShadowDepthAttachmentInfo{};
+    sunShadowDepthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    sunShadowDepthAttachmentInfo.imageView = swapChainInfo.sunShadowImage.view;
+    sunShadowDepthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    sunShadowDepthAttachmentInfo.clearValue = VkClearValue{
+        .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}
+    };
+    sunShadowDepthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    sunShadowDepthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+    VkRenderingInfo sunShadowRenderingInfo{};
+    sunShadowRenderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    sunShadowRenderingInfo.colorAttachmentCount = 0;
+    sunShadowRenderingInfo.pColorAttachments = nullptr;
+    sunShadowRenderingInfo.pDepthAttachment = &sunShadowDepthAttachmentInfo;
+    sunShadowRenderingInfo.renderArea = VkRect2D{
+        .extent{.width = 2048, .height = 2048}
+    };
+    sunShadowRenderingInfo.layerCount = 1;
+
+    vkCmdBeginRendering(commandBuffer, &sunShadowRenderingInfo);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfoSunShadow.pipeline);
+
+    for (int i = 0; i < worldDrawCallData.size(); i++) {
+        WorldDrawCallData drawCallData = worldDrawCallData[i];
+
+        VkBuffer vertexBuffers[] = {worldVertexBuffer};
+
+        VkDeviceSize offsets[] = {drawCallData.memoryLocation};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                graphicsPipelineInfo3d.layout,
+                                0,
+                                1,
+                                &descriptorSet3d,
+                                0,
+                                nullptr);
+
+        PushConstant3d pushConstant = {
+            {0.0f, 10.0f, 0.0f}
+        };
+        vkCmdPushConstants(commandBuffer,
+                           graphicsPipelineInfo3d.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(PushConstant3d),
+                           &pushConstant);
+
+        // get index count by multiplying vertex count by 1.5
+        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, 0, 0);
+    }
+
+    vkCmdEndRendering(commandBuffer);
+
+    {
+        VkImageMemoryBarrier2 presentImageToAttachmentBarrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+            .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+            .srcAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+            .dstAccessMask = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL,
+            .image = swapChainInfo.,
+            .subresourceRange = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, kCascadeCount}
+        };
+
+        VkDependencyInfo dep{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
+        dep.imageMemoryBarrierCount = 1;
+        dep.pImageMemoryBarriers = &presentImageToAttachmentBarrier;
+
+        vkCmdPipelineBarrier2(commandBuffer, &dep);
+    }
+
+    // ---------------- MAIN PASS----------------
+
     VkRenderingAttachmentInfo colorAttachmentInfo{};
     colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     colorAttachmentInfo.imageView = swapChainInfo.colorImage.view;
     colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
     colorAttachmentInfo.clearValue = VkClearValue{.color = VkClearColorValue{.float32 = {0.2, 0.1, 0.7, 1.0}}};
     colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; //VK_ATTACHMENT_STORE_OP_STORE
+    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // VK_ATTACHMENT_STORE_OP_STORE
 
     colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
     colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
@@ -187,21 +294,12 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
 
     // Render world.
-    VkBuffer worldVertexBuffer;
-    std::vector<WorldDrawCallData> worldDrawCallData;
-    VkBuffer worldIndexBuffer;
-    vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
-
-    int chunksSkipped = 0;
-    int chunksTotal = 0;
 
     for (int i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];
 
-        chunksTotal += 1;
         if (!chunkIsInViewingFrustum(
                 cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
-            chunksSkipped += 1;
             continue;
         }
 
@@ -234,7 +332,6 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
         // get index count by multiplying vertex count by 1.5
         vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, 0, 0);
     }
-    // std::cout << "chunks Skipped = " << chunksSkipped << " chunks total = " << chunksTotal << "\n";
 
     // Render UI.
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
@@ -298,6 +395,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
                SwapChainInfo& swapChainInfo,
                GraphicsPipelineInfo& graphicsPipelineInfo3d,
+               GraphicsPipelineInfo& graphicsPipelineInfoSunShadow,
                GraphicsPipelineInfo& graphicsPipelineInfo2d,
                std::vector<VkDescriptorSet>& descriptorSets3d,
                std::vector<VkDescriptorSet>& descriptorSets2d,
@@ -338,6 +436,7 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
     recordCommandBuffer(vulkanCoreInfo,
                         swapChainInfo,
                         graphicsPipelineInfo3d,
+                        graphicsPipelineInfoSunShadow,
                         graphicsPipelineInfo2d,
                         descriptorSets3d[currentFrame],
                         descriptorSets2d[currentFrame],

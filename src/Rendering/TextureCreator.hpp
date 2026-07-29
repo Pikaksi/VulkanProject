@@ -9,5 +9,6 @@ const float UV_EDGE_CORRECTION = 1.0f / ((float)BLOCK_TEXTURE_PIXEL_COUNT * 2 * 
 
 void createTextureImage(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string& textureFilePath);
 VkSampler createBlockTextureSampler(VulkanCoreInfo& vulkanCoreInfo);
+VkSampler createSunShadowSampler(VulkanCoreInfo& vulkanCoreInfo);
 VkSampler createUITextureSampler(VulkanCoreInfo& vulkanCoreInfo);
 void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels);

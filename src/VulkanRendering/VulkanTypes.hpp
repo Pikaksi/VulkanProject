@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vulkan/vulkan_core.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "glm/mat4x4.hpp"
@@ -44,6 +45,8 @@ struct SwapChainInfo
     VkFormat depthImageFormat;
 
     ImageInfo colorImage = ImageInfo();
+
+    ImageInfo sunShadowImage = ImageInfo();
 };
 
 struct GraphicsPipelineInfo

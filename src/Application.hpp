@@ -62,12 +62,15 @@ private:
     SwapChainInfo swapChainInfo = SwapChainInfo();
 
     GraphicsPipelineInfo graphicsPipelineInfo3d = GraphicsPipelineInfo();
+    GraphicsPipelineInfo graphicsPipelineInfoSunShadow = GraphicsPipelineInfo();
     GraphicsPipelineInfo graphicsPipelineInfo2d = GraphicsPipelineInfo();
 
     VkCommandPool commandPool;
 
     ImageInfo blockTextureImageArray = ImageInfo();
     VkSampler blockTextureArraySampler;
+
+    VkSampler sunShadowSampler;
 
     ImageInfo blockTextureImage = ImageInfo();
     VkSampler blockTextureSampler;

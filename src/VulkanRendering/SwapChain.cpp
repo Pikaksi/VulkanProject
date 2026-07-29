@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <array>
 #include <iostream>
+#include <utility>
 
 #include "Commands.hpp"
 #include "Constants.hpp"
@@ -189,32 +190,56 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
                     1,
                     VK_IMAGE_VIEW_TYPE_2D);
 
+    createImageInfo(vulkanCoreInfo,
+                    swapChainInfo.sunShadowImage,
+                    2048,
+                    2048,
+                    1,
+                    VK_SAMPLE_COUNT_1_BIT,
+                    swapChainInfo.depthImageFormat,
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    VK_IMAGE_ASPECT_DEPTH_BIT,
+                    1,
+                    VK_IMAGE_VIEW_TYPE_2D);
+
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(vulkanCoreInfo, commandPool);
 
-    std::array<VkImageMemoryBarrier2, 2> outputBarriers{
+    std::array<VkImageMemoryBarrier2, 3> outputBarriers{
         VkImageMemoryBarrier2{
                               .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-                              .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+                              .srcStageMask = 0,
                               .srcAccessMask = 0,
-                              .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-                              .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                              .dstStageMask = 0,
+                              .dstAccessMask = 0,
                               .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                               .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
                               .image = swapChainInfo.colorImage.image,
                               .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}},
         VkImageMemoryBarrier2{
                               .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-                              .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
-                              .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                              .dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
-                              .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                              .srcStageMask = 0,
+                              .srcAccessMask = 0,
+                              .dstStageMask = 0,
+                              .dstAccessMask = 0,
                               .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                               .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
                               .image = swapChainInfo.depthImage.image,
+                              .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}},
+        VkImageMemoryBarrier2{
+                              .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                              .srcStageMask = 0,
+                              .srcAccessMask = 0,
+                              .dstStageMask = 0,
+                              .dstAccessMask = 0,
+                              .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                              .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+                              .image = swapChainInfo.sunShadowImage.image,
                               .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}}
     };
     VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                                           .imageMemoryBarrierCount = 2,
+                                           .imageMemoryBarrierCount = outputBarriers.size(),
                                            .pImageMemoryBarriers = outputBarriers.data()};
     vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
 

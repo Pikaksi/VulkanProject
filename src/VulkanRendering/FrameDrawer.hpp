@@ -12,6 +12,7 @@ void drawFrame(
     VulkanCoreInfo& vulkanCoreInfo,
     SwapChainInfo& swapChainInfo,
     GraphicsPipelineInfo& graphicsPipelineInfo3d,
+    GraphicsPipelineInfo& graphicsPipelineInfoSunShadow,
     GraphicsPipelineInfo& graphicsPipelineInfo2d,
     std::vector<VkDescriptorSet>& descriptorSets3d,
     std::vector<VkDescriptorSet>& descriptorSets2d,

@@ -303,6 +303,7 @@ void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo)
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.depthClamp = VK_TRUE;
 
     VkPhysicalDeviceVulkan12Features enabledVk12Features{};
     enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
