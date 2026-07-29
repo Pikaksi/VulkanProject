@@ -42,6 +42,8 @@ struct SwapChainInfo
 
     ImageInfo depthImage = ImageInfo();
     VkFormat depthImageFormat;
+
+    ImageInfo colorImage = ImageInfo();
 };
 
 struct GraphicsPipelineInfo

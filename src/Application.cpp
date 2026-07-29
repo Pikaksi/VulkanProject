@@ -64,14 +64,14 @@ void Application::initVulkan()
     vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &physicalDeviceProperties);
     maxVertexInputBindings = physicalDeviceProperties.limits.maxVertexInputBindings;
 
-    createSwapChain(vulkanCoreInfo, swapChainInfo);
+    commandPool = createCommandPool(vulkanCoreInfo);
+
+    createSwapChain(vulkanCoreInfo, swapChainInfo, commandPool);
 
     descriptorSetLayout3d = createDescriptorSetLayout3d(vulkanCoreInfo);
     createGraphicsPipeline3d(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo3d, descriptorSetLayout3d);
     descriptorSetLayout2d = createDescriptorSetLayout2d(vulkanCoreInfo);
     createGraphicsPipeline2d(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo2d, descriptorSetLayout2d);
-
-    commandPool = createCommandPool(vulkanCoreInfo);
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
 

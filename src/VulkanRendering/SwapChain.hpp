@@ -15,6 +15,6 @@ struct SwapChainSupportDetails {
 SwapChainSupportDetails querySwapChainSupport(VulkanCoreInfo& vulkanCoreInfo);
 VkFormat findDepthFormat(VulkanCoreInfo& vulkanCoreInfo);
 
-void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo);
+void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, VkCommandPool commandPool);
 void cleanupSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo);
-void recreateSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo);
+void recreateSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, VkCommandPool commandPool);
