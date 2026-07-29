@@ -16,6 +16,8 @@ layout(push_constant) uniform constants
     vec3 chunkWorldLocation;
 } pushConstant;
 
+layout(location = 1)
+
 void main() {
     gl_Position = ubo.sun * vec4(inPosition, 1.0);
 }

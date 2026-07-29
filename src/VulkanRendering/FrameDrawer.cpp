@@ -131,7 +131,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
             .image = swapChainInfo.sunShadowImage.image,
-            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}
+            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
         };
         VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                                                .imageMemoryBarrierCount = 1,
@@ -147,7 +147,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
         .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}
     };
     sunShadowDepthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    sunShadowDepthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    sunShadowDepthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
     VkRenderingInfo sunShadowRenderingInfo{};
     sunShadowRenderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -155,6 +155,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     sunShadowRenderingInfo.pColorAttachments = nullptr;
     sunShadowRenderingInfo.pDepthAttachment = &sunShadowDepthAttachmentInfo;
     sunShadowRenderingInfo.renderArea = VkRect2D{
+        .offset = {0, 0},
         .extent{.width = 2048, .height = 2048}
     };
     sunShadowRenderingInfo.layerCount = 1;
@@ -163,7 +164,9 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfoSunShadow.pipeline);
 
-    for (int i = 0; i < worldDrawCallData.size(); i++) {
+    vkCmdSetDepthBias(commandBuffer, /*constant*/ 2.0f, /*clamp*/ 0.0f, /*slope*/ 6.0f);
+
+    for (size_t i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];
 
         VkBuffer vertexBuffers[] = {worldVertexBuffer};
@@ -199,23 +202,23 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     vkCmdEndRendering(commandBuffer);
 
     {
-        VkImageMemoryBarrier2 presentImageToAttachmentBarrier{
+        VkImageMemoryBarrier2 depthImageToReadOnlyBarrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
             .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
             .srcAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             .dstStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
             .dstAccessMask = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL,
-            .image = swapChainInfo.,
-            .subresourceRange = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, kCascadeCount}
+            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .image = swapChainInfo.sunShadowImage.image,
+            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
         };
 
-        VkDependencyInfo dep{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
-        dep.imageMemoryBarrierCount = 1;
-        dep.pImageMemoryBarriers = &presentImageToAttachmentBarrier;
+        VkDependencyInfo barrierDependencyInfo{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
+        barrierDependencyInfo.imageMemoryBarrierCount = 1;
+        barrierDependencyInfo.pImageMemoryBarriers = &depthImageToReadOnlyBarrier;
 
-        vkCmdPipelineBarrier2(commandBuffer, &dep);
+        vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
     }
 
     // ---------------- MAIN PASS----------------

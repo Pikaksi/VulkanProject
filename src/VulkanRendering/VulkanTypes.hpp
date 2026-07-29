@@ -66,6 +66,7 @@ struct CameraUniformBufferObject
 {
     alignas(16) glm::mat4 camera;
     alignas(16) glm::mat4 sun;
+    alignas(16) glm::mat4 cameraToSun;
 };
 
 struct PushConstant3d

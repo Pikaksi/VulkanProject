@@ -14,17 +14,14 @@
 #include "CameraHandler.hpp"
 #include "PlayerInputHandler.hpp"
 
-
-
 void CameraHandler::updateCameraTransform()
 {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - timeLastFrame).count();
     timeLastFrame = currentTime;
 
-    float speed = speedNormal 
-        * (PlayerInputHandler::getInstance().shiftHeld ? slowerSpeedMultiplier : 1)
-        * (PlayerInputHandler::getInstance().ctrlHeld ? fasterSpeedMultiplier : 1);
+    float speed = speedNormal * (PlayerInputHandler::getInstance().shiftHeld ? slowerSpeedMultiplier : 1) *
+                  (PlayerInputHandler::getInstance().ctrlHeld ? fasterSpeedMultiplier : 1);
 
     if (PlayerInputHandler::getInstance().wHeld) {
         position += cameraForwardDirection() * speed * timePassed;
@@ -65,23 +62,50 @@ void CameraHandler::updateCameraTransform()
 void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo)
 {
 
-    glm::mat4x4 cameraView = glm::lookAt(
-        glm::vec3(position.x, position.y, position.z),
-        glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),
-        glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the positive right axis appear on the right of the screen.
-    );
-    glm::mat4x4 cameraProj = glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
+    glm::mat4x4 cameraView =
+        glm::lookAt(glm::vec3(position.x, position.y, position.z),
+                    glm::vec3(position.x, position.y, position.z) + cameraForwardDirection(),
+                    glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the
+                                                 // positive right axis appear on the right of the screen.
+        );
+    glm::mat4x4 cameraProj =
+        glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
 
     ubo.camera = cameraProj * cameraView;
-    //ubo.camera[1][1] *= -1;
+    // ubo.camera[1][1] *= -1;
 
-    glm::mat4x4 sunView = glm::lookAt(
-        glm::vec3(0, 0, 0),
-        glm::vec3(-0.2, -1, -0.2),
-        glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the positive right axis appear on the right of the screen.
-    );
-    glm::mat4x4 sunProj = glm::ortho(-100, 100, -100, 100, -100, 100);
+    const float rounding = 10.0f;
+    glm::vec3 playerPosRounded = glm::vec3(round(position.x / rounding) * rounding,
+                                           round(position.y / rounding) * rounding,
+                                           round(position.z / rounding) * rounding);
+
+    glm::vec3 sunDir = glm::normalize(glm::vec3(0.3, -1, 0.5));
+    glm::mat4x4 sunView =
+        glm::lookAt(playerPosRounded + sunDir * -200.0f,
+                    playerPosRounded + sunDir * -199.0f,
+                    glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the
+                                                 // positive right axis appear on the right of the screen.
+        );
+    glm::mat4x4 sunProj = glm::ortho(-200.0, 200.0, -200.0, 200.0, 1.0, 400.0);
+    const glm::mat4 kBias = {0.5f,
+                             0.0f,
+                             0.0f,
+                             0.0f,
+                             0.0f,
+                             0.5f,
+                             0.0f,
+                             0.0f,
+                             0.0f,
+                             0.0f,
+                             1.0f,
+                             0.0f, // z passes through untouched
+                             0.5f,
+                             0.5f,
+                             0.0f,
+                             1.0f};
     ubo.sun = sunProj * sunView;
+
+    ubo.cameraToSun = kBias * ubo.sun;
 }
 
 glm::vec3 CameraHandler::cameraRightDirection()
@@ -105,14 +129,15 @@ glm::vec3 CameraHandler::cameraForwardDirection()
     return glm::rotate(frontXRotated, rotationY, sideXRotated);
 }
 
-ViewingFrustumNormals CameraHandler::getViewingFrustumNormals(VkExtent2D extent, ViewingFrustumNormals& viewingFrustumNormals)
+ViewingFrustumNormals CameraHandler::getViewingFrustumNormals(VkExtent2D extent,
+                                                              ViewingFrustumNormals& viewingFrustumNormals)
 {
     glm::vec3 forwardDirection = cameraForwardDirection();
     glm::vec3 rightDirection = cameraRightDirection();
     glm::vec3 upDirection = cameraUpDirection();
-    //glm::vec3 forwardDirection = {0, 0, 1};
-    //glm::vec3 rightDirection = {1, 0, 0};
-    //glm::vec3 upDirection = {0, 1, 0};
+    // glm::vec3 forwardDirection = {0, 0, 1};
+    // glm::vec3 rightDirection = {1, 0, 0};
+    // glm::vec3 upDirection = {0, 1, 0};
 
     viewingFrustumNormals.top = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), -rightDirection);
     viewingFrustumNormals.bottom = glm::rotate(forwardDirection, fovY / 2.0f + glm::radians(90.0f), rightDirection);
@@ -122,12 +147,13 @@ ViewingFrustumNormals CameraHandler::getViewingFrustumNormals(VkExtent2D extent,
     viewingFrustumNormals.right = glm::rotate(forwardDirection, fovX + glm::radians(90.0f), upDirection);
     viewingFrustumNormals.left = glm::rotate(forwardDirection, fovX + glm::radians(90.0f), -upDirection);
 
-    /*std::cout 
+    /*std::cout
         << " top = " << glm::dot(clipPlaneNormals.top, position)
         << " bottom = " << glm::dot(clipPlaneNormals.bottom, position)
         << " right = " << glm::dot(clipPlaneNormals.right, position)
         << " left = " << glm::dot(clipPlaneNormals.left, position)
-        << "right vector is " << clipPlaneNormals.right.x << " " << clipPlaneNormals.right.y << " " << clipPlaneNormals.right.z << "\n";*/
-    
+        << "right vector is " << clipPlaneNormals.right.x << " " << clipPlaneNormals.right.y << " " <<
+       clipPlaneNormals.right.z << "\n";*/
+
     return viewingFrustumNormals;
 }

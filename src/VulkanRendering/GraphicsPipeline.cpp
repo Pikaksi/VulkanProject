@@ -5,6 +5,7 @@
 #include "FilePathHandler.hpp"
 #include "Rendering/Vertex.hpp"
 #include "Descriptor.hpp"
+#include "vulkan/vulkan_core.h"
 
 VkShaderModule createShaderModule(VulkanCoreInfo& vulkanCoreInfo, const std::vector<char>& code)
 {
@@ -208,13 +209,14 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)swapChainInfo.extent.width;
-    viewport.height = (float)swapChainInfo.extent.height;
+    viewport.width = (float)2048;
+    viewport.height = (float)2048;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
+
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = swapChainInfo.extent;
+    scissor.extent = VkExtent2D{.height = 2048, .width = 2048};
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -231,7 +233,7 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT; // TODO: Check front bit option to help with acne
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterizer.depthBiasEnable = VK_FALSE; // TODO: use true to help with acne
+    rasterizer.depthBiasEnable = VK_TRUE; // TODO: use true to help with acne
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -247,7 +249,7 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
     depthStencil.stencilTestEnable = VK_FALSE;
 
     std::vector<VkDynamicState> dynamicStates = {
-        //VK_DYNAMIC_STATE_DEPTH_BIAS
+        VK_DYNAMIC_STATE_DEPTH_BIAS
     };
     VkPipelineDynamicStateCreateInfo dynamicState{};
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

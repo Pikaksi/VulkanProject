@@ -29,7 +29,7 @@ public:
 	void rerenderChunk(glm::i32vec3 chunkLocation);
 
 private:
-	const int renderDistance = 6;
+	const int renderDistance = 12;
 	const int extraRangeToDerenderChunk = 1;
 	
 	std::vector<glm::i32vec3> chunksToRerender;

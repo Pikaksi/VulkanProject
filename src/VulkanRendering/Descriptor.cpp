@@ -4,6 +4,7 @@
 
 #include "Descriptor.hpp"
 #include "Constants.hpp"
+#include "vulkan/vulkan_core.h"
 
 VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo& vulkanCoreInfo)
 {
