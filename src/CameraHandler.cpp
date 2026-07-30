@@ -79,14 +79,15 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
                                            round(position.y / rounding) * rounding,
                                            round(position.z / rounding) * rounding);
 
-    glm::vec3 sunDir = glm::normalize(glm::vec3(0.3, -1, 0.5));
+    const glm::vec3 sunDir = glm::normalize(glm::vec3(0.3, -1, 0.5));
+    const float boxRadius = 200.0f;
     glm::mat4x4 sunView =
-        glm::lookAt(playerPosRounded + sunDir * -200.0f,
-                    playerPosRounded + sunDir * -199.0f,
+        glm::lookAt(playerPosRounded + sunDir * -boxRadius,
+                    playerPosRounded + sunDir * (-boxRadius + 1.0f),
                     glm::vec3(0.0f, -1.0f, 0.0f) // up is down and the screen is not flipped like usual to make the
                                                  // positive right axis appear on the right of the screen.
         );
-    glm::mat4x4 sunProj = glm::ortho(-200.0, 200.0, -200.0, 200.0, 1.0, 400.0);
+    glm::mat4x4 sunProj = glm::ortho(-boxRadius, boxRadius, -boxRadius, boxRadius, 1.0f, 2.0f * boxRadius);
     const glm::mat4 kBias = {0.5f,
                              0.0f,
                              0.0f,

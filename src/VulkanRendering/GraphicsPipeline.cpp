@@ -177,18 +177,27 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
                                      VkDescriptorSetLayout descriptorSetLayout)
 {
 
-    std::vector<char> sunShadowShaderCode;
-    readFile(GetShaderDirPath() + "/sunShadows.spv", sunShadowShaderCode);
+    std::vector<char> vertSunShadowShaderCode;
+    std::vector<char> fragSunShadowShaderCode;
+    readFile(GetShaderDirPath() + "/vertSunShadows.spv", vertSunShadowShaderCode);
+    readFile(GetShaderDirPath() + "/fragSunShadows.spv", fragSunShadowShaderCode);
 
-    VkShaderModule sunShadowShaderModule = createShaderModule(vulkanCoreInfo, sunShadowShaderCode);
+    VkShaderModule vertSunShadowShaderModule = createShaderModule(vulkanCoreInfo, vertSunShadowShaderCode);
+    VkShaderModule fragSunShadowShaderModule = createShaderModule(vulkanCoreInfo, fragSunShadowShaderCode);
 
-    VkPipelineShaderStageCreateInfo shadowShaderStageInfo{};
-    shadowShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    shadowShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    shadowShaderStageInfo.module = sunShadowShaderModule;
-    shadowShaderStageInfo.pName = "main";
+    VkPipelineShaderStageCreateInfo vertShadowShaderStageInfo{};
+    vertShadowShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShadowShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShadowShaderStageInfo.module = vertSunShadowShaderModule;
+    vertShadowShaderStageInfo.pName = "main";
 
-    VkPipelineShaderStageCreateInfo shaderStages[] = {shadowShaderStageInfo};
+    VkPipelineShaderStageCreateInfo fragShadowShaderStageInfo{};
+    fragShadowShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShadowShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShadowShaderStageInfo.module = fragSunShadowShaderModule;
+    fragShadowShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShadowShaderStageInfo, fragShadowShaderStageInfo};
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -282,7 +291,7 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.pNext = &renderingCreateInfo;
-    pipelineInfo.stageCount = 1;
+    pipelineInfo.stageCount = 2;
     pipelineInfo.pStages = shaderStages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -302,7 +311,8 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
-    vkDestroyShaderModule(vulkanCoreInfo.device, sunShadowShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, vertSunShadowShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, fragSunShadowShaderModule, nullptr);
 
     graphicsPipelineInfo.layout = pipelineLayout;
     graphicsPipelineInfo.pipeline = graphicsPipeline;
