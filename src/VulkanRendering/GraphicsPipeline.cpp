@@ -240,7 +240,7 @@ void createGraphicsPipelineSunShadow(VulkanCoreInfo& vulkanCoreInfo,
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT; // TODO: Check front bit option to help with acne
+    rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT; // TODO: Check front bit option to help with acne
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_TRUE; // TODO: use true to help with acne
 

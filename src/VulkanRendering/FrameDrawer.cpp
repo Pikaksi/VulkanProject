@@ -164,7 +164,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfoSunShadow.pipeline);
 
-    vkCmdSetDepthBias(commandBuffer, /*constant*/ 2.0f, /*clamp*/ 0.0f, /*slope*/ 6.0f);
+    vkCmdSetDepthBias(commandBuffer, /*constant*/ 2.0f, /*clamp*/ 0.0f, /*slope*/ -2.0f);
 
     for (size_t i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];

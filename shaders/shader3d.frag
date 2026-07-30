@@ -20,12 +20,13 @@ layout(location = 0) out vec4 outColor;
 }*/
 
 float sampleShadow(vec3 viewPos) {
+    viewPos.y += 0.05;
     vec4 c = cameraToSun * vec4(viewPos, 1.0);
     c.xyz /= c.w;                        // no-op for ortho, harmless
     if (c.z > 1.0) return 1.0;           // beyond far plane: treat as lit
     if (c.x < 0.0 || c.x > 1.0 || c.y < 0.0 || c.y > 1.0) return 1.0;
     // .xy = uv, .z = depth to compare
-    return texture(sunShadowSampler, vec3(c.xy, c.z));
+    return texture(sunShadowSampler, vec3(c.x, c.y, c.z));
 }
 
 void main() {
