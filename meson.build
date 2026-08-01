@@ -2,6 +2,8 @@ project('my_app', 'cpp',
   version : '0.1',
   default_options : ['warning_level=3'])
 
+run_env = environment()
+
 src = [
   'src/util/tlsfAllocator.cpp',
   'src/World/WorldGeneration/ChunkGenerator.cpp',
@@ -65,6 +67,9 @@ if not vulkan_dep.found()
     include_directories : vulkan_sdk_path / 'include',
     dependencies: vulkan_lib
   )
+  
+  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
+  run_env.set('VK_LAYER_PATH', layer_path)
 endif
 
 if host_machine.system() == 'linux'
@@ -131,10 +136,6 @@ my_exe = executable('myexe',
   override_options : ['cpp_std=c++20'],
   c_args : extra_args
 )
-
-run_env = environment()
-layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
-run_env.set('VK_LAYER_PATH', layer_path)
 
 run_target('run',
   command: my_exe, # Pass the executable() object you defined earlier
