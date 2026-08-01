@@ -53,11 +53,11 @@ glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'])
 #meson wrap install glfw
 
 glm_dep = dependency('glm')
+#meson wrap install glm
 
 cc = meson.get_compiler('cpp')
 
-
-vulkan_dep = dependency('vulkan')
+vulkan_dep = dependency('vulkan', required: false)
 if not vulkan_dep.found()
   vulkan_sdk_path = '/home/miika/vulkanSDK/1.4.350.1/x86_64/'
   vulkan_lib = cc.find_library('vulkan', dirs: vulkan_sdk_path / 'lib/VulkanLoader/lib/')
@@ -74,15 +74,12 @@ if host_machine.system() == 'linux'
     dependencies: fast_noise_lib
   )
 else
-  message('hello win')
   fast_noise_lib = cc.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Win/lib')
   fast_noise_dep = declare_dependency(
     include_directories : 'dependencies/FastNoise2Win/include/',
     dependencies: fast_noise_lib
   )
 endif
-  
-
 
 deps = [
   glfw_dep,
@@ -92,13 +89,21 @@ deps = [
   fast_noise_dep
 ]
 
+if host_machine.system() == 'linux'
+  fastNoise2IncludeOs = include_directories('dependencies/FastNoise2Linux/include')
+else
+  fastNoise2IncludeOs = include_directories('dependencies/FastNoise2Win/include')
+endif
 include_dirs = [
   include_directories('dependencies/stbImages'),
-  include_directories('dependencies/FastNoise2/include/FastNoise'),
-  include_directories('dependencies/FastNoise2/include/FastNoise/Utility'),
-  include_directories('dependencies/FastNoise2/include/FastNoise/Generators'),
-  include_directories('dependencies/FastNoise2/include/FastSIMD'),
-  include_directories('dependencies/FastNoise2/include/FastSIMD/Utility'),
+  
+  fastNoise2IncludeOs,
+  #include_directories('dependencies/FastNoise2/include/FastNoise/Utility'),
+  #include_directories('dependencies/FastNoise2/include/FastNoise/Generators'),
+  #include_directories('dependencies/FastNoise2/build/_deps/fastsimd-src/include/FastSIMD'),
+  #include_directories('dependencies/FastNoise2/build/_deps/fastsimd-src/include/FastSIMD/Utility'),
+  #include_directories('dependencies/FastNoise2/include/FastSIMD'),
+  #include_directories('dependencies/FastNoise2/include/FastSIMD/Utility'),
 
   include_directories('src'),
   include_directories('src/2dRendering'),
