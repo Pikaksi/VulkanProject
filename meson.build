@@ -56,27 +56,32 @@ glm_dep = dependency('glm')
 
 cc = meson.get_compiler('cpp')
 
-vulkan_sdk_path = '/home/miika/vulkanSDK/1.4.350.1/x86_64/'
 
-#vulkan_validation_layer_lib = cc.find_library('VkLayer_khronos_validation', dirs: vulkan_sdk_path / 'lib/')
-#vulkan_validation_layer_dep = declare_dependency(
-  #dependencies: vulkan_validation_layer_lib
-#)
+vulkan_dep = dependency('vulkan')
+if not vulkan_dep.found()
+  vulkan_sdk_path = '/home/miika/vulkanSDK/1.4.350.1/x86_64/'
+  vulkan_lib = cc.find_library('vulkan', dirs: vulkan_sdk_path / 'lib/VulkanLoader/lib/')
+  vulkan_dep = declare_dependency(
+    include_directories : vulkan_sdk_path / 'include',
+    dependencies: vulkan_lib
+  )
+endif
 
-#vulkan_dep = dependency('vulkan')
-vulkan_lib = cc.find_library('vulkan', dirs: vulkan_sdk_path / 'lib/VulkanLoader/lib/')
-vulkan_dep = declare_dependency(
-  include_directories : vulkan_sdk_path / 'include',
-  dependencies: vulkan_lib
-)
-
-fast_noise_lib = cc.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2/lib')
-fast_noise_dep = declare_dependency(
-  include_directories : 'dependencies/FastNoise2/include/',
-  #link_with : meson.current_source_dir() / 'dependencies/FastNoise2/lib/libFastNoise.so',
-  #link_args : meson.current_source_dir() / 'dependencies/FastNoise2/lib/libFastNoise.so',
-  dependencies: fast_noise_lib
-)
+if host_machine.system() == 'linux'
+  fast_noise_lib = cc.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Linux/lib')
+  fast_noise_dep = declare_dependency(
+    include_directories : 'dependencies/FastNoise2Linux/include/',
+    dependencies: fast_noise_lib
+  )
+else
+  message('hello win')
+  fast_noise_lib = cc.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Win/lib')
+  fast_noise_dep = declare_dependency(
+    include_directories : 'dependencies/FastNoise2Win/include/',
+    dependencies: fast_noise_lib
+  )
+endif
+  
 
 
 deps = [
