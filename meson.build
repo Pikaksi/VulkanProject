@@ -51,7 +51,10 @@ src = [
   'src/main.cpp'
 ]
 
-glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'])
+glfw_dep = dependency(
+  'glfw', fallback: ['glfw', 'glfw_dep']
+  #, default_options: ['default_library=static']
+)
 #meson wrap install glfw
 
 glm_dep = dependency('glm')
@@ -134,8 +137,26 @@ my_exe = executable('myexe',
   dependencies : deps,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
-  c_args : extra_args
+  c_args : extra_args,
+  install : true
 )
+
+if host_machine.system() == 'windows'
+  install_data(
+    meson.current_source_dir() / 'dependencies/FastNoise2Win/bin/FastNoise.dll',
+    install_dir : 'bin/vulkanProject/bin'
+  )
+  install_subdir(
+    meson.current_source_dir() / 'shaders',
+    install_dir : 'bin/vulkanProject/shaders',
+    strip_directory : true
+  )
+  install_subdir(
+    meson.current_source_dir() / 'textures',
+    install_dir : 'bin/vulkanProject/textures',
+    strip_directory : true
+  )
+endif
 
 run_target('run',
   command: my_exe, # Pass the executable() object you defined earlier

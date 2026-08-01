@@ -16,7 +16,7 @@ option(
 option(
     'install',
     type: 'boolean',
-    value: false,
+    value: true,
     description: 'Install GLFW?',
 )
 
