@@ -164,7 +164,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfoSunShadow.pipeline);
 
-    vkCmdSetDepthBias(commandBuffer, /*constant*/ 2.0f, /*clamp*/ 0.0f, /*slope*/ -2.0f);
+    vkCmdSetDepthBias(commandBuffer, /*constant*/ 0.0f, /*clamp*/ 0.0f, /*slope*/ -1.0f);
 
     for (size_t i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];
@@ -186,7 +186,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                                 nullptr);
 
         PushConstant3d pushConstant = {
-            {0.0f, 10.0f, 0.0f}
+            drawCallData.chunkLocation * CHUNK_SIZE
         };
         vkCmdPushConstants(commandBuffer,
                            graphicsPipelineInfo3d.layout,
@@ -323,7 +323,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                                 nullptr);
 
         PushConstant3d pushConstant = {
-            {0.0f, 10.0f, 0.0f}
+            drawCallData.chunkLocation * CHUNK_SIZE
         };
         vkCmdPushConstants(commandBuffer,
                            graphicsPipelineInfo3d.layout,

@@ -3,31 +3,33 @@
 layout(binding = 0) uniform UniformBufferObject {
     mat4 camera;
     mat4 sun;
-    mat4 cameraToSun;
+    mat4 worldToSun;
 } ubo;
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
-layout(location = 2) in vec2 inTexCoord;
-layout(location = 3) in float inTexLayer;
+layout(location = 0) in vec4 inVec1;
+layout(location = 1) in vec2 inVec2;
+layout(location = 2) in vec4 inTexturePlusShadow;
 //layout(location = 4) in readonly buffer quadBuffer;
 
 layout(push_constant) uniform constants
 {
     vec3 chunkWorldLocation;
-} pushConstant;
+} pushConstants;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
-layout(location = 2) out float fragTexLayer;
-layout(location = 3) out vec3 outWorldPosition;
-layout(location = 4) out mat4 cameraToSunMat;
+layout(location = 0) out vec3 outPos;
+layout(location = 1) out vec3 outNormal;
+layout(location = 2) out vec2 outUV;
+layout(location = 3) out float outTextureLayer;
+layout(location = 4) out float outShadow;
+layout(location = 5) out mat4 outWorldToSunMat;
 
 void main() {
-    gl_Position = ubo.camera * vec4(inPosition, 1.0);
-    fragColor = inColor;
-    fragTexCoord = inTexCoord;
-    fragTexLayer = inTexLayer;
-    cameraToSunMat = ubo.cameraToSun;
-    outWorldPosition = inPosition;
+    outPos = pushConstants.chunkWorldLocation + inVec1.xyz * 32.0;
+    gl_Position = ubo.camera * vec4(outPos, 1.0);
+    outNormal = vec3(inVec1.w, inVec2.xy) * 2 - 1;
+
+    outUV = inTexturePlusShadow.xy * 32.0;
+    outTextureLayer = inTexturePlusShadow.z * 1023.0;
+    outShadow = inTexturePlusShadow.w;
+    outWorldToSunMat = ubo.worldToSun;
 }

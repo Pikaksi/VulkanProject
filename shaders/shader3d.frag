@@ -3,13 +3,15 @@
 layout(binding = 1) uniform sampler2DArray texSampler;
 layout(binding = 2) uniform sampler2DShadow sunShadowSampler;
 
-layout(location = 0) in vec3 fragColor;
-layout(location = 1) centroid in vec2 fragTexCoord;
-layout(location = 2) in float fragtexLayer;
-layout(location = 3) in vec3 worldPosition;
-layout(location = 4) in mat4 cameraToSun;
+layout(location = 0) in vec3 inPos;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) centroid in vec2 inUV;
+layout(location = 3) in float inTextureLayer;
+layout(location = 4) in float inShadow;
+layout(location = 5) in mat4 inWorldToSunMat;
 
 layout(location = 0) out vec4 outColor;
+
 
 /*float sampleShadow(vec3 viewPos, int cascade) {
     vec4 c = ubo.lightMatrix * vec4(viewPos, 1.0);
@@ -20,22 +22,25 @@ layout(location = 0) out vec4 outColor;
 }*/
 
 float sampleShadow(vec3 viewPos) {
-    viewPos.y += 0.05;
-    vec4 c = cameraToSun * vec4(viewPos, 1.0);
+    viewPos = viewPos + inNormal.xyz * 0.1;
+    vec4 c = inWorldToSunMat * vec4(viewPos, 1.0);
     c.xyz /= c.w;                        // no-op for ortho, harmless
     if (c.z > 1.0) return 1.0;           // beyond far plane: treat as lit
     if (c.x < 0.0 || c.x > 1.0 || c.y < 0.0 || c.y > 1.0) return 1.0;
-    // .xy = uv, .z = depth to compare
-    return texture(sunShadowSampler, vec3(c.x, c.y, c.z));
+    return texture(sunShadowSampler, vec3(c.x, c.y, c.z)); // first 2 params uv, last one depth to compare against
 }
 
 void main() {
-    vec4 tex = texture(texSampler, vec3(fragTexCoord, fragtexLayer));
+    vec4 color = texture(texSampler, vec3(inUV, inTextureLayer));
 
-    //float shadow = texture(sunShadowSampler, vec3(fragTexCoord, 0.1));
-    float shadow = sampleShadow(worldPosition);
-    tex.xyz = tex.xyz * (0.2 + 0.8 * shadow);
+    if (color.w < 0.5) discard;
 
-    if (tex.w < 0.5) discard;
-    outColor = tex * vec4(fragColor, 0);
+    float shadow = 0.0;
+    if (inShadow == 0) {
+        shadow = sampleShadow(inPos);
+    }
+    color.xyz = color.xyz * (0.2 + 0.8 * shadow);
+    
+
+    outColor = color;
 }

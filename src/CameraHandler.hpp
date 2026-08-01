@@ -29,7 +29,7 @@ public:
 	float slowerSpeedMultiplier = 5.0f;
 	float fasterSpeedMultiplier = 20.0f;
 
-	glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 position = glm::vec3(0.0f, 10.0f, 0.0f);
 
 	float rotationX = 0.0f;
 	float rotationY = 0.0f;

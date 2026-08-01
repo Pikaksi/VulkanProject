@@ -227,7 +227,17 @@ bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo)
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(vulkanCoreInfo.physicalDevice, &supportedFeatures);
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+    std::vector<VkFormat> neededVertexBufferFormats = {
+        VK_FORMAT_R8G8_UNORM, VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_FORMAT_A8B8G8R8_UNORM_PACK32};
+    bool supportsFormats = true;
+    for (auto format : neededVertexBufferFormats) {
+        VkFormatProperties formatProperties;
+        vkGetPhysicalDeviceFormatProperties(vulkanCoreInfo.physicalDevice, format, &formatProperties);
+        bool supportsSNorm = (formatProperties.bufferFeatures & VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) != 0;
+    }
+
+    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy &&
+           supportsFormats;
 }
 
 VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
@@ -237,7 +247,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
 
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
                                 physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-    //return VK_SAMPLE_COUNT_1_BIT;
+    // return VK_SAMPLE_COUNT_1_BIT;
 
     // if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     // if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
@@ -307,12 +317,12 @@ void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo)
 
     VkPhysicalDeviceVulkan12Features enabledVk12Features{};
     enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-    //enabledVk12Features.descriptorIndexing = true;
-    //enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
-    //enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
-    //enabledVk12Features.runtimeDescriptorArray = true;
-    //enabledVk12Features.bufferDeviceAddress = true;
-    
+    // enabledVk12Features.descriptorIndexing = true;
+    // enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
+    // enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
+    // enabledVk12Features.runtimeDescriptorArray = true;
+    // enabledVk12Features.bufferDeviceAddress = true;
+
     VkPhysicalDeviceVulkan13Features enabledVk13Features{};
     enabledVk13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     enabledVk13Features.pNext = &enabledVk12Features;

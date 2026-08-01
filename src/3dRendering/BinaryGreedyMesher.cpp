@@ -2,6 +2,7 @@
 
 #include <numbers>
 #include <bitset>
+#include <algorithm>
 
 #include "BlockTexCoordinateLookup.hpp"
 #include "World/BlockDataLookup.hpp"
@@ -122,7 +123,7 @@ void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocatio
         throw std::runtime_error("Chunk not loaded when it should be!");
     }
 
-    glm::i32vec3 chunkBlockLocationOffset = chunkLocation * CHUNK_SIZE;
+    glm::i32vec3 chunkBlockLocationOffset = glm::ivec3(0, 0, 0); // chunkLocation * CHUNK_SIZE;
 
     // rx = faces that point to the right in the x direction
     BlockBitMask* rxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
@@ -212,185 +213,248 @@ void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocatio
     delete[] lzBlockFaceBitMask;
 }
 
-inline void
-addVerticesRight(BlockType blockType, glm::i32vec3 blockLocation, int lenght, int height, std::vector<Vertex>& vertices)
+uint32_t packR8G8B8A8_UNORM(float r, float g, float b, float a)
+{
+    int ri = round(std::clamp(r, 0.0f, 1.0f) * 255);
+    int gi = round(std::clamp(g, 0.0f, 1.0f) * 255);
+    int bi = round(std::clamp(b, 0.0f, 1.0f) * 255);
+    int ai = round(std::clamp(a, 0.0f, 1.0f) * 255);
+    return ri | (gi << 8) | (bi << 16) | (ai << 24);
+}
+
+uint16_t packR8G8_UNORM(float r, float g)
+{
+    int ri = round(std::clamp(r, 0.0f, 1.0f) * 255);
+    int gi = round(std::clamp(g, 0.0f, 1.0f) * 255);
+    return ri | (gi << 8);
+}
+
+uint32_t packA2R10G10B10_UNORM(float r, float g, float b, float a)
+{
+    int ri = round(std::clamp(r, 0.0f, 1.0f) * 1023);
+    int gi = round(std::clamp(g, 0.0f, 1.0f) * 1023);
+    int bi = round(std::clamp(b, 0.0f, 1.0f) * 1023);
+    int ai = round(std::clamp(a, 0.0f, 1.0f) * 3);
+    return ri | (gi << 10) | (bi << 20) | (ai << 30);
+}
+
+Vertex packVertex(float x,
+                  float y,
+                  float z,
+                  float normalX,
+                  float normalY,
+                  float normalZ,
+                  int shadow,
+                  float u,
+                  float v,
+                  uint32_t textureIndex)
+{
+    return Vertex(packR8G8B8A8_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, normalX + 1.0f / 2.0f),
+                  packR8G8_UNORM(normalY + 1.0f / 2.0f, normalZ + 1.0f / 2.0f),
+                  packA2R10G10B10_UNORM(u / 32.0f, v / 32.0f, textureIndex / 1023.0f, shadow));
+}
+
+// clang-format off
+
+void addVerticesRight(BlockType blockType, glm::i32vec3 blockLocation, int lenght, int height, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[0];
-    vertices.push_back(Vertex{
-        {blockLocation.x + 1, blockLocation.y, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    vertices.push_back(packVertex(
+        blockLocation.x + 1, blockLocation.y, blockLocation.z,
+        1, 0, 0,
+        1,
+        0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + 1, blockLocation.y, blockLocation.z + lenght},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * lenght - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + 1, blockLocation.y, blockLocation.z + lenght,
+        1, 0, 0,
+        1,
+        1.0f * lenght - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + 1, blockLocation.y + height, blockLocation.z + lenght},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * lenght - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + 1, blockLocation.y + height, blockLocation.z + lenght,
+        1, 0, 0,
+        1,
+        1.0f * lenght - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + 1, blockLocation.y + height, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + 1, blockLocation.y + height, blockLocation.z,
+        1, 0, 0,
+        1,
+        0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
+    ));
 }
 
-inline void
-addVerticesLeft(BlockType blockType, glm::i32vec3 blockLocation, int lenght, int height, std::vector<Vertex>& vertices)
+void addVerticesLeft(BlockType blockType, glm::i32vec3 blockLocation, int lenght, int height, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[1];
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y, blockLocation.z},
-        {0.7f, 0.7f, 0.7f},
-        {0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y, blockLocation.z,
+        -1, 0, 0,
+        0,
+        0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y + height, blockLocation.z},
-        {0.7f, 0.7f, 0.7f},
-        {0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y + height, blockLocation.z,
+        -1, 0, 0,
+        0,
+        0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y + height, blockLocation.z + lenght},
-        {0.7f, 0.7f, 0.7f},
-        {1.0f * lenght - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y + height, blockLocation.z + lenght,
+        -1, 0, 0,
+        0,
+        1.0f * lenght - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y, blockLocation.z + lenght},
-        {0.7f, 0.7f, 0.7f},
-        {1.0f * lenght - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y, blockLocation.z + lenght,
+        -1, 0, 0,
+        0,
+        1.0f * lenght - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
+    ));
 }
 
-inline void
-addVerticesUp(BlockType blockType, glm::i32vec3 blockLocation, int width, int lenght, std::vector<Vertex>& vertices)
+void addVerticesUp(BlockType blockType, glm::i32vec3 blockLocation, int width, int lenght, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[2];
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y + 1, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION},
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y + 1, blockLocation.z,
+        0, 1, 0,
+        0,
+        0.0f + UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y + 1, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y + 1, blockLocation.z,
+        0, 1, 0,
+        0,
+        1.0f * width - UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y + 1, blockLocation.z + lenght},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y + 1, blockLocation.z + lenght,
+        0, 1, 0,
+        0,
+        1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y + 1, blockLocation.z + lenght},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y + 1, blockLocation.z + lenght,
+        0, 1, 0,
+        0,
+        0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
+    ));
 }
 
-inline void
-addVerticesDown(BlockType blockType, glm::i32vec3 blockLocation, int width, int lenght, std::vector<Vertex>& vertices)
+void addVerticesDown(BlockType blockType, glm::i32vec3 blockLocation, int width, int lenght, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[3];
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION},
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y, blockLocation.z,
+        0, -1, 0,
+        1,
+        0.0f + UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y, blockLocation.z + lenght},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y, blockLocation.z + lenght,
+        0, -1, 0,
+        1,
+        0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y, blockLocation.z + lenght},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y, blockLocation.z + lenght,
+        0, -1, 0,
+        1,
+        1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y, blockLocation.z,
+        0, -1, 0,
+        1,
+        1.0f * width - UV_EDGE_CORRECTION, 1.0f * lenght - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
+    ));
 }
 
-inline void addVerticesForward(
-    BlockType blockType, glm::i32vec3 blockLocation, int width, int height, std::vector<Vertex>& vertices)
+void addVerticesForward(BlockType blockType, glm::i32vec3 blockLocation, int width, int height, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[4];
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y, blockLocation.z + 1},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y, blockLocation.z + 1,
+        0, 0, 1,
+        1,
+        0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y + height, blockLocation.z + 1},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y + height, blockLocation.z + 1,
+        0, 0, 1,
+        1,
+        0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y + height, blockLocation.z + 1},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y + height, blockLocation.z + 1,
+        0, 0, 1,
+        1,
+        1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y, blockLocation.z + 1},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y, blockLocation.z + 1,
+        0, 0, 1,
+        1,
+        1.0f * width - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
+    ));
 }
 
-inline void addVerticesBackward(
-    BlockType blockType, glm::i32vec3 blockLocation, int width, int height, std::vector<Vertex>& vertices)
+void addVerticesBackward(BlockType blockType, glm::i32vec3 blockLocation, int width, int height, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[5];
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y, blockLocation.z,
+        0, 0, -1,
+        0,
+        0.0f + UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y, blockLocation.z,
+        0, 0, -1,
+        0,
+        1.0f * width - UV_EDGE_CORRECTION, 1.0f * height - UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x + width, blockLocation.y + height, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x + width, blockLocation.y + height, blockLocation.z,
+        0, 0, -1,
+        0,
+        1.0f * width - UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
-    vertices.push_back(Vertex{
-        {blockLocation.x, blockLocation.y + height, blockLocation.z},
-        {0.9f, 0.9f, 0.9f},
-        {0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION},
+    ));
+    vertices.push_back(packVertex(
+        blockLocation.x, blockLocation.y + height, blockLocation.z,
+        0, 0, -1,
+        0,
+        0.0f + UV_EDGE_CORRECTION, 0.0f + UV_EDGE_CORRECTION,
         textureArrayIndex
-    });
+    ));
 }
+
+// clang-format on
 
 void RenderNonSolidBlock(
     int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices)
@@ -416,11 +480,11 @@ void RenderCustomBlock(
     static glm::vec2 uvCoordinates[4] = {
         glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f)};
 
-    for (int i = 0; i < vertexOffsets.size(); i++) {
-        vertices.push_back(Vertex{
-            blockLocation + vertexOffsets[i], {0.9f, 0.9f, 0.9f},
-               uvCoordinates[i % 4], textureArrayIndex
-        });
+    for (size_t i = 0; i < vertexOffsets.size(); i++) {
+        glm::vec3 blockPos = blockLocation + vertexOffsets[i];
+        glm::vec2 blockUV = uvCoordinates[i % 4];
+        vertices.push_back(
+            packVertex(blockPos.x, blockPos.y, blockPos.z, 0, 0, 0, 0, blockUV.x, blockUV.y, textureArrayIndex));
     }
 }
 

@@ -8,7 +8,7 @@
 
 #include "BlockTexCoordinateLookup.hpp"
 
-void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
+/*void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
 {
 	Chunk* chunk = &worldManager.chunks[chunkLocation];
 	Chunk* chunkPX = nullptr;
@@ -58,10 +58,10 @@ void generateChunkMeshData(WorldManager& worldManager, glm::i32vec3 chunkLocatio
 			}
 		}
 	}
-}
+}*/
 
 // chunkPX means chunk in Positive X direction
-void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, BlockType blockType,
+/*void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int locationZ, std::vector<Vertex>& vertices, BlockType blockType,
 	Chunk* chunk, Chunk* chunkPX, Chunk* chunkNX, Chunk* chunkPY, Chunk* chunkNY, Chunk* chunkPZ, Chunk* chunkNZ)
 {
 	std::array<float, 6> textureArrayIndices = blockTypeToTexLayer.at(blockType);
@@ -124,9 +124,9 @@ void addBlockMeshData(int x, int y, int z, int locationX, int locationY, int loc
 		vertices.push_back(Vertex{ {locationX + 1, locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {1.0f, 0.0f}, textureArrayIndices[5] });
 		vertices.push_back(Vertex{ {locationX    , locationY + 1, locationZ    }, {0.6f, 0.6f, 0.6f}, {0.0f, 0.0f}, textureArrayIndices[5] });
 	}
-}
+}*/
 
-void addQuadToFourLastVertices(uint32_t verticesSize, std::vector<uint32_t>& indices)
+/*void addQuadToFourLastVertices(uint32_t verticesSize, std::vector<uint32_t>& indices)
 {
 	indices.push_back(verticesSize - 4);
 	indices.push_back(verticesSize - 3);
@@ -134,9 +134,9 @@ void addQuadToFourLastVertices(uint32_t verticesSize, std::vector<uint32_t>& ind
 	indices.push_back(verticesSize - 2);
 	indices.push_back(verticesSize - 3);
 	indices.push_back(verticesSize - 1);
-}
+}*/
 
-void addQuad(int index1, int index2, int index3, int index4, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+/*void addQuad(int index1, int index2, int index3, int index4, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
 	indices.push_back(index1);
 	indices.push_back(index2);
@@ -144,4 +144,4 @@ void addQuad(int index1, int index2, int index3, int index4, std::vector<Vertex>
 	indices.push_back(index3);
 	indices.push_back(index4);
 	indices.push_back(index1);
-}
+}*/
