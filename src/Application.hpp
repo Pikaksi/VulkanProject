@@ -13,37 +13,21 @@
 // #define STB_IMAGE_IMPLEMENTATION in main.cpp
 //#include <stb_image.h>
 
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
-#include <limits>
-#include <array>
-#include <optional>
-#include <set>
-#include <unordered_map>
 #include <chrono>
-#include <string>
 
 #include "VulkanRendering/VulkanTypes.hpp"
-#include "VulkanRendering/DeviceCreator.hpp"
-#include "VulkanRendering/SwapChain.hpp"
 #include "Rendering/VertexBufferManager.hpp"
 #include "3dRendering/ChunkRenderer.hpp"
-#include "3dRendering/VertexCreator.hpp"
-#include "Rendering/Vertex.hpp"
 #include "2dRendering/UIManager.hpp"
 #include "2dRendering/DebugMenu.hpp"
-#include "FilePathHandler.hpp"
 #include "PlayerInputHandler.hpp"
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
 #include "Player/PlayerInventoryManager.hpp"
-#include "Player/PlayerControls.hpp"
 
 class Application
 {
@@ -79,6 +63,7 @@ private:
     std::vector<ImageInfo> uiImageInfos;
 
     VkDescriptorSetLayout descriptorSetLayout3d;
+    VkDescriptorSetLayout descriptorSetLayoutLod;
     VkDescriptorSetLayout descriptorSetLayout2d;
 
     VkDescriptorPool descriptorPool3d;

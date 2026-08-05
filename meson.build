@@ -1,6 +1,6 @@
 project('my_app', 'cpp',
   version : '0.1',
-  default_options : ['warning_level=3'])
+  default_options : ['warning_level=1'])
 
 src = [
   'src/util/tlsfAllocator.cpp',
@@ -49,7 +49,7 @@ src = [
   'src/main.cpp'
 ]
 
-glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'])
+glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'], default_options: ['default_library=static'])
 #meson wrap install glfw
 
 glm_dep = dependency('glm')
@@ -118,18 +118,12 @@ include_dirs = [
   include_directories('src/util'),
 ]
 
-if meson.get_compiler('cpp').get_id() == 'clang++'
-extra_args = ['-w']
-else
-extra_args = []
-endif
-
 my_exe = executable('myexe',
   sources : src,
   dependencies : deps,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
-  c_args : extra_args
+  cpp_args : ['-w']
 )
 
 run_env = environment()

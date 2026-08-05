@@ -287,7 +287,7 @@ void generateChunk(glm::i32vec3 chunkLocation,
         }
     }
     if (!containsDifferentBlocks) {
-        chunk.resize(false); // contains only one element in block array to reduce space by CHUNK_SIZE * CHUNK_SIZE *
+        chunkResize(chunk, false); // contains only one element in block array to reduce space by CHUNK_SIZE * CHUNK_SIZE *
                              // CHUNK_SIZE amount.
     }
 }

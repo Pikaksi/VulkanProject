@@ -1,9 +1,6 @@
 #include "DefaultWindow.hpp"
-#include <algorithm>
-#include <iostream>
 
-#include "UITextureCreator.hpp"
-#include "UIHelperFunctions.hpp"
+#include "UIQuad.hpp"
 
 void createDefaultWindow(
 	UIManager& uiManager,

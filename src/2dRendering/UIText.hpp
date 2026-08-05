@@ -1,11 +1,10 @@
 #pragma once
 
-#include <vector>
 #include <string>
-#include <memory>
 #include <unordered_map>
 
-#include "UIQuad.hpp"
+#include "UIManager.hpp"
+#include "UICenteringMode.hpp"
 
 const float LETTERS_IN_TEX_ROW = 16.0f;
 const float LETTERS_IN_TEX_COLUMN = 8.0f;

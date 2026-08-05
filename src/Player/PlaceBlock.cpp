@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "CameraHandler.hpp"
+#include "VertexCreator.hpp"
 
 void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk, BlockType blockToPlace, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
 {

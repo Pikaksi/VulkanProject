@@ -3,6 +3,7 @@
 #include "VulkanTypes.hpp"
 
 VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo& vulkanCoreInfo);
+VkDescriptorSetLayout createDescriptorSetLayoutLod(VulkanCoreInfo& vulkanCoreInfo);
 VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo);
 
 VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo);

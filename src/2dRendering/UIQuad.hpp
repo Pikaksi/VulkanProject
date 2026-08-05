@@ -2,7 +2,6 @@
 
 #include "UIManager.hpp"
 #include "UITexLayer.hpp"
-#include "UICenteringMode.hpp"
 
 void createUIQuad(
     UIManager& uiManager,

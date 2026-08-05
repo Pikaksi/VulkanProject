@@ -1,50 +1,48 @@
 #include "UIManager.hpp"
 
-#include <chrono>
 #include <vector>
 
+#include "Constants.hpp"
+#include "GPUMemoryBlock.hpp"
 #include "UIHelperFunctions.hpp"
 #include "PlayerInputHandler.hpp"
-
-void UIManager::updateScreen(VkExtent2D extent, VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, VertexBufferManager& vertexBufferManager)
-{
-	if (hasAllocatedGPUBlockMemory) {
-		vertexBufferManager.freeUIVerticesMemory(uiMemoryPointer);
-		hasAllocatedGPUBlockMemory = false;
-	}
-
-	if (!hasAllocatedGPUBlockMemory && vertices.size() != 0) {
-		uiMemoryPointer = vertexBufferManager.addVerticesToUI(vulkanCoreInfo, commandPool, vertices);
-		vertices.clear();
-		hasAllocatedGPUBlockMemory = true;
-	}
-}
-
-std::vector<Vertex2D>& UIManager::getVertexVector()
-{
-	return vertices;
-}
-
-glm::vec2 UIManager::getScalar()
-{
-	return scalar;
-}
+#include "VulkanTypes.hpp"
 
 glm::vec2 UIManager::getMousePositionScreenSpace()
 {
-	return glm::vec2(
-		(float)PlayerInputHandler::getInstance().mouseLocationX * 2.0f / (float)extent.width - 1.0f,
-		(float)PlayerInputHandler::getInstance().mouseLocationY * 2.0f / (float)extent.height - 1.0f
-	);
-}
-
-VkExtent2D UIManager::getExtent()
-{
-	return extent;
+    return glm::vec2((float)PlayerInputHandler::getInstance().mouseLocationX * 2.0f / (float)extent.width - 1.0f,
+                     (float)PlayerInputHandler::getInstance().mouseLocationY * 2.0f / (float)extent.height - 1.0f);
 }
 
 void UIManager::changeExtent(VkExtent2D newExtent)
 {
-	extent = newExtent;
-	scalar = getScalarFromExtent(newExtent);
+    extent = newExtent;
+    scalar = getScalarFromExtent(newExtent);
+}
+
+void UIManager::writeToBufferAndClear(uint32_t currentFrame)
+{
+    if (vertices.size() == 0) {
+        return;
+    }
+    gpuMemoryBlockFreeAll(gpuMemoryBlocks[currentFrame]);
+    gpuMemoryBlockAddHostVisible(gpuMemoryBlocks[currentFrame], (void*)vertices.data(), sizeof(Vertex2D) * vertices.size());
+    vertices.clear();
+}
+
+void UIManager::init(VulkanCoreInfo& vulkanCoreInfo, VkExtent2D extent)
+{
+    changeExtent(extent);
+
+    for (size_t i = 0; i < gpuMemoryBlocks.size(); i++) {
+        gpuMemoryBlockInit(
+            vulkanCoreInfo, gpuMemoryBlocks[i], sizeof(Vertex2D), UI_GPU_BUFFER_SIZE, INDEX_BUFFER_QUAD_COUNT * 4, true);
+    }
+}
+
+void UIManager::cleanup(VulkanCoreInfo& vulkanCoreInfo)
+{
+    for (auto memoryBlock : gpuMemoryBlocks) {
+        gpuMemoryBlockDestroy(vulkanCoreInfo, memoryBlock);
+    }
 }

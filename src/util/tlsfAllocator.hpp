@@ -32,6 +32,7 @@ void tlsfInit(TlsfAllocator& allocator, uint64_t size);
 uint64_t tlsfAllocate(TlsfAllocator& allocator, uint64_t size);
 void tlsfFree(TlsfAllocator& allocator, uint64_t location);
 void tlsfDestroy(TlsfAllocator& allocator);
+void tlsfFreeAll(TlsfAllocator& allocator);
 void tlsfTest();
 void tlsfDebugPrint(TlsfAllocator& allocator);
 void tlsfCheckHealth(TlsfAllocator& allocator);

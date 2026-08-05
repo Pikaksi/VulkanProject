@@ -1,22 +1,25 @@
 #include <stdexcept>
-#include <utility>
 #include <vector>
 #include <array>
 
 #include "FrameDrawer.hpp"
+#include "Constants.hpp"
+#include "DebugMenu.hpp"
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
+#include "UIManager.hpp"
 #include "VulkanTypes.hpp"
 #include "World/Chunk.hpp"
 #include "vulkan/vulkan_core.h"
 
 void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
+                       SwapChainInfo& swapChainInfo,
                        std::vector<VkSemaphore>& imageAvailableSemaphores,
                        std::vector<VkSemaphore>& renderFinishedSemaphores,
                        std::vector<VkFence>& inFlightFences)
 {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores.resize(swapChainInfo.images.size());
     inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
     VkSemaphoreCreateInfo semaphoreInfo{};
@@ -27,12 +30,20 @@ void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        if (vkCreateFence(vulkanCoreInfo.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create fences");
+        }
+    }
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) !=
-                VK_SUCCESS ||
-            vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
-                VK_SUCCESS ||
-            vkCreateFence(vulkanCoreInfo.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create synchronization objects for a frame!");
+            VK_SUCCESS) {
+            throw std::runtime_error("Failed to create image available semaphores");
+        }
+    }
+    for (size_t i = 0; i < swapChainInfo.images.size(); i++) {
+        if (vkCreateSemaphore(vulkanCoreInfo.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
+            VK_SUCCESS) {
+            throw std::runtime_error("Failed to create render finished semaphores");
         }
     }
 }
@@ -58,6 +69,8 @@ struct ChunkCenterOffsets
 
 void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustumNormals& viewingFrustumNormals)
 {
+    const int viewingFrustumSafetyOffset = 0;
+
     chunkCenterOffsets.top = {
         viewingFrustumNormals.top.x > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
         viewingFrustumNormals.top.y > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset,
@@ -94,19 +107,10 @@ bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
                     viewingFrustumNormals.left) < 0.0f;
 }
 
-void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
-                         SwapChainInfo& swapChainInfo,
-                         GraphicsPipelineInfo& graphicsPipelineInfo3d,
-                         GraphicsPipelineInfo& graphicsPipelineInfoSunShadow,
-                         GraphicsPipelineInfo& graphicsPipelineInfo2d,
-                         VkDescriptorSet descriptorSet3d,
-                         VkDescriptorSet descriptorSet2d,
-                         VkCommandBuffer commandBuffer,
-                         uint32_t swapChainImageIndex,
-                         uint32_t currentFrame,
-                         VertexBufferManager& vertexBufferManager,
-                         CameraHandler& cameraHandler)
+void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint32_t swapChainImageIndex)
 {
+    auto commandBuffer = draw.commandBuffers[draw.currentFrame];
+
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -117,27 +121,30 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     VkBuffer worldVertexBuffer;
     std::vector<WorldDrawCallData> worldDrawCallData;
     VkBuffer worldIndexBuffer;
-    vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
+    draw.vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
 
     // ---------------- SUN SHADOW PASS ----------------
 
+    std::cout << "here1" << std::endl;
     {
-        VkImageMemoryBarrier2 presentImageToAttachmentBarrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-            .srcStageMask = VK_PIPELINE_STAGE_2_NONE,
-            .srcAccessMask = 0,
-            .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
-            .dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-            .image = swapChainInfo.sunShadowImage.image,
-            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
-        };
+        VkImageMemoryBarrier2 shadowImageToAttachmentBarrier;
+        shadowImageToAttachmentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+        shadowImageToAttachmentBarrier.srcStageMask = VK_PIPELINE_STAGE_2_NONE;
+        shadowImageToAttachmentBarrier.srcAccessMask = 0;
+        shadowImageToAttachmentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+        shadowImageToAttachmentBarrier.dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        shadowImageToAttachmentBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        shadowImageToAttachmentBarrier.newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+        shadowImageToAttachmentBarrier.image = swapChainInfo.sunShadowImage.image;
+
+        shadowImageToAttachmentBarrier.subresourceRange =
+            VkImageSubresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1};
         VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                                                .imageMemoryBarrierCount = 1,
-                                               .pImageMemoryBarriers = &presentImageToAttachmentBarrier};
+                                               .pImageMemoryBarriers = &shadowImageToAttachmentBarrier};
         vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
     }
+    std::cout << "here2" << std::endl;
 
     VkRenderingAttachmentInfo sunShadowDepthAttachmentInfo{};
     sunShadowDepthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -155,14 +162,14 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     sunShadowRenderingInfo.pColorAttachments = nullptr;
     sunShadowRenderingInfo.pDepthAttachment = &sunShadowDepthAttachmentInfo;
     sunShadowRenderingInfo.renderArea = VkRect2D{
-        .offset = {0, 0},
-        .extent{.width = 2048, .height = 2048}
+        .offset = {0,             0             },
+          .extent{.width = 2048, .height = 2048}
     };
     sunShadowRenderingInfo.layerCount = 1;
 
     vkCmdBeginRendering(commandBuffer, &sunShadowRenderingInfo);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfoSunShadow.pipeline);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineSunShadow.pipeline);
 
     vkCmdSetDepthBias(commandBuffer, /*constant*/ 0.0f, /*clamp*/ 0.0f, /*slope*/ -1.0f);
 
@@ -178,18 +185,16 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                graphicsPipelineInfo3d.layout,
+                                draw.pipeline3d.layout,
                                 0,
                                 1,
-                                &descriptorSet3d,
+                                &draw.descriptorSets3d[draw.currentFrame],
                                 0,
                                 nullptr);
 
-        PushConstant3d pushConstant = {
-            drawCallData.chunkLocation * CHUNK_SIZE
-        };
+        PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
         vkCmdPushConstants(commandBuffer,
-                           graphicsPipelineInfo3d.layout,
+                           draw.pipeline3d.layout,
                            VK_SHADER_STAGE_VERTEX_BIT,
                            0,
                            sizeof(PushConstant3d),
@@ -289,20 +294,18 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     scissor.extent = swapChainInfo.extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo3d.pipeline);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipeline3d.pipeline);
 
     ViewingFrustumNormals viewingFrustumNormals;
-    cameraHandler.getViewingFrustumNormals(swapChainInfo.extent, viewingFrustumNormals);
+    draw.cameraHandler.getViewingFrustumNormals(swapChainInfo.extent, viewingFrustumNormals);
     ChunkCenterOffsets chunkCenterOffsets;
     getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
-
-    // Render world.
 
     for (int i = 0; i < worldDrawCallData.size(); i++) {
         WorldDrawCallData drawCallData = worldDrawCallData[i];
 
         if (!chunkIsInViewingFrustum(
-                cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
+                draw.cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
             continue;
         }
 
@@ -315,18 +318,16 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                graphicsPipelineInfo3d.layout,
+                                draw.pipeline3d.layout,
                                 0,
                                 1,
-                                &descriptorSet3d,
+                                &draw.descriptorSets3d[draw.currentFrame],
                                 0,
                                 nullptr);
 
-        PushConstant3d pushConstant = {
-            drawCallData.chunkLocation * CHUNK_SIZE
-        };
+        PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
         vkCmdPushConstants(commandBuffer,
-                           graphicsPipelineInfo3d.layout,
+                           draw.pipeline3d.layout,
                            VK_SHADER_STAGE_VERTEX_BIT,
                            0,
                            sizeof(PushConstant3d),
@@ -336,19 +337,17 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
         vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, 0, 0);
     }
 
-    // Render UI.
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineInfo2d.pipeline);
+    // ---------------- UI PASS----------------
 
-    auto startingTime = std::chrono::high_resolution_clock::now();
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipeline2d.pipeline);
 
+    draw.uiManager.writeToBufferAndClear(draw.currentFrame);
     VkBuffer uiVertexBuffer;
     std::vector<VkDeviceSize> uiVertexOffsets;
-    std::vector<uint32_t> uiBatchVertexCounts;
-    VkBuffer uiIndexBuffer;
-    vertexBufferManager.getUIGeometryForRendering(uiVertexBuffer, uiVertexOffsets, uiBatchVertexCounts, uiIndexBuffer);
-    auto endingTime = std::chrono::high_resolution_clock::now();
-    auto timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(endingTime - startingTime).count();
-    // std::cout << "time taken to render UI in nanoseconds is " << timeTaken << "\n";
+    std::vector<uint64_t> uiBatchVertexCounts;
+    gpuMemoryBlockGetData(
+        draw.uiManager.gpuMemoryBlocks[draw.currentFrame], uiVertexBuffer, uiVertexOffsets, uiBatchVertexCounts);
+    VkBuffer uiIndexBuffer = draw.vertexBufferManager.quadStripIndexBuffer.getBuffer();
 
     for (int i = 0; i < uiVertexOffsets.size(); i++) {
         VkBuffer vertexBuffers[] = {uiVertexBuffer};
@@ -360,10 +359,10 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                graphicsPipelineInfo2d.layout,
+                                draw.pipeline2d.layout,
                                 0,
                                 1,
-                                &descriptorSet2d,
+                                &draw.descriptorSets2d[draw.currentFrame],
                                 0,
                                 nullptr);
 
@@ -395,78 +394,57 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     }
 }
 
-void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
-               SwapChainInfo& swapChainInfo,
-               GraphicsPipelineInfo& graphicsPipelineInfo3d,
-               GraphicsPipelineInfo& graphicsPipelineInfoSunShadow,
-               GraphicsPipelineInfo& graphicsPipelineInfo2d,
-               std::vector<VkDescriptorSet>& descriptorSets3d,
-               std::vector<VkDescriptorSet>& descriptorSets2d,
-               std::vector<UniformBufferInfo>& uniformBufferInfos,
-               uint32_t& currentFrame,
-               bool& framebufferResized,
-               std::vector<VkCommandBuffer>& commandBuffers,
-               std::vector<VkSemaphore>& imageAvailableSemaphores,
-               std::vector<VkSemaphore>& renderFinishedSemaphores,
-               std::vector<VkFence>& inFlightFences,
-               VkCommandPool commandPool,
-               CameraHandler& cameraHandler,
-               VertexBufferManager& vertexBufferManager,
-               UIManager& uIManager)
+void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, FrameDrawInfo& draw)
 {
-    vkWaitForFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    auto debugStartWait = std::chrono::high_resolution_clock::now();
+
+    vkWaitForFences(vulkanCoreInfo.device, 1, &draw.inFlightFences[draw.currentFrame], VK_TRUE, UINT64_MAX);
+
+    auto debugEndWait = std::chrono::high_resolution_clock::now();
+    draw.debugMenu.fenceWaitTimeLast =
+        std::chrono::duration<float, std::chrono::milliseconds::period>(debugEndWait - debugStartWait).count();
 
     uint32_t swapChainImageIndex;
     VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo.device,
                                             swapChainInfo.swapChain,
                                             UINT64_MAX,
-                                            imageAvailableSemaphores[currentFrame],
+                                            draw.imageAvailableSemaphores[draw.currentFrame],
                                             VK_NULL_HANDLE,
                                             &swapChainImageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        recreateSwapChain(vulkanCoreInfo, swapChainInfo, commandPool);
+        recreateSwapChain(vulkanCoreInfo, swapChainInfo, draw.commandPool);
         return;
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
-    updateUniformBuffer(currentFrame, uniformBufferInfos, cameraHandler, swapChainInfo.extent);
+    updateUniformBuffer(draw.currentFrame, draw.uniformBufferInfos, draw.cameraHandler, swapChainInfo.extent);
 
-    vkResetFences(vulkanCoreInfo.device, 1, &inFlightFences[currentFrame]);
+    vkResetFences(vulkanCoreInfo.device, 1, &draw.inFlightFences[draw.currentFrame]);
 
-    vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    recordCommandBuffer(vulkanCoreInfo,
-                        swapChainInfo,
-                        graphicsPipelineInfo3d,
-                        graphicsPipelineInfoSunShadow,
-                        graphicsPipelineInfo2d,
-                        descriptorSets3d[currentFrame],
-                        descriptorSets2d[currentFrame],
-                        commandBuffers[currentFrame],
-                        swapChainImageIndex,
-                        currentFrame,
-                        vertexBufferManager,
-                        cameraHandler);
+    vkResetCommandBuffer(draw.commandBuffers[draw.currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+    recordCommandBuffer(swapChainInfo, draw, swapChainImageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+    VkSemaphore waitSemaphores[] = {draw.imageAvailableSemaphores[draw.currentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
+    submitInfo.pCommandBuffers = &draw.commandBuffers[draw.currentFrame];
 
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+    VkSemaphore signalSemaphores[] = {draw.renderFinishedSemaphores[swapChainImageIndex]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
     // std::cout << "here1" << std::endl;
-    if (vkQueueSubmit(vulkanCoreInfo.graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+    if (vkQueueSubmit(vulkanCoreInfo.graphicsQueue, 1, &submitInfo, draw.inFlightFences[draw.currentFrame]) !=
+        VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
     // std::cout << "here2" << std::endl;
@@ -485,14 +463,14 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo,
 
     result = vkQueuePresentKHR(vulkanCoreInfo.presentQueue, &presentInfo);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-        recreateSwapChain(vulkanCoreInfo, swapChainInfo, commandPool);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || draw.framebufferResized) {
+        recreateSwapChain(vulkanCoreInfo, swapChainInfo, draw.commandPool);
 
-        framebufferResized = false;
+        draw.framebufferResized = false;
     }
     else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
 
-    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    draw.currentFrame = (draw.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }

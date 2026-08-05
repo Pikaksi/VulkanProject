@@ -5,15 +5,12 @@
 #include <stdexcept>
 #include <array>
 #include <iostream>
-#include <utility>
 
 #include "Commands.hpp"
-#include "Constants.hpp"
 #include "DeviceCreator.hpp"
 #include "ImageCreator.hpp"
 #include "VulkanUtilities.hpp"
 #include "vulkan/vulkan_core.h"
-#include "util/assertm.hpp"
 
 SwapChainSupportDetails querySwapChainSupport(VulkanCoreInfo& vulkanCoreInfo)
 {
@@ -328,6 +325,10 @@ void cleanupSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainIn
     vkDestroyImageView(vulkanCoreInfo.device, swapChainInfo.colorImage.view, nullptr);
     vkDestroyImage(vulkanCoreInfo.device, swapChainInfo.colorImage.image, nullptr);
     vkFreeMemory(vulkanCoreInfo.device, swapChainInfo.colorImage.memory, nullptr);
+
+    vkDestroyImageView(vulkanCoreInfo.device, swapChainInfo.sunShadowImage.view, nullptr);
+    vkDestroyImage(vulkanCoreInfo.device, swapChainInfo.sunShadowImage.image, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, swapChainInfo.sunShadowImage.memory, nullptr);
 
     for (auto imageView : swapChainInfo.imageViews) {
         vkDestroyImageView(vulkanCoreInfo.device, imageView, nullptr);

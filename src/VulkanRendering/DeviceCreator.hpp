@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VulkanRendering/VulkanTypes.hpp"
+#include <optional>
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;

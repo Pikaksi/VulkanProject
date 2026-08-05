@@ -232,6 +232,39 @@ void tlsfFree(TlsfAllocator& allocator, uint64_t location)
     placeEmptyBlockInBuckets(allocator, usedBlock);
 }
 
+void tlsfFreeAll(TlsfAllocator& allocator)
+{
+    TlsfBlockHeader* block = allocator.firstPhysicalBlock;
+    while (block != nullptr) {
+        TlsfBlockHeader* prevBlock = block;
+        block = block->nextPhysical;
+        delete prevBlock;
+    }
+
+    while (allocator.layer1BitMask != 0) {
+        int loc = std::countr_zero(allocator.layer1BitMask);
+
+        while (allocator.layer2BitMask[loc] != 0) {
+            int loc2 = std::countr_zero(allocator.layer2BitMask[loc]);
+
+            allocator.layer2Blocks[loc][loc2] = nullptr;
+
+            allocator.layer2BitMask[loc] &= allocator.layer2BitMask[loc] - 1;
+        }
+
+        allocator.layer1BitMask &= allocator.layer1BitMask - 1;
+    }
+
+    TlsfBlockHeader* firstEmptyBlock = new TlsfBlockHeader;
+    firstEmptyBlock->free = true;
+    firstEmptyBlock->size = allocator.size;
+    firstEmptyBlock->location = 0;
+
+    allocator.firstPhysicalBlock = firstEmptyBlock;
+
+    placeEmptyBlockInBuckets(allocator, firstEmptyBlock);
+}
+
 void tlsfDestroy(TlsfAllocator& allocator)
 {
     TlsfBlockHeader* block = allocator.firstPhysicalBlock;
@@ -240,7 +273,6 @@ void tlsfDestroy(TlsfAllocator& allocator)
         block = block->nextPhysical;
         delete prevBlock;
     }
-    delete &allocator;
 }
 
 void tlsfCheckHealth(TlsfAllocator& allocator)
@@ -348,4 +380,5 @@ void tlsfTest()
     assertm(block == nullptr, "tlsf test failed 8");
 
     tlsfDestroy(*allocator);
+    delete allocator;
 }

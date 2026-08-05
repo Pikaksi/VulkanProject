@@ -5,7 +5,7 @@
 #include "Inventory/Item.hpp"
 #include "UITexLayer.hpp"
 
-std::map<Item, UITexLayer> itemToUITexLayer = {
+static const std::map<Item, UITexLayer> itemToUITexLayer = {
     {Item::dirt, UITexLayer::itemDirt}, 
     {Item::grassBlock, UITexLayer::itemGrassBlock}, 
     {Item::oakLog, UITexLayer::itemOakLog}, 

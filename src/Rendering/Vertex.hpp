@@ -8,6 +8,8 @@
 #include <array>
 #include <cinttypes>
 
+// TODO: Measure 2 power vertex size impact on performance.
+
 struct Vertex {
     // pos 3 * 8
     // normal 3 * 8
@@ -49,6 +51,41 @@ struct Vertex {
         attributeDescriptions[3].location = 3;
         attributeDescriptions[3].format = VK_FORMAT_R32_SFLOAT;
         attributeDescriptions[3].offset = offsetof(Vertex, texLayer);*/
+
+        return attributeDescriptions;
+    }
+
+    /*bool operator==(const Vertex& other) const {
+        return pos == other.pos && color == other.color && texCoord == other.texCoord;
+    }*/
+};
+
+struct VertexLod {
+    uint16_t pos;
+    uint16_t colorAndNormal;
+
+
+    static VkVertexInputBindingDescription getBindingDescription() {
+        VkVertexInputBindingDescription bindingDescription{};
+        bindingDescription.binding = 0;
+        bindingDescription.stride = sizeof(VertexLod);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        return bindingDescription;
+    }
+
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_A1B5G5R5_UNORM_PACK16;
+        attributeDescriptions[0].offset = offsetof(VertexLod, pos);
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+        attributeDescriptions[1].offset = offsetof(VertexLod, colorAndNormal);
 
         return attributeDescriptions;
     }

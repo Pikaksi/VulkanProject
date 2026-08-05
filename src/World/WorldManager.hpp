@@ -15,15 +15,16 @@ class ChunkRenderer;
 #include "ECS/EntityManager.hpp"
 #include "ChunkRenderer.hpp"
 
-class WorldManager
+struct WorldManager
 {
-public:
-	std::unordered_map<glm::i32vec3, Chunk> chunks;
-	std::unordered_map<glm::i32vec3, Chunk> ungeneratedStructures;
-	std::unordered_map<glm::ivec3, std::unordered_map<glm::ivec3, EntityID>> blockEntities;
+    std::unordered_map<glm::i32vec3, Chunk> chunks;
+    std::unordered_map<glm::i32vec3, Chunk> ungeneratedStructures;
+    std::unordered_map<glm::ivec3, std::unordered_map<glm::ivec3, EntityID>> blockEntities;
 
-	WorldManager() {}
+    WorldManager() {}
 
-	void tryGeneratingNewChunk(glm::i32vec3 chunkLocation, std::unordered_set<glm::ivec3>& chunksToRerender, ChunkRenderer& chunkRenderer);
-	EntityID generateEntity(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, uint64_t componentBitmask);
+    void tryGeneratingNewChunk(glm::i32vec3 chunkLocation,
+                               std::unordered_set<glm::ivec3>& chunksToRerender,
+                               ChunkRenderer& chunkRenderer);
+    EntityID generateEntity(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, uint64_t componentBitmask);
 };

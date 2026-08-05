@@ -6,7 +6,6 @@
 #include "glm/mat4x4.hpp"
 
 #include <vector>
-#include <optional>
 
 struct VulkanCoreInfo
 {

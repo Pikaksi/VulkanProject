@@ -6,6 +6,7 @@
 #include "2dRendering/UIHelperFunctions.hpp"
 #include "PlayerInputHandler.hpp"
 #include "2dRendering/DefaultWindow.hpp"
+#include "UIQuad.hpp"
 
 void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std::optional<int>& howerOverSlot, Inventory& inventory, InventoryLayout inventoryLayout, bool renderWindow)
 {
@@ -17,7 +18,7 @@ void renderInventory(UIManager& uiManager, std::optional<int>& clickedSlot, std:
     glm::vec2 windowSize = {1.0f, 1.0f}; 
     float topBarHeight = 0.05f;
 
-    windowSize *= uiManager.getScalar();
+    windowSize *= uiManager.scalar;
     centerLocation(windowLocation, windowSize, UICenteringMode::center);
 
     if (renderWindow) {

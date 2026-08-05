@@ -4,14 +4,12 @@
 
 #include "Rendering/Vertex.hpp"
 #include "VulkanRendering/VulkanTypes.hpp"
-#include "VulkanRendering/Buffers.hpp"
 #include "Rendering/GPUMemoryBlock.hpp"
 #include "3dRendering/QuadStripIndexBuffer.hpp"
 #include "3dRendering/WorldVertexTracker.hpp"
 
-class VertexBufferManager
+struct VertexBufferManager
 {
-  public:
     VertexBufferManager() {}
     VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
                         VkCommandPool commandPool,
@@ -23,10 +21,6 @@ class VertexBufferManager
                                 std::vector<Vertex>& vertices,
                                 glm::ivec3 chunkLocation);
     void freeWorldVerticesMemory(uint32_t memoryBlockLocation);
-    uint64_t addVerticesToUI(VulkanCoreInfo& vulkanCoreInfo,
-                                              VkCommandPool commandPool,
-                                              std::vector<Vertex2D>& vertices);
-    void freeUIVerticesMemory(uint64_t memoryBlockLocation);
 
     void getWorldGeometryForRendering(VkBuffer& vertexBuffer,
                                       std::vector<WorldDrawCallData>& vertexOffsets,
@@ -39,11 +33,8 @@ class VertexBufferManager
 
     void cleanUp(VulkanCoreInfo& vulkanCoreInfo);
 
-    // public for debugging
     GpuMemoryBlock* worldGpuMemoryBlock;
     WorldVertexTracker worldVertexTracker;
-
-    GpuMemoryBlock* uiGpuMemoryBlock;
 
     QuadStripIndexBuffer quadStripIndexBuffer;
 };

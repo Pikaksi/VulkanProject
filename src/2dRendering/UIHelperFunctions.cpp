@@ -1,7 +1,5 @@
 #include "UIHelperFunctions.hpp"
 
-#include <iostream>
-
 glm::vec2 getScalarFromExtent(VkExtent2D extent)
 {
     glm::vec2 sizeScalar = { 1.0f, 1.0f };
