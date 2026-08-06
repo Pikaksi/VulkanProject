@@ -1,10 +1,12 @@
 #include "BinaryGreedyMesher.hpp"
 
+#include <chrono>
 #include <numbers>
 #include <bitset>
 #include <algorithm>
 
 #include "BlockTexCoordinateLookup.hpp"
+#include "DebugMenu.hpp"
 #include "World/BlockDataLookup.hpp"
 #include "Rendering/TextureCreator.hpp"
 #include "World/Chunk.hpp"
@@ -77,53 +79,12 @@ BlockBitMask getBlockFacesRightShift(BlockBitMask blockBitMask)
     return (((~blockBitMask) << 1) & blockBitMask) & chunkOuterBitsOff();
 }
 
-void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
+void binaryGreedyMeshChunk2(
+    glm::i32vec3 chunkLocation,
+    std::array<std::array<std::array<BlockType, CHUNK_SIZE + 2>, CHUNK_SIZE + 2>, CHUNK_SIZE + 2> blocks,
+    std::vector<Vertex>& vertices)
 {
-    Chunk* chunk = &worldManager.chunks[chunkLocation];
-
-    if (!chunk->containsDifferentBlocks) {
-        return;
-    }
-
-    Chunk* chunkPX = nullptr;
-    Chunk* chunkNX = nullptr;
-    Chunk* chunkPY = nullptr;
-    Chunk* chunkNY = nullptr;
-    Chunk* chunkPZ = nullptr;
-    Chunk* chunkNZ = nullptr;
-
-    glm::i32vec3 pX = glm::i32vec3(chunkLocation.x + 1, chunkLocation.y, chunkLocation.z);
-    glm::i32vec3 nX = glm::i32vec3(chunkLocation.x - 1, chunkLocation.y, chunkLocation.z);
-    glm::i32vec3 pY = glm::i32vec3(chunkLocation.x, chunkLocation.y + 1, chunkLocation.z);
-    glm::i32vec3 nY = glm::i32vec3(chunkLocation.x, chunkLocation.y - 1, chunkLocation.z);
-    glm::i32vec3 pZ = glm::i32vec3(chunkLocation.x, chunkLocation.y, chunkLocation.z + 1);
-    glm::i32vec3 nZ = glm::i32vec3(chunkLocation.x, chunkLocation.y, chunkLocation.z - 1);
-
-    if (worldManager.chunks.contains(pX)) {
-        chunkPX = &worldManager.chunks[pX];
-    }
-    if (worldManager.chunks.contains(nX)) {
-        chunkNX = &worldManager.chunks[nX];
-    }
-    if (worldManager.chunks.contains(pY)) {
-        chunkPY = &worldManager.chunks[pY];
-    }
-    if (worldManager.chunks.contains(nY)) {
-        chunkNY = &worldManager.chunks[nY];
-    }
-    if (worldManager.chunks.contains(pZ)) {
-        chunkPZ = &worldManager.chunks[pZ];
-    }
-    if (worldManager.chunks.contains(nZ)) {
-        chunkNZ = &worldManager.chunks[nZ];
-    }
-
-    if (chunkPX == nullptr || chunkNX == nullptr || chunkPY == nullptr || chunkNY == nullptr || chunkPZ == nullptr ||
-        chunkNZ == nullptr) {
-        throw std::runtime_error("Chunk not loaded when it should be!");
-    }
-
-    glm::i32vec3 chunkBlockLocationOffset = glm::ivec3(0, 0, 0); // chunkLocation * CHUNK_SIZE;
+    auto debugStartWait = std::chrono::high_resolution_clock::now();
 
     // rx = faces that point to the right in the x direction
     BlockBitMask* rxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
@@ -132,23 +93,30 @@ void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocatio
     BlockBitMask* lyBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
     BlockBitMask* rzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
     BlockBitMask* lzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+
+    for (int z = 1; z < CHUNK_SIZE + 1; z++) {
+        for (int y = 1; y < CHUNK_SIZE + 1; y++) {
+            for (int x = 1; x < CHUNK_SIZE + 1; x++) {
+                BlockType block = blocks[x][y][z];
+                if (getRenderType(block) == BlockRenderType::transparent) {
+                    renderNonSolidBlock(x, y, z, block, vertices);
+                }
+                if (getRenderType(block) == BlockRenderType::custom) {
+                    renderCustomBlock(x, y, z, block, vertices);
+                }
+            }
+        }
+    }
+
     for (int y = 0; y < CHUNK_SIZE; y++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
 
-            BlockBitMask blockBitMask = 0;
+            BlockBitMask block BitMask = 0;
             blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX));
 
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 BlockType block = chunkGetBlockAtLocation(x, y, z, chunk);
                 blockBitMask |= (BlockBitMask)isBlockSolid(block) << (x + 1);
-
-                // also check for non solid block rendering here
-                if (getRenderType(block) == BlockRenderType::transparent) {
-                    RenderNonSolidBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
-                }
-                if (getRenderType(block) == BlockRenderType::custom) {
-                    RenderCustomBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
-                }
             }
             blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(0, y, z, chunkPX)) << CHUNK_SIZE + 1;
 
@@ -211,7 +179,162 @@ void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocatio
     delete[] lyBlockFaceBitMask;
     delete[] rzBlockFaceBitMask;
     delete[] lzBlockFaceBitMask;
+
+    auto debugEndWait = std::chrono::high_resolution_clock::now();
+    debugMenuGlobals.chunkGenTimeTotal +=
+        std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
+    debugMenuGlobals.chunksGenerated += 1;
 }
+
+/*void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
+{
+    Chunk* chunk = &worldManager.chunks[chunkLocation];
+
+    if (!chunk->containsDifferentBlocks && !isBlockSolid(chunk->blocks[0])) {
+        return;
+    }
+    auto debugStartWait = std::chrono::high_resolution_clock::now();
+
+    Chunk* chunkPX = nullptr;
+    Chunk* chunkNX = nullptr;
+    Chunk* chunkPY = nullptr;
+    Chunk* chunkNY = nullptr;
+    Chunk* chunkPZ = nullptr;
+    Chunk* chunkNZ = nullptr;
+
+    glm::i32vec3 pX = glm::i32vec3(chunkLocation.x + 1, chunkLocation.y, chunkLocation.z);
+    glm::i32vec3 nX = glm::i32vec3(chunkLocation.x - 1, chunkLocation.y, chunkLocation.z);
+    glm::i32vec3 pY = glm::i32vec3(chunkLocation.x, chunkLocation.y + 1, chunkLocation.z);
+    glm::i32vec3 nY = glm::i32vec3(chunkLocation.x, chunkLocation.y - 1, chunkLocation.z);
+    glm::i32vec3 pZ = glm::i32vec3(chunkLocation.x, chunkLocation.y, chunkLocation.z + 1);
+    glm::i32vec3 nZ = glm::i32vec3(chunkLocation.x, chunkLocation.y, chunkLocation.z - 1);
+
+    if (worldManager.chunks.contains(pX)) {
+        chunkPX = &worldManager.chunks[pX];
+    }
+    if (worldManager.chunks.contains(nX)) {
+        chunkNX = &worldManager.chunks[nX];
+    }
+    if (worldManager.chunks.contains(pY)) {
+        chunkPY = &worldManager.chunks[pY];
+    }
+    if (worldManager.chunks.contains(nY)) {
+        chunkNY = &worldManager.chunks[nY];
+    }
+    if (worldManager.chunks.contains(pZ)) {
+        chunkPZ = &worldManager.chunks[pZ];
+    }
+    if (worldManager.chunks.contains(nZ)) {
+        chunkNZ = &worldManager.chunks[nZ];
+    }
+
+    if (chunkPX == nullptr || chunkNX == nullptr || chunkPY == nullptr || chunkNY == nullptr || chunkPZ == nullptr ||
+        chunkNZ == nullptr) {
+        throw std::runtime_error("Chunk not loaded when it should be!");
+    }
+
+    glm::i32vec3 chunkBlockLocationOffset = glm::ivec3(0, 0, 0); // chunkLocation * CHUNK_SIZE;
+
+    // rx = faces that point to the right in the x direction
+    BlockBitMask* rxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+    BlockBitMask* lxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+    BlockBitMask* ryBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+    BlockBitMask* lyBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+    BlockBitMask* rzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+    BlockBitMask* lzBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
+
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                BlockType block = chunkGetBlockAtLocation(x, y, z, chunk);
+
+                if (getRenderType(block) == BlockRenderType::transparent) {
+                    RenderNonSolidBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
+                }
+                if (getRenderType(block) == BlockRenderType::custom) {
+                    RenderCustomBlock(x, y, z, chunkBlockLocationOffset, block, vertices);
+                }
+            }
+        }
+    }
+
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+
+            BlockBitMask blockBitMask = 0;
+            blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNX));
+
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                BlockType block = chunkGetBlockAtLocation(x, y, z, chunk);
+                blockBitMask |= (BlockBitMask)isBlockSolid(block) << (x + 1);
+            }
+            blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(0, y, z, chunkPX)) << CHUNK_SIZE + 1;
+
+            rxBlockFaceBitMask[chunkLocationToIndex(y, z)] = getBlockFacesLeftShift(blockBitMask);
+            lxBlockFaceBitMask[chunkLocationToIndex(y, z)] = getBlockFacesRightShift(blockBitMask);
+        }
+    }
+
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+
+            BlockBitMask blockBitMask = 0;
+            blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNY));
+
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                blockBitMask |= (BlockBitMask)isBlockSolid(chunk->blocks[chunkLocationToIndex(x, y, z)]) << (y + 1);
+            }
+            blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, 0, z, chunkPY)) << CHUNK_SIZE + 1;
+
+            ryBlockFaceBitMask[chunkLocationToIndex(x, z)] = getBlockFacesLeftShift(blockBitMask);
+            lyBlockFaceBitMask[chunkLocationToIndex(x, z)] = getBlockFacesRightShift(blockBitMask);
+        }
+    }
+
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+
+            BlockBitMask blockBitMask = 0;
+
+            blockBitMask = (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNZ));
+
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                blockBitMask |= (BlockBitMask)isBlockSolid(chunk->blocks[chunkLocationToIndex(x, y, z)]) << (z + 1);
+            }
+            blockBitMask |= (BlockBitMask)isBlockSolid(chunkGetBlockAtLocation(x, y, 0, chunkPZ)) << CHUNK_SIZE + 1;
+
+            rzBlockFaceBitMask[chunkLocationToIndex(x, y)] = getBlockFacesLeftShift(blockBitMask);
+            lzBlockFaceBitMask[chunkLocationToIndex(x, y)] = getBlockFacesRightShift(blockBitMask);
+        }
+    }
+
+    // TODO: test if seperate loops is faster because of cache locality
+    for (int i = 0; i < CHUNK_SIZE; i++) {
+        for (int k = 0; k < CHUNK_SIZE; k++) {
+
+            xDirectionMergeFaces(i, k, chunk, rxBlockFaceBitMask, vertices, chunkBlockLocationOffset, true);
+            xDirectionMergeFaces(i, k, chunk, lxBlockFaceBitMask, vertices, chunkBlockLocationOffset, false);
+
+            yDirectionMergeFaces(i, k, chunk, ryBlockFaceBitMask, vertices, chunkBlockLocationOffset, true);
+            yDirectionMergeFaces(i, k, chunk, lyBlockFaceBitMask, vertices, chunkBlockLocationOffset, false);
+
+            zDirectionMergeFaces(i, k, chunk, rzBlockFaceBitMask, vertices, chunkBlockLocationOffset, true);
+            zDirectionMergeFaces(i, k, chunk, lzBlockFaceBitMask, vertices, chunkBlockLocationOffset, false);
+        }
+    }
+
+    delete[] rxBlockFaceBitMask;
+    delete[] lxBlockFaceBitMask;
+    delete[] ryBlockFaceBitMask;
+    delete[] lyBlockFaceBitMask;
+    delete[] rzBlockFaceBitMask;
+    delete[] lzBlockFaceBitMask;
+
+    auto debugEndWait = std::chrono::high_resolution_clock::now();
+    debugMenuGlobals.chunkGenTimeTotal +=
+        std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
+    debugMenuGlobals.chunksGenerated += 1;
+}*/
 
 uint32_t packR8G8B8A8_UNORM(float r, float g, float b, float a)
 {
@@ -249,9 +372,10 @@ Vertex packVertex(float x,
                   float v,
                   uint32_t textureIndex)
 {
-    return Vertex(packR8G8B8A8_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, normalX + 1.0f / 2.0f),
-                  packR8G8_UNORM(normalY + 1.0f / 2.0f, normalZ + 1.0f / 2.0f),
-                  packA2R10G10B10_UNORM(u / 32.0f, v / 32.0f, textureIndex / 1023.0f, shadow));
+    return Vertex(
+        packR8G8B8A8_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, normalX + 1.0f / 2.0f),
+        packR8G8_UNORM(normalY + 1.0f / 2.0f, normalZ + 1.0f / 2.0f),
+        packA2R10G10B10_UNORM(u / 32.0f, v / 32.0f, textureIndex / 1023.0f, shadow));
 }
 
 // clang-format off
@@ -456,10 +580,9 @@ void addVerticesBackward(BlockType blockType, glm::i32vec3 blockLocation, int wi
 
 // clang-format on
 
-void RenderNonSolidBlock(
-    int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices)
+void renderNonSolidBlock(int x, int y, int z, vertexOffset, BlockType blockType, std::vector<Vertex>& vertices)
 {
-    glm::ivec3 blockLocation = glm::ivec3(x, y, z) + vertexOffset;
+    glm::ivec3 blockLocation = glm::ivec3(x, y, z);
 
     addVerticesRight(blockType, blockLocation, 1, 1, vertices);
     addVerticesLeft(blockType, blockLocation, 1, 1, vertices);
@@ -469,12 +592,11 @@ void RenderNonSolidBlock(
     addVerticesBackward(blockType, blockLocation, 1, 1, vertices);
 }
 
-void RenderCustomBlock(
-    int x, int y, int z, glm::i32vec3 vertexOffset, BlockType blockType, std::vector<Vertex>& vertices)
+void renderCustomBlock(int x, int y, int z, BlockType blockType, std::vector<Vertex>& vertices)
 {
     float textureArrayIndex = blockTypeToTexLayer.at(blockType)[0];
 
-    glm::vec3 blockLocation = glm::ivec3(x, y, z) + vertexOffset;
+    glm::vec3 blockLocation = glm::ivec3(x, y, z);
     std::vector<glm::vec3> vertexOffsets = blockCustomRenderVertexOffsets.at(blockType);
 
     static glm::vec2 uvCoordinates[4] = {

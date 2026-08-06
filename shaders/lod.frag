@@ -24,7 +24,7 @@ void main() {
     if (inShadow == 0) {
         shadow = sampleShadow(inPos);
     }
-    color = vec4(color * (0.2 + 0.8 * shadow), 0);
+    vec4 color = vec4(inColor * (0.2 + 0.8 * shadow), 0);
 
     outColor = color;
 }

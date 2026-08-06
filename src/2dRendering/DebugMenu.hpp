@@ -8,6 +8,14 @@
 #include "CameraHandler.hpp"
 #include "Rendering/GPUMemoryBlock.hpp"
 
+struct DebugMenuGlobals
+{
+    uint64_t chunksGenerated = 0;
+    double chunkGenTimeTotal = 0.0;
+};
+
+extern DebugMenuGlobals debugMenuGlobals;
+
 struct DebugMenu
 {
     bool isEnabled = false;
@@ -20,8 +28,6 @@ struct DebugMenu
     std::chrono::time_point<std::chrono::high_resolution_clock> lastUIRefreshTime;
 
     double fenceWaitTimeLast;
-    double frameDrawTimeCpuLast;
-    double frameDrawTimeRealLast;
 
     timespec timeOsFpsStart;
     timespec timeOsFpsEnd;

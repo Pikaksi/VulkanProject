@@ -10,9 +10,11 @@
 struct FrameDrawInfo
 {
     GraphicsPipelineInfo& pipeline3d;
+    GraphicsPipelineInfo& pipelineLod;
     GraphicsPipelineInfo& pipelineSunShadow;
     GraphicsPipelineInfo& pipeline2d;
 
+    std::vector<VkDescriptorSet>& descriptorSetsLod;
     std::vector<VkDescriptorSet>& descriptorSets3d;
     std::vector<VkDescriptorSet>& descriptorSets2d;
     std::vector<UniformBufferInfo>& uniformBufferInfos;

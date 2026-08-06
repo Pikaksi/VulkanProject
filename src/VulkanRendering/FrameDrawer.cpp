@@ -125,26 +125,25 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
 
     // ---------------- SUN SHADOW PASS ----------------
 
-    std::cout << "here1" << std::endl;
     {
-        VkImageMemoryBarrier2 shadowImageToAttachmentBarrier;
-        shadowImageToAttachmentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-        shadowImageToAttachmentBarrier.srcStageMask = VK_PIPELINE_STAGE_2_NONE;
-        shadowImageToAttachmentBarrier.srcAccessMask = 0;
-        shadowImageToAttachmentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
-        shadowImageToAttachmentBarrier.dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        shadowImageToAttachmentBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        shadowImageToAttachmentBarrier.newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-        shadowImageToAttachmentBarrier.image = swapChainInfo.sunShadowImage.image;
 
-        shadowImageToAttachmentBarrier.subresourceRange =
-            VkImageSubresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1};
+        VkImageMemoryBarrier2 shadowImageToAttachmentBarrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+            .srcStageMask = VK_PIPELINE_STAGE_2_NONE,
+            .srcAccessMask = 0,
+            .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+            .dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+            .image = swapChainInfo.sunShadowImage.image,
+            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
+        };
         VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                                                .imageMemoryBarrierCount = 1,
                                                .pImageMemoryBarriers = &shadowImageToAttachmentBarrier};
+
         vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
     }
-    std::cout << "here2" << std::endl;
 
     VkRenderingAttachmentInfo sunShadowDepthAttachmentInfo{};
     sunShadowDepthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;

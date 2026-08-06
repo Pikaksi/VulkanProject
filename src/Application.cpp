@@ -80,7 +80,7 @@ void Application::initVulkan()
     createGraphicsPipeline3d(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo3d, descriptorSetLayout3d);
 
     descriptorSetLayoutLod = createDescriptorSetLayoutLod(vulkanCoreInfo);
-    createGraphicsPipeline3d(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo3d, descriptorSetLayout3d);
+    createGraphicsPipelineLod(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfoLod, descriptorSetLayoutLod);
 
     createGraphicsPipelineSunShadow(
         vulkanCoreInfo, swapChainInfo, graphicsPipelineInfoSunShadow, descriptorSetLayout3d);
@@ -98,9 +98,17 @@ void Application::initVulkan()
     uiTextureSampler = createUITextureSampler(vulkanCoreInfo);
     createUIImageInfos(vulkanCoreInfo, commandPool, uiImageInfos);
 
-    descriptorPool3d = createDescriptorPool3d(vulkanCoreInfo);
+    descriptorPool = createDescriptorPool(vulkanCoreInfo, uiImageInfos.size());
+
+    descriptorSetsLod = createDescriptorSetsLod(vulkanCoreInfo,
+                                              descriptorPool,
+                                              descriptorSetLayoutLod,
+                                              cameraUniformBuffers,
+                                              swapChainInfo.sunShadowImage,
+                                              sunShadowSampler);
+
     descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo,
-                                              descriptorPool3d,
+                                              descriptorPool,
                                               descriptorSetLayout3d,
                                               cameraUniformBuffers,
                                               blockTextureImageArray,
@@ -108,9 +116,8 @@ void Application::initVulkan()
                                               swapChainInfo.sunShadowImage,
                                               sunShadowSampler);
 
-    descriptorPool2d = createDescriptorPool2d(vulkanCoreInfo, uiImageInfos.size());
     descriptorSets2d =
-        createDescriptorSets2d(vulkanCoreInfo, descriptorPool2d, descriptorSetLayout2d, uiImageInfos, uiTextureSampler);
+        createDescriptorSets2d(vulkanCoreInfo, descriptorPool, descriptorSetLayout2d, uiImageInfos, uiTextureSampler);
 
     commandBuffers = createCommandBuffers(vulkanCoreInfo, commandPool);
     createSyncObjects(
@@ -119,6 +126,7 @@ void Application::initVulkan()
 
 void Application::mainLoop()
 {
+    std::cout << "\nEntering main loop\n" << std::endl; 
     while (!glfwWindowShouldClose(vulkanCoreInfo.window)) {
 
         glfwPollEvents();
@@ -128,23 +136,13 @@ void Application::mainLoop()
 
         gameMainLoop();
 
-        auto debugStartWait = std::chrono::high_resolution_clock::now();
-        timespec timeOsStart;
-        clock_gettime(CLOCK_MONOTONIC, &timeOsStart);
-
-        auto debugEndWait = std::chrono::high_resolution_clock::now();
-        debugMenu.frameDrawTimeCpuLast =
-            std::chrono::duration<float, std::chrono::milliseconds::period>(debugEndWait - debugStartWait).count();
-        timespec timeOsEnd;
-        clock_gettime(CLOCK_MONOTONIC, &timeOsEnd);
-        debugMenu.frameDrawTimeRealLast = 1000.0 * timeOsEnd.tv_sec + 1e-6 * timeOsEnd.tv_nsec -
-                                          (1000.0 * timeOsStart.tv_sec + 1e-6 * timeOsStart.tv_nsec);
-
         FrameDrawInfo frame
         {
+            .pipelineLod = graphicsPipelineInfoLod,
             .pipeline3d = graphicsPipelineInfo3d,
             .pipelineSunShadow = graphicsPipelineInfoSunShadow,
             .pipeline2d = graphicsPipelineInfo2d,
+            .descriptorSetsLod = descriptorSetsLod,
             .descriptorSets3d = descriptorSets3d,
             .descriptorSets2d = descriptorSets2d,
             .uniformBufferInfos = cameraUniformBuffers,
@@ -204,8 +202,7 @@ void Application::cleanup()
         vkFreeMemory(vulkanCoreInfo.device, cameraUniformBuffers[i].memory, nullptr);
     }
 
-    vkDestroyDescriptorPool(vulkanCoreInfo.device, descriptorPool3d, nullptr);
-    vkDestroyDescriptorPool(vulkanCoreInfo.device, descriptorPool2d, nullptr);
+    vkDestroyDescriptorPool(vulkanCoreInfo.device, descriptorPool, nullptr);
 
     vkDestroyImageView(vulkanCoreInfo.device, blockTextureImageArray.view, nullptr);
     vkDestroyImage(vulkanCoreInfo.device, blockTextureImageArray.image, nullptr);

@@ -176,24 +176,24 @@ void createGraphicsPipelineLod(VulkanCoreInfo& vulkanCoreInfo,
                               GraphicsPipelineInfo& graphicsPipelineInfo,
                               VkDescriptorSetLayout descriptorSetLayout)
 {
-    std::vector<char> lodVertShaderCode;
-    std::vector<char> lodFragShaderCode;
-    readFile(GetShaderDirPath() + "/lodVert.spv", lodVertShaderCode);
-    readFile(GetShaderDirPath() + "/lodFrag.spv", lodFragShaderCode);
+    std::vector<char> vertLodShaderCode;
+    std::vector<char> fragLodShaderCode;
+    readFile(GetShaderDirPath() + "/vertLod.spv", vertLodShaderCode);
+    readFile(GetShaderDirPath() + "/fragLod.spv", fragLodShaderCode);
 
-    VkShaderModule lodVertShaderModule = createShaderModule(vulkanCoreInfo, lodVertShaderCode);
-    VkShaderModule lodFragShaderModule = createShaderModule(vulkanCoreInfo, lodFragShaderCode);
+    VkShaderModule vertLodShaderModule = createShaderModule(vulkanCoreInfo, vertLodShaderCode);
+    VkShaderModule fragLodShaderModule = createShaderModule(vulkanCoreInfo, fragLodShaderCode);
 
     VkPipelineShaderStageCreateInfo lodVertShaderStageInfo{};
     lodVertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     lodVertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    lodVertShaderStageInfo.module = lodVertShaderModule;
+    lodVertShaderStageInfo.module = vertLodShaderModule;
     lodVertShaderStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo lodFragShaderStageInfo{};
     lodFragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     lodFragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    lodFragShaderStageInfo.module = lodFragShaderModule;
+    lodFragShaderStageInfo.module = fragLodShaderModule;
     lodFragShaderStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {lodVertShaderStageInfo, lodFragShaderStageInfo};
@@ -201,8 +201,8 @@ void createGraphicsPipelineLod(VulkanCoreInfo& vulkanCoreInfo,
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-    auto bindingDescription = Vertex::getBindingDescription();
-    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+    auto bindingDescription = VertexLod::getBindingDescription();
+    auto attributeDescriptions = VertexLod::getAttributeDescriptions();
 
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -313,8 +313,8 @@ void createGraphicsPipelineLod(VulkanCoreInfo& vulkanCoreInfo,
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
-    vkDestroyShaderModule(vulkanCoreInfo.device, lodFragShaderModule, nullptr);
-    vkDestroyShaderModule(vulkanCoreInfo.device, lodVertShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, fragLodShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanCoreInfo.device, vertLodShaderModule, nullptr);
 
     graphicsPipelineInfo.layout = pipelineLayout;
     graphicsPipelineInfo.pipeline = graphicsPipeline;

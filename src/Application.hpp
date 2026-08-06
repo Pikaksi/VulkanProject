@@ -45,6 +45,7 @@ private:
     VulkanCoreInfo vulkanCoreInfo = VulkanCoreInfo();
     SwapChainInfo swapChainInfo = SwapChainInfo();
 
+    GraphicsPipelineInfo graphicsPipelineInfoLod = GraphicsPipelineInfo();
     GraphicsPipelineInfo graphicsPipelineInfo3d = GraphicsPipelineInfo();
     GraphicsPipelineInfo graphicsPipelineInfoSunShadow = GraphicsPipelineInfo();
     GraphicsPipelineInfo graphicsPipelineInfo2d = GraphicsPipelineInfo();
@@ -66,9 +67,9 @@ private:
     VkDescriptorSetLayout descriptorSetLayoutLod;
     VkDescriptorSetLayout descriptorSetLayout2d;
 
-    VkDescriptorPool descriptorPool3d;
-    VkDescriptorPool descriptorPool2d;
+    VkDescriptorPool descriptorPool;
 
+    std::vector<VkDescriptorSet> descriptorSetsLod;
     std::vector<VkDescriptorSet> descriptorSets3d;
     std::vector<VkDescriptorSet> descriptorSets2d;
 

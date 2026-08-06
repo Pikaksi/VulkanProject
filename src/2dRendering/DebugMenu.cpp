@@ -7,6 +7,8 @@
 #include <string>
 #include <time.h>
 
+DebugMenuGlobals debugMenuGlobals{};
+
 void DebugMenu::update(UIManager& uiManager,
                        VertexBufferManager& vertexBufferManager,
                        WorldManager& worldManager,
@@ -47,12 +49,11 @@ void DebugMenu::drawUI(UIManager& uiManager,
     // clang-format off
     createUIText(
         uiManager, {-1.0f, -1.0f}, 0.05f, UICenteringMode::topLeft, UICenteringMode::topLeft,
-
+        
         "Fps: " + std::to_string(fps) + '\n' +
         "Fps Os clock: " + std::to_string(lastRecordedFPSOs) + '\n' +
         "Fence wait duration: " + std::to_string(fenceWaitTimeLast) + " ms" + '\n' +
-        "Frame draw cpu duration: " + std::to_string(frameDrawTimeCpuLast) + " ms" + '\n' +
-        "Frame draw real duration: " + std::to_string(frameDrawTimeRealLast) + " ms" + '\n' +
+        "Chunk mesh time avg: " + std::to_string(debugMenuGlobals.chunkGenTimeTotal / (double)debugMenuGlobals.chunksGenerated) + " micro s" + '\n' +
         "vertex count: " + std::to_string(gpuMemoryBlockDataCount(*vertexBufferManager.worldGpuMemoryBlock)) +
         '\n' + "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) +

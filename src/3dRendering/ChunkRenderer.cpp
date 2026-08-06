@@ -3,6 +3,7 @@
 
 #include "ChunkRenderer.hpp"
 #include "BinaryGreedyMesher.hpp"
+#include "DebugMenu.hpp"
 
 // Derendering chunks will always happen before rendering new ones.
 void ChunkRenderer::update(VulkanCoreInfo& vulkanCoreInfo,
@@ -11,7 +12,8 @@ void ChunkRenderer::update(VulkanCoreInfo& vulkanCoreInfo,
                            VertexBufferManager& vertexBufferManager,
                            glm::i32vec3 playerChunkLocation)
 {
-    addQueuedChunkMeshes(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, playerChunkLocation);
+    addQueuedChunkMeshes(
+        vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, playerChunkLocation);
 
     // Don't rerender chunks rendering position did not move.
     if (peviousPlayerChunkLocation == playerChunkLocation) {

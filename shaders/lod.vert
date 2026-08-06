@@ -31,7 +31,7 @@ void main() {
     outShadow = inPosAndShadow.w;
 
     outColor = inColorAndNormal.xyz;
-    outNormal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)]
+    outNormal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)];
 
     outWorldToSunMat = ubo.worldToSun;
 }

@@ -61,8 +61,7 @@ VkDescriptorSetLayout createDescriptorSetLayoutLod(VulkanCoreInfo& vulkanCoreInf
     sunShadowSamplerLayoutBinding.pImmutableSamplers = nullptr;
     sunShadowSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    std::array<VkDescriptorSetLayoutBinding, 2> bindings = {
-        uboLayoutBinding, sunShadowSamplerLayoutBinding};
+    std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, sunShadowSamplerLayoutBinding};
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -100,21 +99,31 @@ VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo
     return descriptorSetLayout;
 }
 
-VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo)
+VkDescriptorPool createDescriptorPool(VulkanCoreInfo& vulkanCoreInfo, uint32_t uiImageCount)
 {
-    std::array<VkDescriptorPoolSize, 3> poolSizes{};
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-    poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[2].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    std::vector<VkDescriptorPoolSize> poolSizes{
+        // 3d and shadow pipeline
+        VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                             .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)               },
+        VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                             .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)               },
+        VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                             .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)               },
+        // lod Pipeline
+        VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                             .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)               },
+        VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                             .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)               },
+        // 2d Pipeline
+        VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                             .descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT * uiImageCount)},
+    };
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolInfo.maxSets = static_cast<uint32_t>(3 * MAX_FRAMES_IN_FLIGHT); // The amount of descriptor sets
 
     VkDescriptorPool descriptorPool;
     if (vkCreateDescriptorPool(vulkanCoreInfo.device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
@@ -123,31 +132,12 @@ VkDescriptorPool createDescriptorPool3d(VulkanCoreInfo& vulkanCoreInfo)
     return descriptorPool;
 }
 
-VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t imageCount)
-{
-    std::array<VkDescriptorPoolSize, 1> poolSizes{};
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT * imageCount);
-
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-    poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-    VkDescriptorPool descriptorPool;
-    if (vkCreateDescriptorPool(vulkanCoreInfo.device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
-    }
-    return descriptorPool;
-}
-
-/*std::vector<VkDescriptorSet> createDescriptorSetsSunShadows(
-    VulkanCoreInfo& vulkanCoreInfo,
-    VkDescriptorPool descriptorPool,
-    VkDescriptorSetLayout descriptorSetLayout,
-    std::vector<UniformBufferInfo>& cameraUniformBuffers,
-    VkSampler sunShadowSampler)
+std::vector<VkDescriptorSet> createDescriptorSetsLod(VulkanCoreInfo& vulkanCoreInfo,
+                                                     VkDescriptorPool descriptorPool,
+                                                     VkDescriptorSetLayout descriptorSetLayout,
+                                                     std::vector<UniformBufferInfo>& cameraUniformBuffers,
+                                                     ImageInfo& sunShadowImage,
+                                                     VkSampler sunShadowSampler)
 {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -159,9 +149,8 @@ VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t
     std::vector<VkDescriptorSet> descriptorSets;
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
     if (vkAllocateDescriptorSets(vulkanCoreInfo.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
+        throw std::runtime_error("failed to allocate descriptor sets. Maybe pool size is too small?");
     }
-    //std::cout << "allocated descriptors\n";
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
@@ -181,8 +170,8 @@ VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t
 
         VkDescriptorImageInfo sunShadowInfo{};
         sunShadowInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        sunShadowInfo.imageView = textureImage.view;
-        sunShadowInfo.sampler = textureImageSampler;
+        sunShadowInfo.imageView = sunShadowImage.view;
+        sunShadowInfo.sampler = sunShadowSampler;
 
         descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[1].dstSet = descriptorSets[i];
@@ -192,12 +181,11 @@ VkDescriptorPool createDescriptorPool2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t
         descriptorWrites[1].descriptorCount = 1;
         descriptorWrites[1].pImageInfo = &sunShadowInfo;
 
-        vkUpdateDescriptorSets(vulkanCoreInfo.device, static_cast<uint32_t>(descriptorWrites.size()),
-descriptorWrites.data(), 0, nullptr);
-
+        vkUpdateDescriptorSets(
+            vulkanCoreInfo.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
     return descriptorSets;
-}*/
+}
 
 std::vector<VkDescriptorSet> createDescriptorSets3d(VulkanCoreInfo& vulkanCoreInfo,
                                                     VkDescriptorPool descriptorPool,
@@ -218,9 +206,8 @@ std::vector<VkDescriptorSet> createDescriptorSets3d(VulkanCoreInfo& vulkanCoreIn
     std::vector<VkDescriptorSet> descriptorSets;
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
     if (vkAllocateDescriptorSets(vulkanCoreInfo.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
+        throw std::runtime_error("failed to allocate descriptor sets. Maybe pool size is too small?");
     }
-    // std::cout << "allocated descriptors\n";
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
@@ -286,7 +273,7 @@ std::vector<VkDescriptorSet> createDescriptorSets2d(VulkanCoreInfo& vulkanCoreIn
     std::vector<VkDescriptorSet> descriptorSets;
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
     if (vkAllocateDescriptorSets(vulkanCoreInfo.device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
+        throw std::runtime_error("failed to allocate descriptor sets. Maybe pool size is too small?");
     }
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {

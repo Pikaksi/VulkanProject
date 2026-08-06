@@ -61,8 +61,8 @@ struct Vertex {
 };
 
 struct VertexLod {
-    uint16_t pos;
-    uint16_t colorAndNormal;
+    uint32_t pos;
+    uint32_t colorAndNormal;
 
 
     static VkVertexInputBindingDescription getBindingDescription() {
@@ -79,12 +79,12 @@ struct VertexLod {
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_A1B5G5R5_UNORM_PACK16;
+        attributeDescriptions[0].format = VK_FORMAT_A2B10G10R10_UNORM_PACK32;
         attributeDescriptions[0].offset = offsetof(VertexLod, pos);
 
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+        attributeDescriptions[1].format = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
         attributeDescriptions[1].offset = offsetof(VertexLod, colorAndNormal);
 
         return attributeDescriptions;
