@@ -6,6 +6,6 @@
 #include "World/BlockType.hpp"
 #include "FilePathHandler.hpp"
 
-void generateBlockTexLayerLookupTable();
-
-inline std::unordered_map<BlockType, std::array<float, 6>> blockTypeToTexLayer;
+void generateBlockTextureLayerLookupTable();
+// Side order is right, left, up, down, forward, backward
+float getBlockTextureLayer(BlockType block, int side);

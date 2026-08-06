@@ -207,7 +207,7 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo,
     std::vector<Vertex> vertices;
     // generateChunkMeshData(worldManager, chunkLocation, vertices);
 
-    binaryGreedyMeshChunk(worldManager, chunkLocation, vertices);
+    binaryGreedyMeshChunk4(worldManager, chunkLocation, vertices);
 
     /*auto endTime = std::chrono::high_resolution_clock::now();
     double chunkGenerationTime = std::chrono::duration<double, std::chrono::microseconds::period>(endTime -

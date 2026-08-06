@@ -59,7 +59,7 @@ void Application::initGame()
     int uiMaxVertexCount = 50000;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldMaxVertexCount, uiMaxVertexCount);
 
-    generateBlockTexLayerLookupTable();
+    generateBlockTextureLayerLookupTable();
 }
 
 void Application::initVulkan()
@@ -193,6 +193,9 @@ void Application::cleanup()
     vkDestroyPipeline(vulkanCoreInfo.device, graphicsPipelineInfo2d.pipeline, nullptr);
     vkDestroyPipelineLayout(vulkanCoreInfo.device, graphicsPipelineInfo2d.layout, nullptr);
 
+    vkDestroyPipeline(vulkanCoreInfo.device, graphicsPipelineInfoLod.pipeline, nullptr);
+    vkDestroyPipelineLayout(vulkanCoreInfo.device, graphicsPipelineInfoLod.layout, nullptr);
+
     vkDestroyPipeline(vulkanCoreInfo.device, graphicsPipelineInfoSunShadow.pipeline, nullptr);
     vkDestroyPipelineLayout(vulkanCoreInfo.device, graphicsPipelineInfoSunShadow.layout, nullptr);
     vkDestroySampler(vulkanCoreInfo.device, sunShadowSampler, nullptr);
@@ -216,6 +219,7 @@ void Application::cleanup()
     }
     vkDestroySampler(vulkanCoreInfo.device, uiTextureSampler, nullptr);
 
+    vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayoutLod, nullptr);
     vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayout3d, nullptr);
     vkDestroyDescriptorSetLayout(vulkanCoreInfo.device, descriptorSetLayout2d, nullptr);
 
