@@ -6,14 +6,10 @@
 
 void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
                         GpuMemoryBlock& gpuMemoryBlock,
-                        uint64_t dataSize,
                         uint64_t bufferSize,
-                        uint64_t batchMaxDataCount,
                         bool isHostVisible)
 {
-    gpuMemoryBlock.dataSize = dataSize;
     gpuMemoryBlock.bufferSize = bufferSize;
-    gpuMemoryBlock.batchMaxDataCount = batchMaxDataCount;
     gpuMemoryBlock.isHostVisible = isHostVisible;
 
     tlsfInit(gpuMemoryBlock.allocator, gpuMemoryBlock.bufferSize);
@@ -46,7 +42,7 @@ void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
 void gpuMemoryBlockGetData(GpuMemoryBlock& gpuMemoryBlock,
                            VkBuffer& outVertexBuffer,
                            std::vector<VkDeviceSize>& vertexOffsets,
-                           std::vector<uint64_t>& batchVertexCounts)
+                           std::vector<uint64_t>& batchSizes)
 {
     outVertexBuffer = gpuMemoryBlock.buffer;
 
@@ -55,7 +51,7 @@ void gpuMemoryBlockGetData(GpuMemoryBlock& gpuMemoryBlock,
     while (block != nullptr) {
         if (block->free == false) {
             vertexOffsets.push_back(block->location);
-            batchVertexCounts.push_back(block->size / gpuMemoryBlock.dataSize);
+            batchSizes.push_back(block->size);
         }
         block = block->nextPhysical;
     }
@@ -64,7 +60,8 @@ void gpuMemoryBlockGetData(GpuMemoryBlock& gpuMemoryBlock,
 void gpuMemoryBlockGetDataMerged(GpuMemoryBlock& gpuMemoryBlock,
                                  VkBuffer& outVertexBuffer,
                                  std::vector<VkDeviceSize>& vertexOffsets,
-                                 std::vector<uint32_t>& batchVertexCounts)
+                                 std::vector<uint32_t>& batchSizes,
+                                 uint64_t batchMaxSize)
 {
     outVertexBuffer = gpuMemoryBlock.buffer;
 
@@ -74,12 +71,12 @@ void gpuMemoryBlockGetDataMerged(GpuMemoryBlock& gpuMemoryBlock,
     while (block != nullptr) {
         if (block->free == false) {
             if (lastBlockFree == false &&
-                batchVertexCounts.back() + block->size <= gpuMemoryBlock.batchMaxDataCount * gpuMemoryBlock.dataSize) {
-                batchVertexCounts.back() += block->size;
+                batchSizes.back() + block->size <= batchMaxSize) {
+                batchSizes.back() += block->size;
             }
             else {
                 vertexOffsets.push_back(block->location);
-                batchVertexCounts.push_back(block->size / gpuMemoryBlock.dataSize);
+                batchSizes.push_back(block->size);
             }
         }
         lastBlockFree = block->free;
@@ -164,7 +161,7 @@ uint64_t gpuMemoryBlockAddDeviceLocal(VulkanCoreInfo& vulkanCoreInfo,
 
 void gpuMemoryBlockDebugPrint(GpuMemoryBlock& gpuMemoryBlock) { tlsfDebugPrint(gpuMemoryBlock.allocator); }
 
-uint64_t gpuMemoryBlockDataCount(GpuMemoryBlock& gpuMemoryBlock)
+uint64_t gpuMemoryBlockDataSize(GpuMemoryBlock& gpuMemoryBlock)
 {
     uint64_t dataSize = 0;
 
@@ -176,7 +173,7 @@ uint64_t gpuMemoryBlockDataCount(GpuMemoryBlock& gpuMemoryBlock)
         }
         block = block->nextPhysical;
     }
-    return dataSize / gpuMemoryBlock.dataSize;
+    return dataSize;
 }
 
 void gpuMemoryBlockDestroy(VulkanCoreInfo& vulkanCoreInfo, GpuMemoryBlock& gpuMemoryBlock)

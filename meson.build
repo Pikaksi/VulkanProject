@@ -3,6 +3,7 @@ project('my_app', 'cpp',
   default_options : ['warning_level=1'])
 
 src = [
+  'src/World/chunkMesher.cpp',
   'src/util/tlsfAllocator.cpp',
   'src/World/WorldGeneration/ChunkGenerator.cpp',
   'src/3dRendering/BlockTexCoordinateLookup.cpp',

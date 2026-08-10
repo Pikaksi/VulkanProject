@@ -6,9 +6,14 @@
 
 class WorldManager;
 
-#include "World/WorldManager.hpp"
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "Rendering/VertexBufferManager.hpp"
+
+struct ChunkRenderingInfo
+{
+    glm::i32vec3 loc;
+    int lod;
+};
 
 class ChunkRenderer
 {
@@ -22,13 +27,12 @@ class ChunkRenderer
 
     void rerenderChunk(glm::i32vec3 chunkLocation);
 
-  private:
-    const int renderDistance = 10;
+    const int renderDistance = 15;
     const int extraRangeToDerenderChunk = 1;
 
-    std::vector<glm::i32vec3> chunksToRerender;
+    std::vector<glm::i32vec3> chunksToRenderAgain;
     std::queue<glm::i32vec3> chunksToRender;
-    std::unordered_map<glm::i32vec3, uint32_t> renderedChunks; // holds GPU memory pointer to delete chunks
+    std::unordered_map<glm::i32vec3, uint64_t> renderedChunks; // holds GPU memory pointer to delete chunks
     glm::i32vec3 peviousPlayerChunkLocation = glm::i32vec3(9999, 9999, 9999);
 
     void derenderChunksOutOfRenderdistance(glm::i32vec3 playerChunkLocation, VertexBufferManager& vertexBufferManager);

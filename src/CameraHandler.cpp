@@ -80,7 +80,8 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
                                            round(position.z / rounding) * rounding);
 
     const glm::vec3 sunDir = glm::normalize(glm::vec3(0.3, -1, 0.5));
-    const float boxRadius = 100.0f;
+    ubo.sunDir = sunDir;
+    const float boxRadius = 200.0f;
     glm::mat4x4 sunView =
         glm::lookAt(playerPosRounded + sunDir * -boxRadius,
                     playerPosRounded + sunDir * (-boxRadius + 1.0f),

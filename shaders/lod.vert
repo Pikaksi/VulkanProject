@@ -4,6 +4,7 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 camera;
     mat4 sun;
     mat4 worldToSun;
+    vec3 sunDir;
 } ubo;
 
 layout(location = 0) in vec4 inPosAndShadow;
@@ -28,10 +29,11 @@ const vec3 faceNormals[6] = vec3[6](
 void main() {
     outPos = pushConstants.chunkWorldLocation + inPosAndShadow.xyz * 32.0;
     gl_Position = ubo.camera * vec4(outPos, 1.0);
-    outShadow = inPosAndShadow.w;
+    vec3 normal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)];
+    outNormal = normal;
+    outShadow = dot(ubo.sunDir, normal) > 0 ? 1.0 : 0.0;
 
     outColor = inColorAndNormal.xyz;
-    outNormal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)];
 
     outWorldToSunMat = ubo.worldToSun;
 }

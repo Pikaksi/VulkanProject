@@ -1,11 +1,13 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/vec3.hpp>
 
 #include <vector>
 
+#include "Chunk.hpp"
+#include "BlockType.hpp"
 #include "Rendering/Vertex.hpp"
-#include "World/WorldManager.hpp"
 
 struct MeshFace
 {
@@ -14,5 +16,5 @@ struct MeshFace
     glm::vec2 uv[4];
 };
 
-void binaryGreedyMeshChunk(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);
-void binaryGreedyMeshChunk4(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices);
+void blockArrayMesher(std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)> blocks,
+                      std::vector<MeshFace>& faces);

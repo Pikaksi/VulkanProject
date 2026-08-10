@@ -15,27 +15,24 @@ struct GpuMemoryBlock
     bool isHostVisible;                    // Should not be modified.
     void* hostVisibleMappedData = nullptr; // only valid if isHostVisible.
 
-    uint64_t dataSize = 0;
     uint64_t bufferSize = 0;
-    uint64_t batchMaxDataCount = 0;
 
     TlsfAllocator allocator;
 };
 
 void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
                         GpuMemoryBlock& gpuMemoryBlock,
-                        uint64_t dataSize,
                         uint64_t bufferSize,
-                        uint64_t batchMaxDataCount,
                         bool isHostVisible);
 void gpuMemoryBlockGetData(GpuMemoryBlock& gpuMemoryBlock,
                            VkBuffer& outVertexBuffer,
                            std::vector<VkDeviceSize>& vertexOffsets,
-                           std::vector<uint64_t>& batchVertexCounts);
+                           std::vector<uint64_t>& batchSizes);
 void gpuMemoryBlockGetDataMerged(GpuMemoryBlock& gpuMemoryBlock,
                                  VkBuffer& outVertexBuffer,
                                  std::vector<VkDeviceSize>& vertexOffsets,
-                                 std::vector<uint32_t>& batchVertexCounts);
+                                 std::vector<uint32_t>& batchSizes,
+                                 uint64_t batchMaxSize);
 void gpuMemoryBlockFree(GpuMemoryBlock& gpuMemoryBlock, uint64_t location);
 uint64_t gpuMemoryBlockAddDeviceLocal(VulkanCoreInfo& vulkanCoreInfo,
                                       VkCommandPool commandPool,
@@ -45,5 +42,5 @@ uint64_t gpuMemoryBlockAddDeviceLocal(VulkanCoreInfo& vulkanCoreInfo,
 uint64_t gpuMemoryBlockAddHostVisible(GpuMemoryBlock& gpuMemoryBlock, void* data, uint64_t size);
 void gpuMemoryBlockFreeAll(GpuMemoryBlock& gpuMemoryBlock);
 void gpuMemoryBlockDebugPrint(GpuMemoryBlock& gpuMemoryBlock);
-uint64_t gpuMemoryBlockDataCount(GpuMemoryBlock& gpuMemoryBlock);
+uint64_t gpuMemoryBlockDataSize(GpuMemoryBlock& gpuMemoryBlock);
 void gpuMemoryBlockDestroy(VulkanCoreInfo& vulkanCoreInfo, GpuMemoryBlock& gpuMemoryBlock);

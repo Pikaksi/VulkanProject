@@ -16,7 +16,7 @@ struct VertexBufferManager
                         uint32_t worldVertexCount,
                         uint32_t uiMaxVertexCount);
 
-    uint32_t addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
+    uint64_t addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
                                 VkCommandPool commandPool,
                                 std::vector<Vertex>& vertices,
                                 glm::ivec3 chunkLocation);

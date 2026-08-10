@@ -5,12 +5,21 @@
 #include "FrameDrawer.hpp"
 #include "Constants.hpp"
 #include "DebugMenu.hpp"
+#include "GPUMemoryBlock.hpp"
 #include "SwapChain.hpp"
 #include "CameraHandler.hpp"
 #include "UIManager.hpp"
 #include "VulkanTypes.hpp"
 #include "World/Chunk.hpp"
 #include "vulkan/vulkan_core.h"
+
+void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo, std::vector<GpuMemoryBlock> drawCallBuffers)
+{
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        drawCallBuffers.push_back(GpuMemoryBlock{});
+        gpuMemoryBlockInit(vulkanCoreInfo, drawCallBuffers.back(), 0/*1000000*/, true);
+    }
+}
 
 void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
                        SwapChainInfo& swapChainInfo,
@@ -169,19 +178,10 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
     vkCmdBeginRendering(commandBuffer, &sunShadowRenderingInfo);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineSunShadow.pipeline);
-
     vkCmdSetDepthBias(commandBuffer, /*constant*/ 0.0f, /*clamp*/ 0.0f, /*slope*/ -1.0f);
 
-    for (size_t i = 0; i < worldDrawCallData.size(); i++) {
-        WorldDrawCallData drawCallData = worldDrawCallData[i];
-
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-
-        VkDeviceSize offsets[] = {drawCallData.memoryLocation};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
+    {
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 draw.pipeline3d.layout,
@@ -190,17 +190,25 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
                                 &draw.descriptorSets3d[draw.currentFrame],
                                 0,
                                 nullptr);
+        VkBuffer vertexBuffers[] = {worldVertexBuffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
-        vkCmdPushConstants(commandBuffer,
-                           draw.pipeline3d.layout,
-                           VK_SHADER_STAGE_VERTEX_BIT,
-                           0,
-                           sizeof(PushConstant3d),
-                           &pushConstant);
+        for (size_t i = 0; i < worldDrawCallData.size(); i++) {
+            WorldDrawCallData drawCallData = worldDrawCallData[i];
 
-        // get index count by multiplying vertex count by 1.5
-        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, 0, 0);
+            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
+            vkCmdPushConstants(commandBuffer,
+                               draw.pipeline3d.layout,
+                               VK_SHADER_STAGE_VERTEX_BIT,
+                               0,
+                               sizeof(PushConstant3d),
+                               &pushConstant);
+
+            // get index count by multiplying vertex count by 1.5
+            vkCmdDrawIndexed(
+                commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, drawCallData.memoryLocation / sizeof(Vertex), 0);
+        }
     }
 
     vkCmdEndRendering(commandBuffer);
@@ -300,21 +308,8 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
     ChunkCenterOffsets chunkCenterOffsets;
     getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
 
-    for (int i = 0; i < worldDrawCallData.size(); i++) {
-        WorldDrawCallData drawCallData = worldDrawCallData[i];
-
-        if (!chunkIsInViewingFrustum(
-                draw.cameraHandler.position, drawCallData.chunkLocation, chunkCenterOffsets, viewingFrustumNormals)) {
-            continue;
-        }
-
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-
-        VkDeviceSize offsets[] = {drawCallData.memoryLocation};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
+    {
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 draw.pipeline3d.layout,
@@ -323,18 +318,43 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
                                 &draw.descriptorSets3d[draw.currentFrame],
                                 0,
                                 nullptr);
+        VkBuffer vertexBuffers[] = {worldVertexBuffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
-        vkCmdPushConstants(commandBuffer,
-                           draw.pipeline3d.layout,
-                           VK_SHADER_STAGE_VERTEX_BIT,
-                           0,
-                           sizeof(PushConstant3d),
-                           &pushConstant);
+        for (int i = 0; i < worldDrawCallData.size(); i++) {
+            WorldDrawCallData drawCallData = worldDrawCallData[i];
 
-        // get index count by multiplying vertex count by 1.5
-        vkCmdDrawIndexed(commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, 0, 0);
+            if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
+                                         drawCallData.chunkLocation,
+                                         chunkCenterOffsets,
+                                         viewingFrustumNormals)) {
+                continue;
+            }
+
+            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
+            vkCmdPushConstants(commandBuffer,
+                               draw.pipeline3d.layout,
+                               VK_SHADER_STAGE_VERTEX_BIT,
+                               0,
+                               sizeof(PushConstant3d),
+                               &pushConstant);
+            // get index count by multiplying vertex count by 1.5
+            vkCmdDrawIndexed(
+                commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, drawCallData.memoryLocation / sizeof(Vertex), 0);
+        }
     }
+
+    // ---------------- LOD PASS ----------------
+
+    vkCmdBeginRendering(commandBuffer, &renderingInfo);
+
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineLod.pipeline);
+
+    
 
     // ---------------- UI PASS----------------
 
@@ -343,29 +363,26 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
     draw.uiManager.writeToBufferAndClear(draw.currentFrame);
     VkBuffer uiVertexBuffer;
     std::vector<VkDeviceSize> uiVertexOffsets;
-    std::vector<uint64_t> uiBatchVertexCounts;
+    std::vector<uint64_t> uiBatchSizes;
     gpuMemoryBlockGetData(
-        draw.uiManager.gpuMemoryBlocks[draw.currentFrame], uiVertexBuffer, uiVertexOffsets, uiBatchVertexCounts);
+        draw.uiManager.gpuMemoryBlocks[draw.currentFrame], uiVertexBuffer, uiVertexOffsets, uiBatchSizes);
     VkBuffer uiIndexBuffer = draw.vertexBufferManager.quadStripIndexBuffer.getBuffer();
 
+    vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(commandBuffer,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            draw.pipeline2d.layout,
+                            0,
+                            1,
+                            &draw.descriptorSets2d[draw.currentFrame],
+                            0,
+                            nullptr);
     for (int i = 0; i < uiVertexOffsets.size(); i++) {
         VkBuffer vertexBuffers[] = {uiVertexBuffer};
-
         VkDeviceSize offsets[] = {uiVertexOffsets[i]};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-        vkCmdBindDescriptorSets(commandBuffer,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                draw.pipeline2d.layout,
-                                0,
-                                1,
-                                &draw.descriptorSets2d[draw.currentFrame],
-                                0,
-                                nullptr);
-
-        vkCmdDrawIndexed(commandBuffer, uiBatchVertexCounts[i] / 2 * 3, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, uiBatchSizes[i] / sizeof(Vertex2D) / 2 * 3, 1, 0, 0, 0);
     }
 
     vkCmdEndRendering(commandBuffer);

@@ -36,7 +36,7 @@ void UIManager::init(VulkanCoreInfo& vulkanCoreInfo, VkExtent2D extent)
 
     for (size_t i = 0; i < gpuMemoryBlocks.size(); i++) {
         gpuMemoryBlockInit(
-            vulkanCoreInfo, gpuMemoryBlocks[i], sizeof(Vertex2D), UI_GPU_BUFFER_SIZE, INDEX_BUFFER_QUAD_COUNT * 4, true);
+            vulkanCoreInfo, gpuMemoryBlocks[i], UI_GPU_BUFFER_SIZE, true);
     }
 }
 

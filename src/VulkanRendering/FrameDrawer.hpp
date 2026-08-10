@@ -6,6 +6,7 @@
 #include "Rendering/VertexBufferManager.hpp"
 #include "2dRendering/UIManager.hpp"
 #include "CameraHandler.hpp"
+#include "GPUMemoryBlock.hpp"
 
 struct FrameDrawInfo
 {
@@ -22,6 +23,7 @@ struct FrameDrawInfo
     uint32_t& currentFrame;
     bool& framebufferResized;
 
+    std::vector<GpuMemoryBlock> drawCallBuffers;
     std::vector<VkCommandBuffer>& commandBuffers;
     std::vector<VkSemaphore>& imageAvailableSemaphores;
     std::vector<VkSemaphore>& renderFinishedSemaphores;

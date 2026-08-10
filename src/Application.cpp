@@ -101,11 +101,11 @@ void Application::initVulkan()
     descriptorPool = createDescriptorPool(vulkanCoreInfo, uiImageInfos.size());
 
     descriptorSetsLod = createDescriptorSetsLod(vulkanCoreInfo,
-                                              descriptorPool,
-                                              descriptorSetLayoutLod,
-                                              cameraUniformBuffers,
-                                              swapChainInfo.sunShadowImage,
-                                              sunShadowSampler);
+                                                descriptorPool,
+                                                descriptorSetLayoutLod,
+                                                cameraUniformBuffers,
+                                                swapChainInfo.sunShadowImage,
+                                                sunShadowSampler);
 
     descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo,
                                               descriptorPool,
@@ -126,7 +126,7 @@ void Application::initVulkan()
 
 void Application::mainLoop()
 {
-    std::cout << "\nEntering main loop\n" << std::endl; 
+    std::cout << "\nEntering main loop\n" << std::endl;
     while (!glfwWindowShouldClose(vulkanCoreInfo.window)) {
 
         glfwPollEvents();
@@ -136,28 +136,26 @@ void Application::mainLoop()
 
         gameMainLoop();
 
-        FrameDrawInfo frame
-        {
-            .pipelineLod = graphicsPipelineInfoLod,
-            .pipeline3d = graphicsPipelineInfo3d,
-            .pipelineSunShadow = graphicsPipelineInfoSunShadow,
-            .pipeline2d = graphicsPipelineInfo2d,
-            .descriptorSetsLod = descriptorSetsLod,
-            .descriptorSets3d = descriptorSets3d,
-            .descriptorSets2d = descriptorSets2d,
-            .uniformBufferInfos = cameraUniformBuffers,
-            .currentFrame = currentFrame,
-            .framebufferResized = framebufferResized,
-            .commandBuffers = commandBuffers,
-            .imageAvailableSemaphores = imageAvailableSemaphores,
-            .renderFinishedSemaphores = renderFinishedSemaphores,
-            .inFlightFences = inFlightFences,
-            .commandPool = commandPool,
-            .cameraHandler = cameraHandler,
-            .vertexBufferManager = vertexBufferManager,
-            .uiManager = uiManager,
-            .debugMenu = debugMenu
-        };
+        FrameDrawInfo frame{.pipelineLod = graphicsPipelineInfoLod,
+                            .pipeline3d = graphicsPipelineInfo3d,
+                            .pipelineSunShadow = graphicsPipelineInfoSunShadow,
+                            .pipeline2d = graphicsPipelineInfo2d,
+                            .descriptorSetsLod = descriptorSetsLod,
+                            .descriptorSets3d = descriptorSets3d,
+                            .descriptorSets2d = descriptorSets2d,
+                            .uniformBufferInfos = cameraUniformBuffers,
+                            .currentFrame = currentFrame,
+                            .framebufferResized = framebufferResized,
+                            .commandBuffers = commandBuffers,
+                            .drawCallBuffers = drawcallBuffers,
+                            .imageAvailableSemaphores = imageAvailableSemaphores,
+                            .renderFinishedSemaphores = renderFinishedSemaphores,
+                            .inFlightFences = inFlightFences,
+                            .commandPool = commandPool,
+                            .cameraHandler = cameraHandler,
+                            .vertexBufferManager = vertexBufferManager,
+                            .uiManager = uiManager,
+                            .debugMenu = debugMenu};
 
         drawFrame(vulkanCoreInfo, swapChainInfo, frame);
     }

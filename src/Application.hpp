@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GPUMemoryBlock.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -76,6 +77,8 @@ private:
     std::vector<UniformBufferInfo> cameraUniformBuffers;
 
     std::vector<VkCommandBuffer> commandBuffers;
+
+    std::vector<GpuMemoryBlock> drawcallBuffers;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
