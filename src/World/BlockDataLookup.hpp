@@ -12,10 +12,10 @@
 
 enum class BlockRenderType : uint8_t
 {
-	dontRender = 0,
-	solid = 1,
-	transparent = 2,
-	custom = 3
+    dontRender = 0,
+    solid = 1,
+    transparent = 2,
+    custom = 3
 };
 
 extern const BlockRenderType blockTypeRenderType[BlockType::maxEnum];

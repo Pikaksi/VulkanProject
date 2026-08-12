@@ -228,7 +228,7 @@ bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo)
     vkGetPhysicalDeviceFeatures(vulkanCoreInfo.physicalDevice, &supportedFeatures);
 
     std::vector<VkFormat> neededVertexBufferFormats = {
-        VK_FORMAT_R8G8_UNORM, VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_FORMAT_A8B8G8R8_UNORM_PACK32};
+        VK_FORMAT_R8G8_UNORM, VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_FORMAT_A2R10G10B10_UNORM_PACK32, VK_FORMAT_A8B8G8R8_UNORM_PACK32};
     bool supportsFormats = true;
     for (auto format : neededVertexBufferFormats) {
         VkFormatProperties formatProperties;

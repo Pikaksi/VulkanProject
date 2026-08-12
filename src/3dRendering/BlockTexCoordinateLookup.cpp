@@ -2,25 +2,35 @@
 
 #include <filesystem>
 
+#include "BlockType.hpp"
 #include "World/BlockDataLookup.hpp"
 #include "assertm.hpp"
 
-std::unordered_map<BlockType, std::array<float, 6>> blockTypeToTexLayer;
+// std::unordered_map<BlockType, std::array<float, 6>> blockTypeToTexLayer;
+std::array<std::array<float, 6>, BlockType::maxEnum> blockTypeToTexLayer;
+std::array<glm::vec3, BlockType::maxEnum> blockTypeToColor;
 
 int findTexLayerFromTable(std::string fileName, std::unordered_map<std::string, int>& fileNameIndexTable)
 {
-    if (fileNameIndexTable.contains(fileName)) {
-        return fileNameIndexTable.at(fileName);
-    }
-    throw std::runtime_error("Could not find texture from texture table while constructing texture2dArray!\n");
-    return 0;
+    assertm(fileNameIndexTable.contains(fileName),
+            "Could not find texture from texture table while constructing texture2dArray!");
+
+    return fileNameIndexTable.at(fileName);
+}
+
+glm::vec3 getBlockColor(BlockType block)
+{
+    assertm(block == BlockType::air, "Tried to get air color");
+    return blockTypeToColor[block];
 }
 
 float getBlockTextureLayer(BlockType block, int side)
 {
-    assertm(blockTypeToTexLayer.contains(block), "Texture layer lookup does not contain block with id " << (int)block);
+    assertm(block == BlockType::air, "Tried to get air texture");
+    assertm(blockTypeToTexLayer[block].data() != nullptr,
+            "Texture layer lookup does not contain block with id " << (int)block);
 
-    return blockTypeToTexLayer.at(block)[side];
+    return blockTypeToTexLayer[block][side];
 }
 
 void generateBlockTextureLayerLookupTable()
@@ -83,6 +93,7 @@ void generateBlockTextureLayerLookupTable()
         else {
             throw std::runtime_error("Bad lenght in blockTypeToFileNames table!\n");
         }
-        blockTypeToTexLayer.insert(std::make_pair(blockTypeFiles.first, texLayers));
+        blockTypeToTexLayer[blockTypeFiles.first] = texLayers;
+        blockTypeToColor[blockTypeFiles.first] = ;
     }
 }

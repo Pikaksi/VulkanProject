@@ -4,19 +4,19 @@
 #include "World/WorldManager.hpp"
 #include "World/WorldGeneration/ChunkGenerator.hpp"
 
-
-void WorldManager::tryGeneratingNewChunk(glm::i32vec3 chunkLocation, std::unordered_set<glm::ivec3>& chunksToRerender, ChunkRenderer& chunkRenderer)
+void WorldManager::tryGeneratingNewChunk(glm::i32vec3 chunkLocation,
+                                         std::vector<glm::ivec3>& chunksToRenderAgain,
+                                         ChunkRenderer& chunkRenderer)
 {
-	if (chunks.contains(chunkLocation)) {
-		return;
-	}
-	generateChunk(chunkLocation, this, chunksToRerender, chunkRenderer);
+    if (chunks.contains(chunkLocation)) {
+        return;
+    }
+    generateChunk(chunkLocation, this, chunksToRenderAgain, chunkRenderer);
 }
 
 EntityID WorldManager::generateEntity(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, uint64_t componentBitmask)
 {
-	EntityID entityID = entityManager.createEntity(componentBitmask);
-	blockEntities[chunkLocation][blockLocation] = entityID;
-	return entityID;
+    EntityID entityID = entityManager.createEntity(componentBitmask);
+    blockEntities[chunkLocation][blockLocation] = entityID;
+    return entityID;
 }
-

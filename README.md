@@ -15,6 +15,7 @@ WPI inventory and factory components
 
 ### compiling
 
+requires vulkan sdk 1.4
 meson setup --wipe build --native-file clang.ini
 cd build/
 meson compile run

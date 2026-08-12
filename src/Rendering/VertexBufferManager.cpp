@@ -4,15 +4,11 @@
 
 VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
                                          VkCommandPool commandPool,
-                                         uint32_t worldMaxVertexCount,
-                                         uint32_t uiMaxVertexCount)
+                                         uint64_t worldVertexBufferSize)
 {
     quadStripIndexBuffer = QuadStripIndexBuffer(vulkanCoreInfo, commandPool, INDEX_BUFFER_QUAD_COUNT);
     worldGpuMemoryBlock = new GpuMemoryBlock;
-    gpuMemoryBlockInit(vulkanCoreInfo,
-                       *worldGpuMemoryBlock,
-                       sizeof(Vertex) * worldMaxVertexCount,
-                       false);
+    gpuMemoryBlockInit(vulkanCoreInfo, *worldGpuMemoryBlock, worldVertexBufferSize, false);
 }
 
 uint64_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
@@ -22,11 +18,25 @@ uint64_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
 {
     uint64_t memoryLocation = gpuMemoryBlockAddDeviceLocal(
         vulkanCoreInfo, commandPool, *worldGpuMemoryBlock, (void*)vertices.data(), sizeof(Vertex) * vertices.size());
-    worldVertexTracker.addLocation(static_cast<VkDeviceSize>(memoryLocation), vertices.size(), chunkLocation, 0);
+    worldVertexTracker.addLocation(
+        static_cast<VkDeviceSize>(memoryLocation), vertices.size() * sizeof(Vertex), chunkLocation, 0, true);
     return memoryLocation;
 }
 
-void VertexBufferManager::freeWorldVerticesMemory(uint32_t memoryBlockLocation)
+uint64_t VertexBufferManager::addVerticesToWorldLod(VulkanCoreInfo& vulkanCoreInfo,
+                                                    VkCommandPool commandPool,
+                                                    std::vector<VertexLod>& vertices,
+                                                    glm::ivec3 chunkLocation,
+                                                    int lod)
+{
+    uint64_t memoryLocation = gpuMemoryBlockAddDeviceLocal(
+        vulkanCoreInfo, commandPool, *worldGpuMemoryBlock, (void*)vertices.data(), sizeof(VertexLod) * vertices.size());
+    worldVertexTracker.addLocation(
+        static_cast<VkDeviceSize>(memoryLocation), vertices.size() * sizeof(VertexLod), chunkLocation, lod, false);
+    return memoryLocation;
+}
+
+void VertexBufferManager::freeWorldVerticesMemory(uint64_t memoryBlockLocation)
 {
     gpuMemoryBlockFree(*worldGpuMemoryBlock, memoryBlockLocation);
     worldVertexTracker.removeLocation(static_cast<VkDeviceSize>(memoryBlockLocation));

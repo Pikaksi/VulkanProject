@@ -1,3 +1,4 @@
+#include "BlockType.hpp"
 #include "vulkan/vulkan_core.h"
 #include <stdexcept>
 
@@ -11,14 +12,19 @@
 #include "VulkanRendering/ImageCreator.hpp"
 #include "VulkanRendering/Buffers.hpp"
 #include "FilePathHandler.hpp"
+#include "assertm.hpp"
 
-
-void createTextureImage(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string& textureFilePath) {
+void createTextureImage(VulkanCoreInfo& vulkanCoreInfo,
+                        ImageInfo& imageInfo,
+                        VkCommandPool commandPool,
+                        bool generateMipLevels,
+                        std::string& textureFilePath)
+{
     int texWidth, texHeight, texChannels;
     auto path = GetTexturesDirPath() + textureFilePath;
     stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
-    
+
     uint32_t mipLevels = 1;
     if (generateMipLevels) {
         mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
@@ -30,7 +36,12 @@ void createTextureImage(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, Vk
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(vulkanCoreInfo, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    createBuffer(vulkanCoreInfo,
+                 imageSize,
+                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 stagingBuffer,
+                 stagingBufferMemory);
 
     void* data;
     vkMapMemory(vulkanCoreInfo.device, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -39,32 +50,46 @@ void createTextureImage(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, Vk
 
     stbi_image_free(pixels);
 
-    createImageInfo(
-        vulkanCoreInfo,
-        imageInfo,
-        texWidth,
-        texHeight,
-        mipLevels,
-        VK_SAMPLE_COUNT_1_BIT,
-        VK_FORMAT_R8G8B8A8_SRGB,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        1,
-        VK_IMAGE_VIEW_TYPE_2D);
+    createImageInfo(vulkanCoreInfo,
+                    imageInfo,
+                    texWidth,
+                    texHeight,
+                    mipLevels,
+                    VK_SAMPLE_COUNT_1_BIT,
+                    VK_FORMAT_R8G8B8A8_SRGB,
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    VK_IMAGE_ASPECT_COLOR_BIT,
+                    1,
+                    VK_IMAGE_VIEW_TYPE_2D);
 
-    transitionImageLayout(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
-    copyBufferToImage(vulkanCoreInfo, commandPool, stagingBuffer, imageInfo.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
-    //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
+    transitionImageLayout(vulkanCoreInfo,
+                          commandPool,
+                          imageInfo.image,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          mipLevels,
+                          1);
+    copyBufferToImage(vulkanCoreInfo,
+                      commandPool,
+                      stagingBuffer,
+                      imageInfo.image,
+                      static_cast<uint32_t>(texWidth),
+                      static_cast<uint32_t>(texHeight),
+                      1);
+    // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
     vkDestroyBuffer(vulkanCoreInfo.device, stagingBuffer, nullptr);
     vkFreeMemory(vulkanCoreInfo.device, stagingBufferMemory, nullptr);
 
-    generateMipmaps(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, 1);
+    generateMipmaps(
+        vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, 1);
 }
 
-VkSampler createBlockTextureSampler(VulkanCoreInfo& vulkanCoreInfo) {
+VkSampler createBlockTextureSampler(VulkanCoreInfo& vulkanCoreInfo)
+{
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &properties);
 
@@ -93,7 +118,8 @@ VkSampler createBlockTextureSampler(VulkanCoreInfo& vulkanCoreInfo) {
     return textureSampler;
 }
 
-VkSampler createSunShadowSampler(VulkanCoreInfo& vulkanCoreInfo) {
+VkSampler createSunShadowSampler(VulkanCoreInfo& vulkanCoreInfo)
+{
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &properties);
 
@@ -152,19 +178,23 @@ VkSampler createUITextureSampler(VulkanCoreInfo& vulkanCoreInfo)
     return textureSampler;
 }
 
-void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels)
+void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo,
+                             ImageInfo& imageInfo,
+                             VkCommandPool commandPool,
+                             bool generateMipLevels)
 {
     std::vector<stbi_uc*> imagePixels;
     std::vector<int> texWidths, texHeights;
     int texChannels;
 
-    for (auto const& dir_entry : std::filesystem::directory_iterator{ GetBlockTexturesDirPath() }) {
+    for (auto const& dir_entry : std::filesystem::directory_iterator{GetBlockTexturesDirPath()}) {
         if (dir_entry.path().extension() == ".png") {
 
             texWidths.push_back(0);
             texHeights.push_back(0);
             auto path = GetBlockTexturesDirPath() + "/" + dir_entry.path().filename().string();
-            imagePixels.push_back(stbi_load(path.c_str(), &texWidths.back(), &texHeights.back(), &texChannels, STBI_rgb_alpha));
+            imagePixels.push_back(
+                stbi_load(path.c_str(), &texWidths.back(), &texHeights.back(), &texChannels, STBI_rgb_alpha));
 
             if (!imagePixels.back()) {
                 throw std::runtime_error("failed to load texture image while creating texture array! Path = " + path);
@@ -173,15 +203,12 @@ void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInf
     }
     uint32_t imageCount = imagePixels.size();
 
-
     for (int i = 0; i < texWidths.size() - 1; i++) {
-        if (texWidths[i] != texWidths[i + 1] || texHeights[i] != texHeights[i + 1]) {
-            throw std::runtime_error("Block texture images are different sizes!");
-        }
+        assertm(texWidths[i] == texWidths[i + 1] && texHeights[i] == texHeights[i + 1],
+                "Block texture images are different sizes!");
     }
-    if (texWidths[0] != BLOCK_TEXTURE_PIXEL_COUNT || texHeights[0] != BLOCK_TEXTURE_PIXEL_COUNT) {
-        throw std::runtime_error("BLOCK_TEXTURE_PIXEL_COUNT constant has wrong value!");
-    }
+    assertm(texWidths[0] == BLOCK_TEXTURE_PIXEL_COUNT && texHeights[0] == BLOCK_TEXTURE_PIXEL_COUNT,
+            "BLOCK_TEXTURE_PIXEL_COUNT constant has wrong value!");
 
     int texWidth = texWidths[0];
     int texHeight = texHeights[0];
@@ -191,27 +218,31 @@ void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInf
         mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
     }
 
-    createImageInfo(
-        vulkanCoreInfo,
-        imageInfo,
-        texWidths[0],
-        texHeights[0],
-        mipLevels,
-        VK_SAMPLE_COUNT_1_BIT,
-        VK_FORMAT_R8G8B8A8_SRGB,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        imageCount,
-        VK_IMAGE_VIEW_TYPE_2D_ARRAY);
+    createImageInfo(vulkanCoreInfo,
+                    imageInfo,
+                    texWidths[0],
+                    texHeights[0],
+                    mipLevels,
+                    VK_SAMPLE_COUNT_1_BIT,
+                    VK_FORMAT_R8G8B8A8_SRGB,
+                    VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    VK_IMAGE_ASPECT_COLOR_BIT,
+                    imageCount,
+                    VK_IMAGE_VIEW_TYPE_2D_ARRAY);
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;
     VkDeviceSize imageArraySize = imageSize * imageCount;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(vulkanCoreInfo, imageArraySize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    createBuffer(vulkanCoreInfo,
+                 imageArraySize,
+                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 stagingBuffer,
+                 stagingBufferMemory);
 
     void* data;
     vkMapMemory(vulkanCoreInfo.device, stagingBufferMemory, 0, imageArraySize, 0, &data);
@@ -222,13 +253,32 @@ void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInf
     }
     vkUnmapMemory(vulkanCoreInfo.device, stagingBufferMemory);
 
-
-    transitionImageLayout(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, imageCount);
-    copyBufferToImage(vulkanCoreInfo, commandPool, stagingBuffer, imageInfo.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), imageCount);
-    //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
+    transitionImageLayout(vulkanCoreInfo,
+                          commandPool,
+                          imageInfo.image,
+                          VK_FORMAT_R8G8B8A8_SRGB,
+                          VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          mipLevels,
+                          imageCount);
+    copyBufferToImage(vulkanCoreInfo,
+                      commandPool,
+                      stagingBuffer,
+                      imageInfo.image,
+                      static_cast<uint32_t>(texWidth),
+                      static_cast<uint32_t>(texHeight),
+                      imageCount);
+    // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
     vkDestroyBuffer(vulkanCoreInfo.device, stagingBuffer, nullptr);
     vkFreeMemory(vulkanCoreInfo.device, stagingBufferMemory, nullptr);
 
-    generateMipmaps(vulkanCoreInfo, commandPool, imageInfo.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels, imageCount);
+    generateMipmaps(vulkanCoreInfo,
+                    commandPool,
+                    imageInfo.image,
+                    VK_FORMAT_R8G8B8A8_SRGB,
+                    texWidth,
+                    texHeight,
+                    mipLevels,
+                    imageCount);
 }

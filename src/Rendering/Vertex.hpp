@@ -64,7 +64,6 @@ struct VertexLod {
     uint32_t pos;
     uint32_t colorAndNormal;
 
-
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;

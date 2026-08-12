@@ -73,3 +73,9 @@ struct PushConstant3d
 {
     glm::vec3 chunkWorldLocation;
 };
+
+struct PushConstant3dLod
+{
+    glm::vec3 chunkWorldLocation;
+    float chunkSize;
+};

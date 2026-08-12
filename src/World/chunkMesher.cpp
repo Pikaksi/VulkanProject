@@ -56,13 +56,37 @@ Vertex packVertex(float x,
         packA2R10G10B10_UNORM(u / 32.0f, v / 32.0f, textureIndex / 1023.0f, shadow));
 }
 
+VertexLod packVertexLod(float x,
+                  float y,
+                  float z,
+                  float normalX,
+                  float normalY,
+                  float normalZ,
+                  float u,
+                  float v,
+                  uint32_t textureIndex)
+{
+    int normal = 0;
+    if (std::abs(normalY) > std::abs(normalX) && std::abs(normalY) > std::abs(normalZ)) normal = 2;
+    if (std::abs(normalZ) > std::abs(normalX) && std::abs(normalZ) > std::abs(normalY)) normal = 4;
+    if (normal == 0 && normalX < 0) normal = 1;
+    if (normal == 2 && normalY < 0) normal = 3;
+    if (normal == 4 && normalZ < 0) normal = 5;
+    return VertexLod(
+        packA2R10G10B10_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, 0),
+        packR8G8B8A8_UNORM(0.5f, 0.5f, 0.5f, (float)normal));
+}
+
 void createChunkMesh(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
 {
+    std::cout << "         actually actually rendering chunk, loc: " << chunkLocation.x << " " << chunkLocation.y << " "
+              << chunkLocation.z << std::endl;
     Chunk* chunk = &worldManager.chunks[chunkLocation];
+    // std::cout << "chunkPtr = " << chunk << std::endl;
 
-    if (!chunk->containsDifferentBlocks && !isBlockSolid(chunk->blocks[0])) {
+    /*if (!chunk->containsDifferentBlocks && !isBlockSolid(chunk->blocks[0])) {
         return;
-    }
+    }*/
 
     auto debugStartWait = std::chrono::high_resolution_clock::now();
 
@@ -176,7 +200,6 @@ void downsampleBlocks(std::vector<BlockType>& blocks, int currentSize, std::vect
 
 void downsampleChunk(Chunk& chunk, std::vector<BlockType>& downsample, int lod)
 {
-    assertm(lod != 0, "Dont used lod function with lod = 0");
     assertm(lod <= 5, "Lod 5 is the max lod. Called with " << lod);
 
     if (!chunk.containsDifferentBlocks) {
@@ -185,6 +208,15 @@ void downsampleChunk(Chunk& chunk, std::vector<BlockType>& downsample, int lod)
         for (auto& a : downsample) {
             a = chunk.blocks[0];
         }
+        return;
+    }
+
+    if (lod == 0) {
+        downsample.resize(CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE);
+        for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; i++) {
+            downsample[i] = chunk.blocks[i];
+        }
+        return;
     }
 
     std::vector<BlockType>& blocks = chunk.blocks;
@@ -196,10 +228,10 @@ void downsampleChunk(Chunk& chunk, std::vector<BlockType>& downsample, int lod)
     downsample = blocks;
 }
 
-void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices, int lod)
+void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<VertexLod>& vertices, int lod)
 {
-    assertm(lod != 0, "Dont used lod function with lod = 0");
-    assertm(lod <= 5, "Lod 5 is the max lod. Called with " << lod);
+    assertm(lod <= 5, "Lod is high. Maybe remove this check. Called with " << lod);
+    std::cout << "TEST   lod = " << lod << std::endl;
 
     auto debugStartWait = std::chrono::high_resolution_clock::now();
 
@@ -219,9 +251,9 @@ void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, 
                 std::vector<BlockType> downsample;
                 downsampleChunk(chunk, downsample, lod);
 
-                for (int x = 0; x < chunkLenght; x++) {
-                    for (int y = 0; y < chunkLenght; y++) {
-                        for (int z = 0; z < chunkLenght; z++) {
+                for (int x = 0; x < blockLenght; x++) {
+                    for (int y = 0; y < blockLenght; y++) {
+                        for (int z = 0; z < blockLenght; z++) {
                             int fx = blockLenght * cx + x + 1;
                             int fy = blockLenght * cy + y + 1;
                             int fz = blockLenght * cz + z + 1;
@@ -235,20 +267,20 @@ void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, 
     }
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int y = 0; y < CHUNK_SIZE; y++) {
-            blocks[blockArrayLocToIndex(x + 1, y + 1, 0)] = BlockType::air;
-            blocks[blockArrayLocToIndex(x + 1, y + 1, CHUNK_SIZE + 1)] = BlockType::air;
+            blocks[blockArrayLocToIndex(x + 1, y + 1, 0)] = BlockType::stone;
+            blocks[blockArrayLocToIndex(x + 1, y + 1, CHUNK_SIZE + 1)] = BlockType::stone;
         }
     }
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            blocks[blockArrayLocToIndex(x + 1, 0, z + 1)] = BlockType::air;
-            blocks[blockArrayLocToIndex(x + 1, CHUNK_SIZE + 1, z + 1)] = BlockType::air;
+            blocks[blockArrayLocToIndex(x + 1, 0, z + 1)] = BlockType::stone;
+            blocks[blockArrayLocToIndex(x + 1, CHUNK_SIZE + 1, z + 1)] = BlockType::stone;
         }
     }
     for (int y = 0; y < CHUNK_SIZE; y++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            blocks[blockArrayLocToIndex(0, y + 1, z + 1)] = BlockType::air;
-            blocks[blockArrayLocToIndex(CHUNK_SIZE + 1, y + 1, z + 1)] = BlockType::air;
+            blocks[blockArrayLocToIndex(0, y + 1, z + 1)] = BlockType::stone;
+            blocks[blockArrayLocToIndex(CHUNK_SIZE + 1, y + 1, z + 1)] = BlockType::stone;
         }
     }
     std::vector<MeshFace> faces = std::vector<MeshFace>();
@@ -262,10 +294,9 @@ void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, 
 
         for (int i = 0; i < 4; i++) {
             // clang-format off
-            vertices.push_back(packVertex(
-                face.location[i].x * (1 << lod), face.location[i].y * (1 << lod), face.location[i].z * (1 << lod),
+            vertices.push_back(packVertexLod(
+                face.location[i].x, face.location[i].y, face.location[i].z,
                 norm.x, norm.y, norm.z,
-                0,
                 face.uv[i].x, face.uv[i].y,
                 face.textureLayer
             ));

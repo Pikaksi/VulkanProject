@@ -79,7 +79,7 @@ void generateTree(int x,
                   int z,
                   glm::i32vec3 chunkLocation,
                   WorldManager* worldManager,
-                  std::unordered_set<glm::ivec3>& chunksToRerender,
+                  std::vector<glm::ivec3>& chunksToRerender,
                   ChunkRenderer& chunkRenderer)
 {
     // for the tool:
@@ -191,7 +191,7 @@ void generateTree(int x,
     for (int chunkX = chunkCornerNegative.x; chunkX <= chunkCornerPositive.x; chunkX++) {
         for (int chunkY = chunkCornerNegative.y; chunkY <= chunkCornerPositive.y; chunkY++) {
             for (int chunkZ = chunkCornerNegative.z; chunkZ <= chunkCornerPositive.z; chunkZ++) {
-                chunksToRerender.insert(glm::ivec3(chunkX, chunkY, chunkZ));
+                chunksToRerender.push_back(glm::i32vec3(chunkX, chunkY, chunkZ));
             }
         }
     }
@@ -201,7 +201,7 @@ float randomFloat01() { return static_cast<float>(rand()) / static_cast<float>(R
 
 void generateChunk(glm::i32vec3 chunkLocation,
                    WorldManager* worldManager,
-                   std::unordered_set<glm::ivec3>& chunksToRerender,
+                   std::vector<glm::ivec3>& chunksToRenderAgain,
                    ChunkRenderer& chunkRenderer)
 {
     // The string is generated with the FastNoise2 noisetool.
@@ -258,7 +258,7 @@ void generateChunk(glm::i32vec3 chunkLocation,
                                     x, y + 1, z, chunkLocation, BlockType::grassPlant, worldManager, chunkRenderer);
                             }
                             if (randomFloat01() < 0.002f) {
-                                generateTree(x, y + 1, z, chunkLocation, worldManager, chunksToRerender, chunkRenderer);
+                                generateTree(x, y + 1, z, chunkLocation, worldManager, chunksToRenderAgain, chunkRenderer);
                             }
                         }
                         else {

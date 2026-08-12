@@ -9,16 +9,17 @@
 struct WorldDrawCallData
 {
     VkDeviceSize memoryLocation;
-    uint32_t dataCount;
+    uint64_t dataSize;
     glm::ivec3 chunkLocation;
-    bool lod;
+    int lod;
+    bool fullDetail;
 };
 
 class WorldVertexTracker
 {
 public:
     void removeLocation(VkDeviceSize memoryLocation);
-    void addLocation(VkDeviceSize memoryLocation, uint64_t dataCount, glm::ivec3 chunkLocation, int lod);
+    void addLocation(VkDeviceSize memoryLocation, uint64_t dataSize, glm::ivec3 chunkLocation, int lod, bool fullDetail);
 
     std::vector<WorldDrawCallData> trackedDrawCallData;
     std::unordered_map<VkDeviceSize, uint64_t> drawCallDataLookup;

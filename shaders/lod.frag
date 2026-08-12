@@ -3,7 +3,7 @@
 layout(binding = 1) uniform sampler2DShadow sunShadowSampler;
 
 layout(location = 0) in vec3 inPos;
-layout(location = 1) out vec3 inColor;
+layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
 layout(location = 3) in float inShadow;
 layout(location = 4) in mat4 inWorldToSunMat;
@@ -22,7 +22,7 @@ float sampleShadow(vec3 viewPos) {
 void main() {
     float shadow = 0.0;
     if (inShadow == 0) {
-        shadow = sampleShadow(inPos);
+        shadow = 1.0; //sampleShadow(inPos);
     }
     vec4 color = vec4(inColor * (0.2 + 0.8 * shadow), 0);
 

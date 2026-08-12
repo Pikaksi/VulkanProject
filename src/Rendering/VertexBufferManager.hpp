@@ -11,16 +11,18 @@
 struct VertexBufferManager
 {
     VertexBufferManager() {}
-    VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
-                        VkCommandPool commandPool,
-                        uint32_t worldVertexCount,
-                        uint32_t uiMaxVertexCount);
+    VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPool, uint64_t worldVertexBufferSize);
 
     uint64_t addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
                                 VkCommandPool commandPool,
                                 std::vector<Vertex>& vertices,
                                 glm::ivec3 chunkLocation);
-    void freeWorldVerticesMemory(uint32_t memoryBlockLocation);
+    uint64_t addVerticesToWorldLod(VulkanCoreInfo& vulkanCoreInfo,
+                                   VkCommandPool commandPool,
+                                   std::vector<VertexLod>& vertices,
+                                   glm::ivec3 chunkLocation,
+                                   int lod);
+    void freeWorldVerticesMemory(uint64_t memoryBlockLocation);
 
     void getWorldGeometryForRendering(VkBuffer& vertexBuffer,
                                       std::vector<WorldDrawCallData>& vertexOffsets,

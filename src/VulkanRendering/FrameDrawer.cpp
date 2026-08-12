@@ -17,7 +17,7 @@ void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo, std::vector<GpuMemory
 {
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         drawCallBuffers.push_back(GpuMemoryBlock{});
-        gpuMemoryBlockInit(vulkanCoreInfo, drawCallBuffers.back(), 0/*1000000*/, true);
+        gpuMemoryBlockInit(vulkanCoreInfo, drawCallBuffers.back(), 0 /*1000000*/, true);
     }
 }
 
@@ -103,9 +103,6 @@ bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
                              ChunkCenterOffsets& chunkCenterOffsets,
                              ViewingFrustumNormals& viewingFrustumNormals)
 {
-    // glm::vec3 toChunkTop = static_cast<glm::vec3>(chunkLocation/* + chunkCenterOffsets.top*/) - cameraLocation;
-    // std::cout << "to chunk: " << toChunkTop.x << " " << toChunkTop.y << " " << toChunkTop.z << " frustum normal " <<
-    // viewingFrustumNormals.top.x << " " << viewingFrustumNormals.top.y << " " << viewingFrustumNormals.top.z << "\n";
     return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top) - cameraLocation,
                     viewingFrustumNormals.top) < 0.0f &&
            glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom) - cameraLocation,
@@ -131,6 +128,9 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
     std::vector<WorldDrawCallData> worldDrawCallData;
     VkBuffer worldIndexBuffer;
     draw.vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
+    /*std::cout << "chunk locations are: ";
+    for (auto a : worldDrawCallData) std::cout << a.chunkLocation.x << " " << a.chunkLocation.y << " " <<
+    a.chunkLocation.z << " | "; std::cout << std::endl;*/
 
     // ---------------- SUN SHADOW PASS ----------------
 
@@ -196,6 +196,8 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
 
         for (size_t i = 0; i < worldDrawCallData.size(); i++) {
             WorldDrawCallData drawCallData = worldDrawCallData[i];
+            if (!drawCallData.fullDetail)
+                continue;
 
             PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
             vkCmdPushConstants(commandBuffer,
@@ -206,8 +208,12 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
                                &pushConstant);
 
             // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(
-                commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, drawCallData.memoryLocation / sizeof(Vertex), 0);
+            vkCmdDrawIndexed(commandBuffer,
+                             drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
+                             1,
+                             0,
+                             drawCallData.memoryLocation / sizeof(Vertex),
+                             0);
         }
     }
 
@@ -324,6 +330,8 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
 
         for (int i = 0; i < worldDrawCallData.size(); i++) {
             WorldDrawCallData drawCallData = worldDrawCallData[i];
+            if (!drawCallData.fullDetail)
+                continue;
 
             if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
                                          drawCallData.chunkLocation,
@@ -340,21 +348,53 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
                                sizeof(PushConstant3d),
                                &pushConstant);
             // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(
-                commandBuffer, drawCallData.dataCount / 2 * 3, 1, 0, drawCallData.memoryLocation / sizeof(Vertex), 0);
+            vkCmdDrawIndexed(commandBuffer,
+                             drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
+                             1,
+                             0,
+                             drawCallData.memoryLocation / sizeof(Vertex),
+                             0);
         }
     }
 
     // ---------------- LOD PASS ----------------
 
-    vkCmdBeginRendering(commandBuffer, &renderingInfo);
-
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineLod.pipeline);
+    {
+        vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                draw.pipeline3d.layout,
+                                0,
+                                1,
+                                &draw.descriptorSets3d[draw.currentFrame],
+                                0,
+                                nullptr);
+        VkBuffer vertexBuffers[] = {worldVertexBuffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    
+        for (int i = 0; i < worldDrawCallData.size(); i++) {
+            WorldDrawCallData drawCallData = worldDrawCallData[i];
+            if (drawCallData.fullDetail)
+                continue;
+
+            PushConstant3dLod pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 32.0f * (1 << drawCallData.lod)};
+            vkCmdPushConstants(commandBuffer,
+                               draw.pipeline3d.layout,
+                               VK_SHADER_STAGE_VERTEX_BIT,
+                               0,
+                               sizeof(PushConstant3dLod),
+                               &pushConstant);
+            // get index count by multiplying vertex count by 1.5
+            vkCmdDrawIndexed(commandBuffer,
+                             drawCallData.dataSize / sizeof(VertexLod) / 2 * 3,
+                             1,
+                             0,
+                             drawCallData.memoryLocation / sizeof(VertexLod),
+                             0);
+        }
+    }
 
     // ---------------- UI PASS----------------
 
@@ -458,12 +498,10 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    // std::cout << "here1" << std::endl;
     if (vkQueueSubmit(vulkanCoreInfo.graphicsQueue, 1, &submitInfo, draw.inFlightFences[draw.currentFrame]) !=
         VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
-    // std::cout << "here2" << std::endl;
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

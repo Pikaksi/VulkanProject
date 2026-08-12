@@ -55,9 +55,8 @@ void Application::initGame()
     debugMenu = DebugMenu();
     playerInventoryManager = PlayerInventoryManager();
 
-    int worldMaxVertexCount = 100000000;
-    int uiMaxVertexCount = 50000;
-    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldMaxVertexCount, uiMaxVertexCount);
+    int worldVertexBufferSize = 1 * 1024 * 1024 * 1024;
+    vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldVertexBufferSize);
 
     generateBlockTextureLayerLookupTable();
 }

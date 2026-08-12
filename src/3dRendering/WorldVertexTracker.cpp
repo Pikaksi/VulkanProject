@@ -1,10 +1,12 @@
 #include "WorldVertexTracker.hpp"
 
+#include "BlockType.hpp"
 #include "assertm.hpp"
 
-void WorldVertexTracker::addLocation(VkDeviceSize memoryLocation, uint64_t dataCount, glm::ivec3 chunkLocation)
+void WorldVertexTracker::addLocation(VkDeviceSize memoryLocation, uint64_t dataSize, glm::ivec3 chunkLocation, int lod, bool fullDetail)
 {
-    WorldDrawCallData vertexBatchData(memoryLocation, dataCount, chunkLocation);
+    WorldDrawCallData vertexBatchData{
+        .memoryLocation = memoryLocation, .dataSize = dataSize, .chunkLocation = chunkLocation, .lod = lod, .fullDetail = fullDetail};
 
     trackedDrawCallData.push_back(vertexBatchData);
     drawCallDataLookup.insert(std::make_pair(memoryLocation, trackedDrawCallData.size() - 1));

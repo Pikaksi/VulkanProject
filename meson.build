@@ -129,6 +129,7 @@ my_exe = executable('myexe',
 
 run_env = environment()
 layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
+message(layer_path)
 run_env.set('VK_LAYER_PATH', layer_path)
 
 run_target('run',

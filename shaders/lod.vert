@@ -13,6 +13,7 @@ layout(location = 1) in vec4 inColorAndNormal;
 layout(push_constant) uniform constants
 {
     vec3 chunkWorldLocation;
+    float chunkSize;
 } pushConstants;
 
 layout(location = 0) out vec3 outPos;
@@ -27,7 +28,7 @@ const vec3 faceNormals[6] = vec3[6](
     vec3( 0.0,  0.0,  1.0), vec3( 0.0,  0.0, -1.0));
 
 void main() {
-    outPos = pushConstants.chunkWorldLocation + inPosAndShadow.xyz * 32.0;
+    outPos = pushConstants.chunkWorldLocation + inPosAndShadow.xyz * pushConstants.chunkSize;
     gl_Position = ubo.camera * vec4(outPos, 1.0);
     vec3 normal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)];
     outNormal = normal;

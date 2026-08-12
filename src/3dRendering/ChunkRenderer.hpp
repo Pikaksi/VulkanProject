@@ -8,45 +8,89 @@ class WorldManager;
 
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "Rendering/VertexBufferManager.hpp"
+#include "util/vec3hash.hpp"
 
-struct ChunkRenderingInfo
+struct ChunkOrderInfo
 {
     glm::i32vec3 loc;
     int lod;
+    bool fullDetail;
 };
 
-class ChunkRenderer
+struct ChunkInfo
 {
-  public:
-    ChunkRenderer() {}
+    int lod;
+    uint64_t memoryLocation;
+    bool fullDetail;
+};
+
+struct ChunkRenderingCommand
+{
+    glm::i32vec3 loc;
+    int fromLod;
+    int toLod;
+    bool replace;
+    bool noChunksToRender;
+    bool fullDetail;
+};
+
+glm::i32vec3 roundLocationLod(glm::i32vec3 loc, int lod);
+
+struct ChunkRenderer
+{
+    ChunkRenderer();
+
+    std::vector<ChunkOrderInfo> chunkRenderingOrder;
+
+    const int renderDistancelodFull = 2;
+    const int renderDistancelod0 = 2;
+    const int renderDistancelod1 = 8;
+    const int maxLod = 1;
+    std::vector<int> renderDistances = {renderDistancelodFull, renderDistancelod0, renderDistancelod1};
+    const int extraRangeToDerenderChunk = 4;
+
+    int nextChunkRenderIndex = 0;
+    std::vector<glm::i32vec3> chunksToRenderAgain;
+    std::unordered_map<glm::i32vec3, ChunkInfo, Vec3LocalizedHash> chunkInfos;
+    glm::i32vec3 peviousPlayerChunkLocation = glm::i32vec3(9999, 9999, 9999);
+
+    // void derenderChunksOutOfRenderdistance(glm::i32vec3 playerChunkLocation, VertexBufferManager&
+    // vertexBufferManager); void renderNewChunksInRenderdistance(glm::i32vec3 playerChunkLocation, int
+    // newChunkMinDistance); void tryAddChunkToRender(glm::i32vec3 chunkLocation); bool
+    // chunkIsInRenderDistance(glm::i32vec3 playerChunkLocation, glm::i32vec3 chunkLocation);
+    /*void addQueuedChunkMeshes(VulkanCoreInfo& vulkanCoreInfo,
+                              VkCommandPool commandPool,
+                              WorldManager& worldManager,
+                              VertexBufferManager& vertexBufferManager,
+                              glm::i32vec3 playerChunkLocation);*/
+    /*void renderChunk(VulkanCoreInfo& vulkanCoreInfo,
+                     VkCommandPool commandPool,
+                     glm::i32vec3 chunkLocation,
+                     WorldManager& worldManager,
+                     VertexBufferManager& vertexBufferManager);*/
     void update(VulkanCoreInfo& vulkanCoreInfo,
                 VkCommandPool commandPool,
                 WorldManager& worldManager,
                 VertexBufferManager& vertexBufferManager,
                 glm::i32vec3 playerChunkLocation);
-
     void rerenderChunk(glm::i32vec3 chunkLocation);
+    ChunkRenderingCommand getNextChunkToRender(glm::i32vec3 playerLocation);
+    void renderChunk2(VulkanCoreInfo& vulkanCoreInfo,
+                      VkCommandPool commandPool,
+                      WorldManager& worldManager,
+                      VertexBufferManager& vertexBufferManager,
+                      glm::i32vec3 loc,
+                      int lod,
+                      bool fullDetail);
 
-    const int renderDistance = 15;
-    const int extraRangeToDerenderChunk = 1;
-
-    std::vector<glm::i32vec3> chunksToRenderAgain;
-    std::queue<glm::i32vec3> chunksToRender;
-    std::unordered_map<glm::i32vec3, uint64_t> renderedChunks; // holds GPU memory pointer to delete chunks
-    glm::i32vec3 peviousPlayerChunkLocation = glm::i32vec3(9999, 9999, 9999);
-
-    void derenderChunksOutOfRenderdistance(glm::i32vec3 playerChunkLocation, VertexBufferManager& vertexBufferManager);
-    void renderNewChunksInRenderdistance(glm::i32vec3 playerChunkLocation, int newChunkMinDistance);
-    void tryAddChunkToRender(glm::i32vec3 chunkLocation);
-    bool chunkIsInRenderDistance(glm::i32vec3 playerChunkLocation, glm::i32vec3 chunkLocation);
-    void addQueuedChunkMeshes(VulkanCoreInfo& vulkanCoreInfo,
-                              VkCommandPool commandPool,
-                              WorldManager& worldManager,
-                              VertexBufferManager& vertexBufferManager,
-                              glm::i32vec3 playerChunkLocation);
-    void renderChunk(VulkanCoreInfo& vulkanCoreInfo,
-                     VkCommandPool commandPool,
-                     glm::i32vec3 chunkLocation,
-                     WorldManager& worldManager,
-                     VertexBufferManager& vertexBufferManager);
+    void renderNextChunk(VulkanCoreInfo& vulkanCoreInfo,
+                         VkCommandPool commandPool,
+                         WorldManager& worldManager,
+                         VertexBufferManager& vertexBufferManager,
+                         glm::i32vec3 playerLocation);
+    void handleRenderCommand(VulkanCoreInfo& vulkanCoreInfo,
+                             VkCommandPool commandPool,
+                             WorldManager& worldManager,
+                             VertexBufferManager& vertexBufferManager,
+                             ChunkRenderingCommand& renderCommand);
 };

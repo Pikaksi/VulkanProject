@@ -269,7 +269,7 @@ void createGraphicsPipelineLod(VulkanCoreInfo& vulkanCoreInfo,
 
     VkPushConstantRange pushConstantRange{};
     pushConstantRange.offset = 0;
-    pushConstantRange.size = sizeof(PushConstant3d);
+    pushConstantRange.size = sizeof(PushConstant3dLod);
     pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
