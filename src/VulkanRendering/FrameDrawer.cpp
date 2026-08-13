@@ -364,10 +364,10 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                draw.pipeline3d.layout,
+                                draw.pipelineLod.layout,
                                 0,
                                 1,
-                                &draw.descriptorSets3d[draw.currentFrame],
+                                &draw.descriptorSetsLod[draw.currentFrame],
                                 0,
                                 nullptr);
         VkBuffer vertexBuffers[] = {worldVertexBuffer};
@@ -381,7 +381,7 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
 
             PushConstant3dLod pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 32.0f * (1 << drawCallData.lod)};
             vkCmdPushConstants(commandBuffer,
-                               draw.pipeline3d.layout,
+                               draw.pipelineLod.layout,
                                VK_SHADER_STAGE_VERTEX_BIT,
                                0,
                                sizeof(PushConstant3dLod),

@@ -4,7 +4,6 @@
 #include <bitset>
 #include <algorithm>
 
-#include "BlockTexCoordinateLookup.hpp"
 #include "World/BlockDataLookup.hpp"
 #include "World/Chunk.hpp"
 #include "assertm.hpp"
@@ -69,7 +68,7 @@ void addMeshFacePosZ(int x, int y, int z, int width, int height, BlockType block
             {(float)width, 0.0f},
             {(float)width, (float)height},
         },
-        .textureLayer = (uint32_t)getBlockTextureLayer(block, 4)
+        .textureLayer = blockTypeToTexLayer[block][4]
     });
 }
 
@@ -88,8 +87,7 @@ void addMeshFaceNegZ(int x, int y, int z, int width, int height, BlockType block
             {0.0f, 0.0f},
             {(float)width, 0.0f},
         },
-        .textureLayer = (uint32_t)getBlockTextureLayer(block, 5)
- 
+        .textureLayer = blockTypeToTexLayer[block][5]
     });
 }
 
@@ -108,7 +106,7 @@ void addMeshFacePosX(int x, int y, int z, int width, int height, BlockType block
             {0.0f, 0.0f},
             {(float)height, 0.0f},
         },
-        .textureLayer = (uint32_t)getBlockTextureLayer(block, 0)
+        .textureLayer = blockTypeToTexLayer[block][0]
     });
 }
 
@@ -127,7 +125,7 @@ void addMeshFaceNegX(int x, int y, int z, int width, int height, BlockType block
             {0.0f, 0.0f},
             {0.0f, (float)width},
         },
-        .textureLayer = (uint32_t)getBlockTextureLayer(block, 1)
+        .textureLayer = blockTypeToTexLayer[block][1]
     });
 }
 
@@ -146,7 +144,7 @@ void addMeshFacePosY(int x, int y, int z, int width, int height, BlockType block
             {0.0f, 0.0f},
             {0.0f, (float)width},
         },
-        .textureLayer = (uint32_t)getBlockTextureLayer(block, 2)
+        .textureLayer = blockTypeToTexLayer[block][2]
     });
 }
 
@@ -165,7 +163,7 @@ void addMeshFaceNegY(int x, int y, int z, int width, int height, BlockType block
             {0.0f, 0.0f},
             {0.0f, (float)height},
         },
-        .textureLayer = (uint32_t)getBlockTextureLayer(block, 3)
+        .textureLayer = blockTypeToTexLayer[block][3]
     });
 }
 
@@ -211,7 +209,7 @@ void mergeFaces(BlockBitMask* hasFace,
                 int width = 1;
                 int height = 1;
                 BlockBitMask startingBlock = blockBitMask & (0 - blockBitMask); // get least significant bit
-                //hasFace[x + y * CHUNK_SIZE] ^= startingBlock; // turn off used bit mask  TODO: might be unnecessary
+                // hasFace[x + y * CHUNK_SIZE] ^= startingBlock; // turn off used bit mask  TODO: might be unnecessary
                 int z = LovestSignificantBitIndex(startingBlock);
 
                 BlockType originalBlockType = blocks[blockArrayLookupTemplate<coordinateSwap>(x + 1, y + 1, z + 1)];
@@ -267,7 +265,7 @@ void mergeFaces(BlockBitMask* hasFace,
 
 void meshCustomBlock(int x, int y, int z, BlockType blockType, std::vector<MeshFace>& faces)
 {
-    uint32_t textureArrayIndex = (uint32_t)getBlockTextureLayer(blockType, 0);
+    uint32_t textureArrayIndex = blockTypeToTexLayer[blockType][0];
 
     glm::vec3 blockLocation = glm::ivec3(x, y, z);
     std::vector<glm::vec3> vertexOffsets = blockCustomRenderVertexOffsets.at(blockType);
@@ -294,7 +292,7 @@ void meshCustomBlock(int x, int y, int z, BlockType blockType, std::vector<MeshF
 }
 
 void blockArrayMesher(std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)> blocks,
-                            std::vector<MeshFace>& faces)
+                      std::vector<MeshFace>& faces)
 {
     // rx = faces that point to the right in the x direction
     BlockBitMask* rxBlockFaceBitMask = new BlockBitMask[CHUNK_SIZE * CHUNK_SIZE];
@@ -311,7 +309,7 @@ void blockArrayMesher(std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) 
 
                 if (getRenderType(block) == BlockRenderType::transparent) {
                     assertm(false, "custom block not implemented");
-                    //renderNonSolidBlock(x, y, z, block, vertices);
+                    // renderNonSolidBlock(x, y, z, block, vertices);
                 }
                 if (getRenderType(block) == BlockRenderType::custom) {
                     meshCustomBlock(x - 1, y - 1, z - 1, block, faces);

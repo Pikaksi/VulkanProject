@@ -2,12 +2,12 @@
 #include "vulkan/vulkan_core.h"
 #include <stdexcept>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #include <filesystem>
 #include <iostream>
+#include <cstring>
 
+#include "BlockDataLookup.hpp"
+#include "Constants.hpp"
 #include "TextureCreator.hpp"
 #include "VulkanRendering/ImageCreator.hpp"
 #include "VulkanRendering/Buffers.hpp"

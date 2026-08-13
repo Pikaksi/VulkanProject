@@ -5,11 +5,6 @@
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "BlockType.hpp"
 
-const int BLOCK_TEXTURE_PIXEL_COUNT = 16;
-const float UV_EDGE_CORRECTION = 1.0f / ((float)BLOCK_TEXTURE_PIXEL_COUNT * 2 * 16);
-
-static glm::vec3 blockColor[BlockType::maxEnum];
-
 void createTextureImage(VulkanCoreInfo& vulkanCoreInfo, ImageInfo& imageInfo, VkCommandPool commandPool, bool generateMipLevels, std::string& textureFilePath);
 VkSampler createBlockTextureSampler(VulkanCoreInfo& vulkanCoreInfo);
 VkSampler createSunShadowSampler(VulkanCoreInfo& vulkanCoreInfo);

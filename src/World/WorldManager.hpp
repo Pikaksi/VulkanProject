@@ -5,8 +5,6 @@
 
 class ChunkRenderer;
 
-#include "glm/vec3.hpp"
-
 #include "util/vec3hash.hpp"
 #include "Chunk.hpp"
 #include "ECS/EntityManager.hpp"

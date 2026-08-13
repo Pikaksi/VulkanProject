@@ -1,8 +1,13 @@
 #include "BlockDataLookup.hpp"
 
+#include <cassert>
 #include <stdexcept>
+#include <filesystem>
 
+#include "Constants.hpp"
+#include "FilePathHandler.hpp"
 #include "ECS/Components.hpp"
+#include "assertm.hpp"
 
 // clang-format off
 
@@ -44,49 +49,49 @@ const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
         .blockType = BlockType::air,
         .blockRenderType = BlockRenderType::dontRender,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::stone,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::grass,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::dirt,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::oakLog,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::oakLeaf,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::grassPlant,
         .blockRenderType = BlockRenderType::custom,
         .isInteractable = false,
-        .blockComponents = 0
+        .blockComponents = 0,
     },
     BlockProperties {
         .blockType = BlockType::furnace,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = true,
-        .blockComponents = inventoryComponentBitmask
+        .blockComponents = inventoryComponentBitmask,
     }
 };
 
@@ -97,34 +102,34 @@ const std::map<BlockType, int> blockTypeInventorySize
 
 bool isBlockSolid(BlockType blocktype)
 {
-    return blockTypeRenderType[blocktype] == BlockRenderType::solid;
+    return blockTypeToRenderType[blocktype] == BlockRenderType::solid;
 }
 
 bool isRenderableNonSolid(BlockType blocktype)
 {
-    return !(blockTypeRenderType[blocktype] == BlockRenderType::solid || blockTypeRenderType[blocktype] == BlockRenderType::dontRender);
+    return !(blockTypeToRenderType[blocktype] == BlockRenderType::solid || blockTypeToRenderType[blocktype] == BlockRenderType::dontRender);
 }
 
 BlockRenderType getRenderType(BlockType blockType) {
-    return blockTypeRenderType[blockType];
+    return blockTypeToRenderType[blockType];
 }
 
 BlockRenderType getBlockRenderType(BlockType blockType)
 {
-    return blockTypeRenderType[blockType];
+    return blockTypeToRenderType[blockType];
 }
 
 bool blockHasComponent(BlockType blockType, uint64_t componentBitmask)
 {
-    return blockTypeComponents[blockType] & componentBitmask != 0;
+    return blockTypeToComponents[blockType] & componentBitmask != 0;
 }
 
 bool blockHasComponent(BlockType blockType)
 {
-    return blockTypeComponents[blockType] != 0;
+    return blockTypeToComponents[blockType] != 0;
 }
 
-const BlockRenderType blockTypeRenderType[BlockType::maxEnum] = {
+const BlockRenderType blockTypeToRenderType[BlockType::maxEnum] = {
     blockPropertiesLookup[0].blockRenderType,
     blockPropertiesLookup[1].blockRenderType,
     blockPropertiesLookup[2].blockRenderType,
@@ -146,7 +151,7 @@ const bool blockTypeIsInteractable[BlockType::maxEnum] = {
     blockPropertiesLookup[7].isInteractable
 };
 
-const uint64_t blockTypeComponents[BlockType::maxEnum] = {
+const uint64_t blockTypeToComponents[BlockType::maxEnum] = {
     blockPropertiesLookup[0].blockComponents,
     blockPropertiesLookup[1].blockComponents,
     blockPropertiesLookup[2].blockComponents,
@@ -156,3 +161,119 @@ const uint64_t blockTypeComponents[BlockType::maxEnum] = {
     blockPropertiesLookup[6].blockComponents,
     blockPropertiesLookup[7].blockComponents
 };
+
+// clang-format on
+
+glm::vec3 calculateImageColor(stbi_uc* image, int height, int width)
+{
+    float r = 0;
+    float g = 0;
+    float b = 0;
+
+    struct Pixel
+    {
+        stbi_uc r;
+        stbi_uc g;
+        stbi_uc b;
+        stbi_uc a;
+    };
+    std::cout << "\n\nNEW IMAGE\n";
+
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            stbi_uc* color = image + 4 * (x + y * width);
+            Pixel pixel = *(Pixel*)color;
+            r += ((float)pixel.r / 255.0f) * ((float)pixel.a / 255.0f);
+            g += ((float)pixel.g / 255.0f) * ((float)pixel.a / 255.0f);
+            b += ((float)pixel.b / 255.0f) * ((float)pixel.a / 255.0f);
+            //std::cout << "     " << (int)pixel.r << " " << (int)pixel.g << " " << (int)pixel.b << " " << (int)pixel.a << std::endl;
+        }
+    }
+    std::cout << std::endl;
+    return glm::vec3{r, g, b} / (float)(height * width);
+}
+
+void blockDataLookupInit()
+{
+    std::unordered_map<std::string, uint32_t> fileNameToImageIndex;
+    uint32_t i = 0;
+
+    for (auto const& dir_entry : std::filesystem::directory_iterator{GetBlockTexturesDirPath()}) {
+        if (dir_entry.path().extension() == ".png") {
+            std::string path = GetBlockTexturesDirPath() + "/" + dir_entry.path().filename().string();
+            int width = 0;
+            int height = 0;
+            int texChannels; // Unused.
+
+            stbi_uc* imageData = stbi_load(path.c_str(), &width, &height, &texChannels, STBI_rgb_alpha);
+
+            assertm(imageData != nullptr, "Image loader gave nullptr to image " << path);
+            assertm(width == BLOCK_TEXTURE_PIXEL_COUNT && height == BLOCK_TEXTURE_PIXEL_COUNT,
+                    "Block texture at " << path << " has the wrong size.");
+
+            fileNameToImageIndex.insert(std::pair<std::string, uint32_t>(dir_entry.path().stem().string(), i));
+            i += 1;
+            blockImages.push_back(imageData);
+        }
+    }
+    for (auto& blockTypeFiles : blockTypeToFileNames) {
+        for (auto& fileName : blockTypeFiles.second) {
+            assertm(fileNameToImageIndex.contains(fileName),
+                    "Could not find requested file " << fileName << " for block " << blockTypeFiles.first);
+        }
+    }
+
+    for (auto& blockTypeFiles : blockTypeToFileNames) {
+        uint32_t* texLayers = blockTypeToTexLayer[blockTypeFiles.first];
+        BlockType block = blockTypeFiles.first;
+        const std::vector<std::string>& fileNames = blockTypeFiles.second;
+
+        if (fileNames.size() == 1) {
+            uint32_t imageTexLayer = fileNameToImageIndex.at(fileNames[0]);
+
+            for (int i = 0; i < 6; i++) {
+                texLayers[i] = imageTexLayer;
+            }
+        }
+        else if (blockTypeFiles.second.size() == 2) {
+            uint32_t topAndBottomImageTexLayer = fileNameToImageIndex.at(fileNames[0]);
+            uint32_t sideImageTexLayer = fileNameToImageIndex.at(fileNames[1]);
+
+            texLayers[0] = sideImageTexLayer;
+            texLayers[1] = sideImageTexLayer;
+            texLayers[2] = topAndBottomImageTexLayer;
+            texLayers[3] = topAndBottomImageTexLayer;
+            texLayers[4] = sideImageTexLayer;
+            texLayers[5] = sideImageTexLayer;
+        }
+        else if (blockTypeFiles.second.size() == 3) {
+            uint32_t topImageTexLayer = fileNameToImageIndex.at(fileNames[0]);
+            uint32_t sideImageTexLayer = fileNameToImageIndex.at(fileNames[1]);
+            uint32_t bottomImageTexLayer = fileNameToImageIndex.at(fileNames[2]);
+
+            texLayers[0] = sideImageTexLayer;
+            texLayers[1] = sideImageTexLayer;
+            texLayers[2] = topImageTexLayer;
+            texLayers[3] = bottomImageTexLayer;
+            texLayers[4] = sideImageTexLayer;
+            texLayers[5] = sideImageTexLayer;
+        }
+        else if (blockTypeFiles.second.size() == 6) {
+
+            texLayers[0] = fileNameToImageIndex.at(fileNames[0]);
+            texLayers[1] = fileNameToImageIndex.at(fileNames[1]);
+            texLayers[2] = fileNameToImageIndex.at(fileNames[2]);
+            texLayers[3] = fileNameToImageIndex.at(fileNames[3]);
+            texLayers[4] = fileNameToImageIndex.at(fileNames[4]);
+            texLayers[5] = fileNameToImageIndex.at(fileNames[5]);
+        }
+        else {
+            assertm(false, "Bad lenght in blockTypeToFileNames table");
+        }
+    }
+
+    for (stbi_uc* image : blockImages) {
+        glm::vec3 color = calculateImageColor(image, BLOCK_TEXTURE_PIXEL_COUNT, BLOCK_TEXTURE_PIXEL_COUNT);
+        blockImageColors.push_back(color);
+    }
+}

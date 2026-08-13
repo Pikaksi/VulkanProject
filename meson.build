@@ -3,10 +3,10 @@ project('my_app', 'cpp',
   default_options : ['warning_level=1'])
 
 src = [
+  'src/util/stbi_images.cpp',
   'src/World/chunkMesher.cpp',
   'src/util/tlsfAllocator.cpp',
   'src/World/WorldGeneration/ChunkGenerator.cpp',
-  'src/3dRendering/BlockTexCoordinateLookup.cpp',
   'src/3dRendering/QuadStripIndexBuffer.cpp',
   'src/VulkanRendering/GraphicsPipeline.cpp',
   'src/VulkanRendering/VulkanUtilities.cpp',
@@ -25,7 +25,6 @@ src = [
   'src/3dRendering/ChunkRenderer.cpp',
   'src/2dRendering/DefaultWindow.cpp',
   'src/VulkanRendering/SwapChain.cpp',
-  'src/3dRendering/VertexCreator.cpp',
   'src/VulkanRendering/Commands.cpp',
   'src/Rendering/TextureCreator.cpp',
   'src/Rendering/GPUMemoryBlock.cpp',

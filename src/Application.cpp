@@ -7,11 +7,11 @@
 #include "VulkanRendering/Commands.hpp"
 #include "VulkanRendering/Descriptor.hpp"
 #include "Rendering/TextureCreator.hpp"
-#include "3dRendering/BlockTexCoordinateLookup.hpp"
 #include "2dRendering/UITextureCreator.hpp"
 #include "VulkanRendering/DeviceCreator.hpp"
 #include "VulkanRendering/SwapChain.hpp"
 #include "Player/PlayerControls.hpp"
+#include "BlockDataLookup.hpp"
 
 #include <time.h>
 
@@ -58,7 +58,7 @@ void Application::initGame()
     int worldVertexBufferSize = 1 * 1024 * 1024 * 1024;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldVertexBufferSize);
 
-    generateBlockTextureLayerLookupTable();
+    blockDataLookupInit();
 }
 
 void Application::initVulkan()

@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-#include "VertexCreator.hpp"
+#include "BlockDataLookup.hpp"
 
 void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk, BlockType blockToPlace, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
 {
     chunkSetBlock(blockLocation.x, blockLocation.y, blockLocation.z, blockToPlace, chunk);
     if (blockHasComponent(blockToPlace)) {
-        uint64_t components = blockTypeComponents[blockToPlace];
+        uint64_t components = blockTypeToComponents[blockToPlace];
         EntityID entityID = worldManager.generateEntity(chunkLocation, blockLocation, components);
         worldManager.blockEntities[chunkLocation][blockLocation] = entityID;
 

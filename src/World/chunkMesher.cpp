@@ -56,33 +56,27 @@ Vertex packVertex(float x,
         packA2R10G10B10_UNORM(u / 32.0f, v / 32.0f, textureIndex / 1023.0f, shadow));
 }
 
-VertexLod packVertexLod(float x,
-                  float y,
-                  float z,
-                  float normalX,
-                  float normalY,
-                  float normalZ,
-                  float u,
-                  float v,
-                  uint32_t textureIndex)
+VertexLod packVertexLod(
+    float x, float y, float z, float normalX, float normalY, float normalZ, float r, float g, float b)
 {
     int normal = 0;
-    if (std::abs(normalY) > std::abs(normalX) && std::abs(normalY) > std::abs(normalZ)) normal = 2;
-    if (std::abs(normalZ) > std::abs(normalX) && std::abs(normalZ) > std::abs(normalY)) normal = 4;
-    if (normal == 0 && normalX < 0) normal = 1;
-    if (normal == 2 && normalY < 0) normal = 3;
-    if (normal == 4 && normalZ < 0) normal = 5;
-    return VertexLod(
-        packA2R10G10B10_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, 0),
-        packR8G8B8A8_UNORM(0.5f, 0.5f, 0.5f, (float)normal));
+    if (std::abs(normalY) > std::abs(normalX) && std::abs(normalY) > std::abs(normalZ))
+        normal = 2;
+    if (std::abs(normalZ) > std::abs(normalX) && std::abs(normalZ) > std::abs(normalY))
+        normal = 4;
+    if (normal == 0 && normalX < 0)
+        normal = 1;
+    if (normal == 2 && normalY < 0)
+        normal = 3;
+    if (normal == 4 && normalZ < 0)
+        normal = 5;
+    return VertexLod(packA2R10G10B10_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, 0),
+                     packR8G8B8A8_UNORM(r, g, b, (float)normal));
 }
 
 void createChunkMesh(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
 {
-    std::cout << "         actually actually rendering chunk, loc: " << chunkLocation.x << " " << chunkLocation.y << " "
-              << chunkLocation.z << std::endl;
     Chunk* chunk = &worldManager.chunks[chunkLocation];
-    // std::cout << "chunkPtr = " << chunk << std::endl;
 
     /*if (!chunk->containsDifferentBlocks && !isBlockSolid(chunk->blocks[0])) {
         return;
@@ -228,10 +222,12 @@ void downsampleChunk(Chunk& chunk, std::vector<BlockType>& downsample, int lod)
     downsample = blocks;
 }
 
-void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<VertexLod>& vertices, int lod)
+void createChunkMeshLod(WorldManager& worldManager,
+                        glm::i32vec3 chunkLocation,
+                        std::vector<VertexLod>& vertices,
+                        int lod)
 {
     assertm(lod <= 5, "Lod is high. Maybe remove this check. Called with " << lod);
-    std::cout << "TEST   lod = " << lod << std::endl;
 
     auto debugStartWait = std::chrono::high_resolution_clock::now();
 
@@ -291,14 +287,14 @@ void createChunkMeshLod(WorldManager& worldManager, glm::i32vec3 chunkLocation, 
         glm::vec3 dir1 = -face.location[0] + face.location[1];
         glm::vec3 dir2 = -face.location[0] + face.location[2];
         glm::vec3 norm = -glm::normalize(glm::cross(dir1, dir2));
+        glm::vec3 color = blockImageColors[face.textureLayer];
 
         for (int i = 0; i < 4; i++) {
             // clang-format off
             vertices.push_back(packVertexLod(
                 face.location[i].x, face.location[i].y, face.location[i].z,
                 norm.x, norm.y, norm.z,
-                face.uv[i].x, face.uv[i].y,
-                face.textureLayer
+                color.r, color.g, color.b
             ));
             // clang-format on
         }

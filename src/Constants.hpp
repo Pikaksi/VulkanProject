@@ -3,8 +3,10 @@
 #include <cstdint>
 
 const int ITEM_STACK_MAX_SIZE = 256;
-const int MAX_FRAMES_IN_FLIGHT = 2;
+const int BLOCK_TEXTURE_PIXEL_COUNT = 16;
+const float UV_EDGE_CORRECTION = 1.0f / ((float)BLOCK_TEXTURE_PIXEL_COUNT * 2 * 16);
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
 const uint32_t UI_GPU_BUFFER_SIZE = 1 * 1024 * 1024;
 const uint32_t INDEX_BUFFER_QUAD_COUNT = 100000;
 

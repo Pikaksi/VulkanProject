@@ -64,7 +64,6 @@ void generateRenderingOrder(std::vector<ChunkOrderInfo>& offsets, std::vector<in
     int maxDistance = renderDistances.back();
     int maxLod = renderDistances.size() - 2;
     int maxSize = 1 << maxLod;
-    std::cout << "max size = " << maxSize << std::endl;
     for (int x = -maxDistance - maxSize; x <= maxDistance + maxSize; x += maxSize) {
         for (int y = -maxDistance - maxSize; y <= maxDistance + maxSize; y += maxSize) {
             for (int z = -maxDistance - maxSize; z <= maxDistance + maxSize; z += maxSize) {
@@ -88,7 +87,6 @@ void generateRenderingOrder(std::vector<ChunkOrderInfo>& offsets, std::vector<in
             if (centerDistance > distance * distance)
                 continue;
 
-            std::cout << "decomposed lod = " << newLod << std::endl;
             chunk.lod = newLod;
             const glm::i32vec3 cubeOffsets[] = {
                 glm::i32vec3{0, 0, 1},
@@ -125,9 +123,9 @@ void generateRenderingOrder(std::vector<ChunkOrderInfo>& offsets, std::vector<in
         assertSet.insert(chunk.loc);
 
         assertm(chunk.lod >= 0, "Lod below zero in generation");
-        std::cout << "chunk at " << offsets[i].loc.x << " " << offsets[i].loc.y << " " << offsets[i].loc.z
+        /*std::cout << "chunk at " << offsets[i].loc.x << " " << offsets[i].loc.y << " " << offsets[i].loc.z
                   << "  lod = " << offsets[i].lod
-                  << "  distance from center = " << chunkDistanceOriginSquared(chunk.loc, chunk.lod) << std::endl;
+                  << "  distance from center = " << chunkDistanceOriginSquared(chunk.loc, chunk.lod) << std::endl;*/
     }
 }
 
@@ -196,10 +194,10 @@ void ChunkRenderer::handleRenderCommand(VulkanCoreInfo& vulkanCoreInfo,
     assertm(renderCommand.noChunksToRender == false, "not allowed");
     assertm(renderCommand.toLod >= 0, "Lod below zero");
 
-    std::cout << "Handling command with\n  loc: " << renderCommand.loc.x << " " << renderCommand.loc.y << " "
+    /*std::cout << "Handling command with\n  loc: " << renderCommand.loc.x << " " << renderCommand.loc.y << " "
               << renderCommand.loc.z << "\n  toLod: " << renderCommand.toLod
               << "\n  fullDetai: " << renderCommand.fullDetail << "\n  replace: " << renderCommand.replace
-              << "\n  fromLod: " << renderCommand.fromLod << std::endl;
+              << "\n  fromLod: " << renderCommand.fromLod << std::endl;*/
 
     if (renderCommand.replace == true)
         return;
@@ -318,7 +316,6 @@ void ChunkRenderer::renderNextChunk(VulkanCoreInfo& vulkanCoreInfo,
 {
     ChunkRenderingCommand renderCommand = getNextChunkToRender(playerChunkLocation);
     if (renderCommand.noChunksToRender) {
-        std::cout << "No chunks to render" << std::endl;
         return;
     }
 
