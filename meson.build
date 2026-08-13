@@ -2,6 +2,8 @@ project('my_app', 'cpp',
   version : '0.1',
   default_options : ['warning_level=1'])
 
+run_env = environment()
+
 src = [
   'src/util/stbi_images.cpp',
   'src/World/chunkMesher.cpp',
@@ -49,7 +51,10 @@ src = [
   'src/main.cpp'
 ]
 
-glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'], default_options: ['default_library=static'])
+glfw_dep = dependency(
+  'glfw', fallback: ['glfw', 'glfw_dep']
+  #, default_options: ['default_library=static']
+)
 #meson wrap install glfw
 
 glm_dep = dependency('glm')
@@ -65,6 +70,9 @@ if not vulkan_dep.found()
     include_directories : vulkan_sdk_path / 'include',
     dependencies: vulkan_lib
   )
+  
+  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
+  run_env.set('VK_LAYER_PATH', layer_path)
 endif
 
 if host_machine.system() == 'linux'
@@ -118,18 +126,41 @@ include_dirs = [
   include_directories('src/util'),
 ]
 
+should_install = false
+if host_machine.system() == 'windows'
+  should_install = true
+endif
+
 my_exe = executable('myexe',
   sources : src,
   dependencies : deps,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
-  cpp_args : ['-w']
+  cpp_args : ['-w'],
+  install : should_install
 )
 
 run_env = environment()
 layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
 message(layer_path)
 run_env.set('VK_LAYER_PATH', layer_path)
+
+if host_machine.system() == 'windows'
+  install_data(
+    meson.current_source_dir() / 'dependencies/FastNoise2Win/bin/FastNoise.dll',
+    install_dir : 'bin/vulkanProject/bin'
+  )
+  install_subdir(
+    meson.current_source_dir() / 'shaders',
+    install_dir : 'bin/vulkanProject/shaders',
+    strip_directory : true
+  )
+  install_subdir(
+    meson.current_source_dir() / 'textures',
+    install_dir : 'bin/vulkanProject/textures',
+    strip_directory : true
+  )
+endif
 
 run_target('run',
   command: my_exe, # Pass the executable() object you defined earlier

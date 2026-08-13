@@ -13,9 +13,16 @@ Binary greedy meshing
 
 WPI inventory and factory components
 
-### compiling
+shadows (not in image)
+
+### Compiling
 
 requires vulkan sdk 1.4
 meson setup --wipe build --native-file clang.ini
 cd build/
 meson compile run
+
+### Installing for debugging
+Modify glfw wrap meson options file to install.
+Installs in the /bin/vulkanProject directory.
+meson install

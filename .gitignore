@@ -1,3 +1,8 @@
 build/
 shaders/*.spv
 .cache
+
+# has x64/ folder inside when building with windows
+VulkanProject/
+
+x64/
