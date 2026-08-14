@@ -8,8 +8,6 @@
 #include <array>
 #include <cinttypes>
 
-// TODO: Measure 2 power vertex size impact on performance.
-
 struct Vertex {
     // pos 3 * 8
     // normal 3 * 8
@@ -19,6 +17,7 @@ struct Vertex {
     uint32_t pos;
     uint16_t color;
     uint32_t texCoord;
+    uint32_t aligma;
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};

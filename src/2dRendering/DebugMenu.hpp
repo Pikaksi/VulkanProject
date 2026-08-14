@@ -11,6 +11,8 @@
 struct DebugMenuGlobals
 {
     uint64_t chunksGenerated = 0;
+    uint64_t chunksGeneratedCompressed = 0;
+    uint64_t blockSizeTotal = 0;
     double chunkGenTimeTotal = 0.0;
 };
 

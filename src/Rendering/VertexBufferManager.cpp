@@ -1,4 +1,7 @@
 #include "VertexBufferManager.hpp"
+
+#include <iostream>
+
 #include "Constants.hpp"
 #include "GPUMemoryBlock.hpp"
 
@@ -16,10 +19,12 @@ uint64_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
                                                  std::vector<Vertex>& vertices,
                                                  glm::ivec3 chunkLocation)
 {
+
+    size_t dataSize = vertices.size() * sizeof(Vertex);
     uint64_t memoryLocation = gpuMemoryBlockAddDeviceLocal(
-        vulkanCoreInfo, commandPool, *worldGpuMemoryBlock, (void*)vertices.data(), sizeof(Vertex) * vertices.size());
+        vulkanCoreInfo, commandPool, *worldGpuMemoryBlock, (void*)vertices.data(), dataSize);
     worldVertexTracker.addLocation(
-        static_cast<VkDeviceSize>(memoryLocation), vertices.size() * sizeof(Vertex), chunkLocation, 0, true);
+        static_cast<VkDeviceSize>(memoryLocation), dataSize, chunkLocation, 0, true);
     return memoryLocation;
 }
 

@@ -87,15 +87,17 @@ void PlayerInputHandler::handleKeyPress(GLFWwindow* window, int key, int scancod
     toggleKeyHeld(GLFW_KEY_LEFT_SHIFT, shiftHeld, key, action);
     toggleKeyHeld(GLFW_KEY_LEFT_CONTROL, ctrlHeld, key, action);
     toggleKeyHeld(GLFW_KEY_F3, f3Held, key, action);
+    toggleKeyHeld(GLFW_KEY_F4, f4Held, key, action);
 }
 
 void PlayerInputHandler::update()
 {
-    toggleKeyOnPress(GLFW_KEY_F3, rHeldPreviousFrame, rHeld, rPressed);
-    toggleKeyOnPress(GLFW_KEY_F3, f3HeldPreviousFrame, f3Held, f3Pressed);
+    toggleKeyOnPress(rHeldPreviousFrame, rHeld, rPressed);
+    toggleKeyOnPress(f3HeldPreviousFrame, f3Held, f3Pressed);
+    toggleKeyOnPress(f4HeldPreviousFrame, f4Held, f4Pressed);
 
-    toggleKeyOnPress(GLFW_KEY_F3, mouseLeftHeldPreviousFrame, mouseLeftHeld, mouseLeftPressed);
-    toggleKeyOnPress(GLFW_KEY_F3, mouseRightHeldPreviousFrame, mouseRightHeld, mouseRightPressed);
+    toggleKeyOnPress(mouseLeftHeldPreviousFrame, mouseLeftHeld, mouseLeftPressed);
+    toggleKeyOnPress(mouseRightHeldPreviousFrame, mouseRightHeld, mouseRightPressed);
 }
 
 void PlayerInputHandler::toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action)
@@ -108,7 +110,7 @@ void PlayerInputHandler::toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify
     }
 }
 
-void PlayerInputHandler::toggleKeyOnPress(int glfwKeyToCompare, bool& previousFrameValue, bool& currentValue, bool& valueToModify)
+void PlayerInputHandler::toggleKeyOnPress(bool& previousFrameValue, bool& currentValue, bool& valueToModify)
 {
     if (previousFrameValue != currentValue && currentValue == true) {
         valueToModify = true;

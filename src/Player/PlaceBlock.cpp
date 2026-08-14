@@ -25,24 +25,24 @@ void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk
     }
 
     if (blockLocation.x == CHUNK_SIZE - 1) {
-        chunkRenderer.rerenderChunk({chunkLocation.x + 1, chunkLocation.y, chunkLocation.z});
+        chunkRenderer.rerenderChunkAgain({chunkLocation.x + 1, chunkLocation.y, chunkLocation.z});
     }
     else if (blockLocation.x == 0) {
-        chunkRenderer.rerenderChunk({chunkLocation.x - 1, chunkLocation.y, chunkLocation.z});
+        chunkRenderer.rerenderChunkAgain({chunkLocation.x - 1, chunkLocation.y, chunkLocation.z});
     }
     if (blockLocation.y == CHUNK_SIZE - 1) {
-        chunkRenderer.rerenderChunk({chunkLocation.x, chunkLocation.y + 1, chunkLocation.z});
+        chunkRenderer.rerenderChunkAgain({chunkLocation.x, chunkLocation.y + 1, chunkLocation.z});
     }
     else if (blockLocation.y == 0) {
-        chunkRenderer.rerenderChunk({chunkLocation.x, chunkLocation.y - 1, chunkLocation.z});
+        chunkRenderer.rerenderChunkAgain({chunkLocation.x, chunkLocation.y - 1, chunkLocation.z});
     }
     if (blockLocation.z == CHUNK_SIZE - 1) {
-        chunkRenderer.rerenderChunk({chunkLocation.x, chunkLocation.y, chunkLocation.z + 1});
+        chunkRenderer.rerenderChunkAgain({chunkLocation.x, chunkLocation.y, chunkLocation.z + 1});
     }
     else if (blockLocation.z == 0) {
-        chunkRenderer.rerenderChunk({chunkLocation.x, chunkLocation.y, chunkLocation.z - 1});
+        chunkRenderer.rerenderChunkAgain({chunkLocation.x, chunkLocation.y, chunkLocation.z - 1});
     }
-    chunkRenderer.rerenderChunk(chunkLocation);
+    chunkRenderer.rerenderChunkAgain(chunkLocation);
 }
 
 void interactWithBlock(

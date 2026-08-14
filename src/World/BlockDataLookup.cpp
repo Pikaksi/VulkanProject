@@ -3,6 +3,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <filesystem>
+#include <cmath>
 
 #include "Constants.hpp"
 #include "FilePathHandler.hpp"
@@ -164,33 +165,26 @@ const uint64_t blockTypeToComponents[BlockType::maxEnum] = {
 
 // clang-format on
 
-glm::vec3 calculateImageColor(stbi_uc* image, int height, int width)
+glm::vec3 calculateImageColorInLinearSpace(stbi_uc* image, int height, int width)
 {
-    float r = 0;
-    float g = 0;
-    float b = 0;
+    double sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+    int pixels = width * height;
+    for (int i = 0; i < pixels; i++) {
+        double r = image[4 * i];
+        double g = image[4 * i + 1];
+        double b = image[4 * i + 2];
 
-    struct Pixel
-    {
-        stbi_uc r;
-        stbi_uc g;
-        stbi_uc b;
-        stbi_uc a;
-    };
-    std::cout << "\n\nNEW IMAGE\n";
+        double a = image[4 * i + 3] / 255.0;
 
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            stbi_uc* color = image + 4 * (x + y * width);
-            Pixel pixel = *(Pixel*)color;
-            r += ((float)pixel.r / 255.0f) * ((float)pixel.a / 255.0f);
-            g += ((float)pixel.g / 255.0f) * ((float)pixel.a / 255.0f);
-            b += ((float)pixel.b / 255.0f) * ((float)pixel.a / 255.0f);
-            //std::cout << "     " << (int)pixel.r << " " << (int)pixel.g << " " << (int)pixel.b << " " << (int)pixel.a << std::endl;
-        }
+        sumR += std::pow(r / 255.0, 2.2) * a;
+        sumG += std::pow(g / 255.0, 2.2) * a;
+        sumB += std::pow(b / 255.0, 2.2) * a;
+        sumA += a;
     }
-    std::cout << std::endl;
-    return glm::vec3{r, g, b} / (float)(height * width);
+    if (sumA == 0)
+        return glm::vec3{0.0f, 0.0f, 0.0f};
+    glm::vec3 color{sumR / sumA, sumG / sumA, sumB / sumA};
+    return color;
 }
 
 void blockDataLookupInit()
@@ -273,7 +267,7 @@ void blockDataLookupInit()
     }
 
     for (stbi_uc* image : blockImages) {
-        glm::vec3 color = calculateImageColor(image, BLOCK_TEXTURE_PIXEL_COUNT, BLOCK_TEXTURE_PIXEL_COUNT);
+        glm::vec3 color = calculateImageColorInLinearSpace(image, BLOCK_TEXTURE_PIXEL_COUNT, BLOCK_TEXTURE_PIXEL_COUNT);
         blockImageColors.push_back(color);
     }
 }

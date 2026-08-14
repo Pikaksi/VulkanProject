@@ -22,7 +22,7 @@ float sampleShadow(vec3 viewPos) {
 void main() {
     float shadow = 0.0;
     if (inShadow == 0) {
-        shadow = sampleShadow(inPos);
+        shadow = 1.0;//sampleShadow(inPos);
     }
     vec4 color = vec4(inColor * (0.2 + 0.8 * shadow), 0);
 

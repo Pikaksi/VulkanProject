@@ -56,8 +56,8 @@ Vertex packVertex(float x,
         packA2R10G10B10_UNORM(u / 32.0f, v / 32.0f, textureIndex / 1023.0f, shadow));
 }
 
-VertexLod packVertexLod(
-    float x, float y, float z, float normalX, float normalY, float normalZ, float r, float g, float b)
+VertexLod
+packVertexLod(float x, float y, float z, float normalX, float normalY, float normalZ, float r, float g, float b)
 {
     int normal = 0;
     if (std::abs(normalY) > std::abs(normalX) && std::abs(normalY) > std::abs(normalZ))
@@ -74,13 +74,13 @@ VertexLod packVertexLod(
                      packR8G8B8A8_UNORM(r, g, b, (float)normal));
 }
 
-void createChunkMesh(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
+/*void createChunkMesh(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
 {
     Chunk* chunk = &worldManager.chunks[chunkLocation];
 
-    /*if (!chunk->containsDifferentBlocks && !isBlockSolid(chunk->blocks[0])) {
-        return;
-    }*/
+    //if (!chunk->containsDifferentBlocks && !isBlockSolid(chunk->blocks[0])) {
+    //    return;
+    //}
 
     auto debugStartWait = std::chrono::high_resolution_clock::now();
 
@@ -176,7 +176,7 @@ void createChunkMesh(WorldManager& worldManager, glm::i32vec3 chunkLocation, std
     debugMenuGlobals.chunkGenTimeTotal +=
         std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
     debugMenuGlobals.chunksGenerated += 1;
-}
+}*/
 
 void downsampleBlocks(std::vector<BlockType>& blocks, int currentSize, std::vector<BlockType>& downsample)
 {
@@ -222,6 +222,93 @@ void downsampleChunk(Chunk& chunk, std::vector<BlockType>& downsample, int lod)
     downsample = blocks;
 }
 
+void createChunkMesh(WorldManager& worldManager, glm::i32vec3 chunkLocation, std::vector<Vertex>& vertices)
+{
+    auto debugStartWait = std::chrono::high_resolution_clock::now();
+
+    std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)> blocks =
+        std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)>();
+
+    assertm(worldManager.chunks.contains(chunkLocation), "Chunk not found while generating lod");
+    Chunk& chunk = worldManager.chunks.at(chunkLocation);
+
+    Chunk& chunkPosX = worldManager.chunks.at(chunkLocation + glm::i32vec3{1, 0, 0});
+    Chunk& chunkNegX = worldManager.chunks.at(chunkLocation + glm::i32vec3{-1, 0, 0});
+    Chunk& chunkPosY = worldManager.chunks.at(chunkLocation + glm::i32vec3{0, 1, 0});
+    Chunk& chunkNegY = worldManager.chunks.at(chunkLocation + glm::i32vec3{0, -1, 0});
+    Chunk& chunkPosZ = worldManager.chunks.at(chunkLocation + glm::i32vec3{0, 0, 1});
+    Chunk& chunkNegZ = worldManager.chunks.at(chunkLocation + glm::i32vec3{0, 0, -1});
+
+    if (chunk.containsDifferentBlocks) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    BlockType block = chunk.blocks[x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE];
+                    blocks[(x + 1) + (y + 1) * (CHUNK_SIZE + 2) + (z + 1) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)] =
+                        block;
+                }
+            }
+        }
+    }
+    else {
+        BlockType block = chunk.blocks[0];
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    blocks[(x + 1) + (y + 1) * (CHUNK_SIZE + 2) + (z + 1) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)] =
+                        block;
+                }
+            }
+        }
+    }
+
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            blocks[blockArrayLocToIndex(x + 1, y + 1, 0)] = chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNegZ);
+            blocks[blockArrayLocToIndex(x + 1, y + 1, CHUNK_SIZE + 1)] = chunkGetBlockAtLocation(x, y, 0, chunkPosZ);
+        }
+    }
+    for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            blocks[blockArrayLocToIndex(x + 1, 0, z + 1)] = chunkGetBlockAtLocation(x, CHUNK_SIZE - 1, z, chunkNegY);
+            blocks[blockArrayLocToIndex(x + 1, CHUNK_SIZE + 1, z + 1)] = chunkGetBlockAtLocation(x, 0, z, chunkPosY);
+        }
+    }
+    for (int z = 0; z < CHUNK_SIZE; z++) {
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+            blocks[blockArrayLocToIndex(0, y + 1, z + 1)] = chunkGetBlockAtLocation(CHUNK_SIZE - 1, y, z, chunkNegX);
+            blocks[blockArrayLocToIndex(CHUNK_SIZE + 1, y + 1, z + 1)] = chunkGetBlockAtLocation(0, y, z, chunkPosX);
+        }
+    }
+    std::vector<MeshFace> faces = std::vector<MeshFace>();
+    blockArrayMesher(blocks, faces);
+
+    for (MeshFace& face : faces) {
+
+        glm::vec3 dir1 = -face.location[0] + face.location[1];
+        glm::vec3 dir2 = -face.location[0] + face.location[2];
+        glm::vec3 norm = -glm::normalize(glm::cross(dir1, dir2));
+
+        for (int i = 0; i < 4; i++) {
+            // clang-format off
+            //std::cout << "  loc = " << face.location[i].x << " " << face.location[i].y << " " << face.location[i].z << std::endl;
+            vertices.push_back(packVertex(
+                face.location[i].x, face.location[i].y, face.location[i].z,
+                norm.x, norm.y, norm.z,
+                0,
+                face.uv[i].x, face.uv[i].y,
+                face.textureLayer
+            ));
+            // clang-format on
+        }
+    }
+
+    auto debugEndWait = std::chrono::high_resolution_clock::now();
+    debugMenuGlobals.chunkGenTimeTotal +=
+        std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
+    debugMenuGlobals.chunksGenerated += 1;
+}
+
 void createChunkMeshLod(WorldManager& worldManager,
                         glm::i32vec3 chunkLocation,
                         std::vector<VertexLod>& vertices,
@@ -229,13 +316,31 @@ void createChunkMeshLod(WorldManager& worldManager,
 {
     assertm(lod <= 5, "Lod is high. Maybe remove this check. Called with " << lod);
 
-    auto debugStartWait = std::chrono::high_resolution_clock::now();
+    int chunkLenght = 1 << lod;
+    int blockLenght = CHUNK_SIZE >> lod;
+
+    // TODO: Make better
+    bool canSkip = true;
+    for (int cx = 0; cx < chunkLenght; cx++) {
+        for (int cy = 0; cy < chunkLenght; cy++) {
+            for (int cz = 0; cz < chunkLenght; cz++) {
+                glm::i32vec3 lodChunkLoc = chunkLocation + glm::i32vec3(cx, cy, cz);
+                assertm(worldManager.chunks.contains(lodChunkLoc), "Chunk not found while generating lod");
+                Chunk& chunk = worldManager.chunks.at(lodChunkLoc);
+                if (chunk.containsDifferentBlocks) {
+                    canSkip = false;
+                    goto skipLabel;
+                }
+            }
+        }
+    }
+skipLabel:
+    if (canSkip) {
+        return;
+    }
 
     std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)> blocks =
         std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)>();
-
-    int chunkLenght = 1 << lod;
-    int blockLenght = CHUNK_SIZE >> lod;
     for (int cx = 0; cx < chunkLenght; cx++) {
         for (int cy = 0; cy < chunkLenght; cy++) {
             for (int cz = 0; cz < chunkLenght; cz++) {
@@ -247,9 +352,9 @@ void createChunkMeshLod(WorldManager& worldManager,
                 std::vector<BlockType> downsample;
                 downsampleChunk(chunk, downsample, lod);
 
-                for (int x = 0; x < blockLenght; x++) {
+                for (int z = 0; z < blockLenght; z++) {
                     for (int y = 0; y < blockLenght; y++) {
-                        for (int z = 0; z < blockLenght; z++) {
+                        for (int x = 0; x < blockLenght; x++) {
                             int fx = blockLenght * cx + x + 1;
                             int fy = blockLenght * cy + y + 1;
                             int fz = blockLenght * cz + z + 1;
@@ -261,22 +366,40 @@ void createChunkMeshLod(WorldManager& worldManager,
             }
         }
     }
+    /*for (int cx = 0; cx < chunkLenght; cx++) {
+        for (int cy = 0; cy < chunkLenght; cy++) {
+            glm::i32vec3 negChunkLoc = chunkLocation + glm::i32vec3(cx, cy, -1);
+            assertm(worldManager.chunks.contains(negChunkLoc), "Chunk not found while generating lod");
+            Chunk& chunkNeg = worldManager.chunks.at(negChunkLoc);
+            for (int y = 0; y < blockLenght; y++) {
+                for (int x = 0; x < blockLenght; x++) {
+                    BlockType block = chunkGetBlockAtLocation(x, y, CHUNK_SIZE - 1, chunkNeg);
+
+                    int fx = blockLenght * cx + x + 1;
+                    int fy = blockLenght * cy + y + 1;
+                    int fz = blockLenght * cz + z + 1;
+                    BlockType block = downsample[x + y * blockLenght + z * blockLenght * blockLenght];
+                    blocks[fx + fy * (CHUNK_SIZE + 2) + fz * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)] = block;
+                }
+            }
+        }
+    }*/
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int y = 0; y < CHUNK_SIZE; y++) {
-            blocks[blockArrayLocToIndex(x + 1, y + 1, 0)] = BlockType::stone;
-            blocks[blockArrayLocToIndex(x + 1, y + 1, CHUNK_SIZE + 1)] = BlockType::stone;
+            blocks[blockArrayLocToIndex(x + 1, y + 1, 0)] = BlockType::air;
+            blocks[blockArrayLocToIndex(x + 1, y + 1, CHUNK_SIZE + 1)] = BlockType::air;
         }
     }
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            blocks[blockArrayLocToIndex(x + 1, 0, z + 1)] = BlockType::stone;
-            blocks[blockArrayLocToIndex(x + 1, CHUNK_SIZE + 1, z + 1)] = BlockType::stone;
+            blocks[blockArrayLocToIndex(x + 1, 0, z + 1)] = BlockType::air;
+            blocks[blockArrayLocToIndex(x + 1, CHUNK_SIZE + 1, z + 1)] = BlockType::air;
         }
     }
     for (int y = 0; y < CHUNK_SIZE; y++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            blocks[blockArrayLocToIndex(0, y + 1, z + 1)] = BlockType::stone;
-            blocks[blockArrayLocToIndex(CHUNK_SIZE + 1, y + 1, z + 1)] = BlockType::stone;
+            blocks[blockArrayLocToIndex(0, y + 1, z + 1)] = BlockType::air;
+            blocks[blockArrayLocToIndex(CHUNK_SIZE + 1, y + 1, z + 1)] = BlockType::air;
         }
     }
     std::vector<MeshFace> faces = std::vector<MeshFace>();
@@ -299,9 +422,4 @@ void createChunkMeshLod(WorldManager& worldManager,
             // clang-format on
         }
     }
-
-    auto debugEndWait = std::chrono::high_resolution_clock::now();
-    debugMenuGlobals.chunkGenTimeTotal +=
-        std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
-    debugMenuGlobals.chunksGenerated += 1;
 }

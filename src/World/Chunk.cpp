@@ -31,6 +31,7 @@ void chunkResize(Chunk& chunk, bool allocateFullSize)
     }
     else {
         chunk.blocks.resize(1);
+        chunk.blocks.shrink_to_fit();
         chunk.containsDifferentBlocks = false;
     }
 }

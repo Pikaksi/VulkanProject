@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
-class ChunkRenderer;
+struct ChunkRenderer;
 
 #include "util/vec3hash.hpp"
 #include "Chunk.hpp"

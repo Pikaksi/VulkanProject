@@ -136,7 +136,7 @@ my_exe = executable('myexe',
   dependencies : deps,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
-  cpp_args : ['-w'],
+  cpp_args : ['-W -g'],
   install : should_install
 )
 

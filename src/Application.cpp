@@ -1,6 +1,7 @@
 #include "Application.hpp"
 
 #include "Constants.hpp"
+#include "PlayerInputHandler.hpp"
 #include "VulkanRendering/FrameDrawer.hpp"
 #include "VulkanRendering/GraphicsPipeline.hpp"
 #include "VulkanRendering/Buffers.hpp"
@@ -168,7 +169,12 @@ void Application::gameMainLoop()
                                               std::floor(cameraHandler.position.y / (float)CHUNK_SIZE),
                                               std::floor(cameraHandler.position.z / (float)CHUNK_SIZE));
 
-    chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
+    static bool renderingEnabled = true;
+    if (PlayerInputHandler::getInstance().f4Pressed) {
+        renderingEnabled = !renderingEnabled;
+    }
+    if (renderingEnabled)
+        chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
 
     playerInventoryManager.update(uiManager);
 

@@ -58,7 +58,7 @@ void placeStructureBlock(int x,
         if (blockToReplace == BlockType::air) {
             chunkSetBlock(
                 blockLocation.x, blockLocation.y, blockLocation.z, block, worldManager->chunks.at(chunkLocation));
-            chunkRenderer.rerenderChunk(chunkLocation);
+            chunkRenderer.rerenderChunkAgain(chunkLocation);
         }
         return;
     }

@@ -55,7 +55,10 @@ void DebugMenu::drawUI(UIManager& uiManager,
         "Fence wait duration: " + std::to_string(fenceWaitTimeLast) + " ms" + '\n' +
         "Chunk mesh time avg: " + std::to_string(debugMenuGlobals.chunkGenTimeTotal / (double)debugMenuGlobals.chunksGenerated) + " micro s" + '\n' +
         "vertex count: " + std::to_string(gpuMemoryBlockDataSize(*vertexBufferManager.worldGpuMemoryBlock) / sizeof(Vertex)) +
-        '\n' + "Chunks loaded: " + std::to_string(worldManager.chunks.size()) + '\n' +
+        '\n' + "Chunks loaded: " + std::to_string(worldManager.chunks.size()) +
+        " percentage compressed : " +
+        std::to_string((float)debugMenuGlobals.chunksGeneratedCompressed / (float)debugMenuGlobals.chunksGenerated) +
+        " block size total: " + std::to_string(debugMenuGlobals.blockSizeTotal / 1024 / 1024) + "mB\n" +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) +
         " z: " + std::to_string(cameraHandler.position.z) + '\n' + "pitch: " +
         std::to_string(cameraHandler.rotationY) + " yaw: " + std::to_string(cameraHandler.rotationX) + "\n"

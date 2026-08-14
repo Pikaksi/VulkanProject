@@ -98,18 +98,24 @@ void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustu
         viewingFrustumNormals.left.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
 }
 
-bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
-                             glm::ivec3& chunkLocation,
-                             ChunkCenterOffsets& chunkCenterOffsets,
-                             ViewingFrustumNormals& viewingFrustumNormals)
+bool chunkIsInViewingFrustumLod(glm::vec3& cameraLocation,
+                                glm::ivec3& chunkLocation,
+                                ChunkCenterOffsets& chunkCenterOffsets,
+                                ViewingFrustumNormals& viewingFrustumNormals,
+                                int lod)
 {
-    return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top) - cameraLocation,
+    int lodScaling = 1 << lod;
+    return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top * lodScaling) -
+                        cameraLocation,
                     viewingFrustumNormals.top) < 0.0f &&
-           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom) - cameraLocation,
+           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.bottom * lodScaling) -
+                        cameraLocation,
                     viewingFrustumNormals.bottom) < 0.0f &&
-           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.right) - cameraLocation,
+           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.right * lodScaling) -
+                        cameraLocation,
                     viewingFrustumNormals.right) < 0.0f &&
-           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.left) - cameraLocation,
+           glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.left * lodScaling) -
+                        cameraLocation,
                     viewingFrustumNormals.left) < 0.0f;
 }
 
@@ -333,13 +339,16 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
             if (!drawCallData.fullDetail)
                 continue;
 
-            if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
-                                         drawCallData.chunkLocation,
-                                         chunkCenterOffsets,
-                                         viewingFrustumNormals)) {
+            if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
+                                            drawCallData.chunkLocation,
+                                            chunkCenterOffsets,
+                                            viewingFrustumNormals,
+                                            0)) {
                 continue;
             }
 
+            // std::cout << "drawing with loc = " << drawCallData.memoryLocation << " size = " << drawCallData.dataSize
+            // << std::endl;
             PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
             vkCmdPushConstants(commandBuffer,
                                draw.pipeline3d.layout,
@@ -378,6 +387,14 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
             WorldDrawCallData drawCallData = worldDrawCallData[i];
             if (drawCallData.fullDetail)
                 continue;
+
+            if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
+                                            drawCallData.chunkLocation,
+                                            chunkCenterOffsets,
+                                            viewingFrustumNormals,
+                                            drawCallData.lod)) {
+                continue;
+            }
 
             PushConstant3dLod pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 32.0f * (1 << drawCallData.lod)};
             vkCmdPushConstants(commandBuffer,

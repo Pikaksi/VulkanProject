@@ -41,12 +41,12 @@ struct ChunkRenderer
 
     std::vector<ChunkOrderInfo> chunkRenderingOrder;
 
-    const int renderDistancelodFull = 2;
-    const int renderDistancelod0 = 2;
-    const int renderDistancelod1 = 8;
-    const int maxLod = 1;
-    std::vector<int> renderDistances = {renderDistancelodFull, renderDistancelod0, renderDistancelod1};
-    const int extraRangeToDerenderChunk = 4;
+    const int renderDistancelodFull = 10;
+    const int renderDistancelod0 = 15;
+    const int renderDistancelod1 = 24;
+    const int renderDistancelod2 = 40;
+    std::vector<int> renderDistances = {renderDistancelodFull, renderDistancelod0, renderDistancelod1, renderDistancelod2};
+    const int extraRangeToDerenderChunk = 0;
 
     int nextChunkRenderIndex = 0;
     std::vector<glm::i32vec3> chunksToRenderAgain;
@@ -72,9 +72,9 @@ struct ChunkRenderer
                 WorldManager& worldManager,
                 VertexBufferManager& vertexBufferManager,
                 glm::i32vec3 playerChunkLocation);
-    void rerenderChunk(glm::i32vec3 chunkLocation);
+    void rerenderChunkAgain(glm::i32vec3 chunkLocation);
     ChunkRenderingCommand getNextChunkToRender(glm::i32vec3 playerLocation);
-    void renderChunk2(VulkanCoreInfo& vulkanCoreInfo,
+    void renderChunk(VulkanCoreInfo& vulkanCoreInfo,
                       VkCommandPool commandPool,
                       WorldManager& worldManager,
                       VertexBufferManager& vertexBufferManager,

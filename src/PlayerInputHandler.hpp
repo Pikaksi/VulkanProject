@@ -20,9 +20,14 @@ public:
     bool rPressed = false;
     bool shiftHeld = false;
     bool ctrlHeld = false;
+
     bool f3Held = false;
     bool f3HeldPreviousFrame = false;
     bool f3Pressed = false;
+
+    bool f4Held = false;
+    bool f4HeldPreviousFrame = false;
+    bool f4Pressed = false;
 
     bool mouseLeftHeld = false;
     bool mouseLeftHeldPreviousFrame = false;
@@ -64,5 +69,5 @@ private:
     PlayerInputHandler() {}
 
     void toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action);
-    void toggleKeyOnPress(int glfwKeyToCompare, bool& previousFrameValue, bool& currentValue, bool& valueToModify);
+    void toggleKeyOnPress(bool& previousFrameValue, bool& currentValue, bool& valueToModify);
 };
