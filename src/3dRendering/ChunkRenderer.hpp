@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 
-class WorldManager;
+struct WorldManager;
 
 #include "VulkanRendering/VulkanTypes.hpp"
 #include "Rendering/VertexBufferManager.hpp"
@@ -43,9 +43,11 @@ struct ChunkRenderer
 
     const int renderDistancelodFull = 10;
     const int renderDistancelod0 = 15;
-    const int renderDistancelod1 = 24;
+    const int renderDistancelod1 = 25;
     const int renderDistancelod2 = 40;
-    std::vector<int> renderDistances = {renderDistancelodFull, renderDistancelod0, renderDistancelod1, renderDistancelod2};
+    const int renderDistancelod3 = 40;
+    std::vector<int> renderDistances = {
+        renderDistancelodFull, renderDistancelod0, renderDistancelod1, renderDistancelod2, renderDistancelod3};
     const int extraRangeToDerenderChunk = 0;
 
     int nextChunkRenderIndex = 0;
@@ -75,12 +77,12 @@ struct ChunkRenderer
     void rerenderChunkAgain(glm::i32vec3 chunkLocation);
     ChunkRenderingCommand getNextChunkToRender(glm::i32vec3 playerLocation);
     void renderChunk(VulkanCoreInfo& vulkanCoreInfo,
-                      VkCommandPool commandPool,
-                      WorldManager& worldManager,
-                      VertexBufferManager& vertexBufferManager,
-                      glm::i32vec3 loc,
-                      int lod,
-                      bool fullDetail);
+                     VkCommandPool commandPool,
+                     WorldManager& worldManager,
+                     VertexBufferManager& vertexBufferManager,
+                     glm::i32vec3 loc,
+                     int lod,
+                     bool fullDetail);
 
     void renderNextChunk(VulkanCoreInfo& vulkanCoreInfo,
                          VkCommandPool commandPool,

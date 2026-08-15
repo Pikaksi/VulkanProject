@@ -22,10 +22,6 @@ struct UIManager
     void init(VulkanCoreInfo& vulkanCoreInfo, VkExtent2D extent);
     glm::vec2 getMousePositionScreenSpace();
 
-    void updateScreen(VkExtent2D extent,
-                      VulkanCoreInfo& vulkanCoreInfo,
-                      VkCommandPool commandPool,
-                      VertexBufferManager& vertexBufferManager);
     void changeExtent(VkExtent2D newExtent);
     void writeToBufferAndClear(uint32_t currentFrame);
     void cleanup(VulkanCoreInfo& vulkanCoreInfo);

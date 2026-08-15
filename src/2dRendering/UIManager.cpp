@@ -22,10 +22,10 @@ void UIManager::changeExtent(VkExtent2D newExtent)
 
 void UIManager::writeToBufferAndClear(uint32_t currentFrame)
 {
+    gpuMemoryBlockFreeAll(gpuMemoryBlocks[currentFrame]);
     if (vertices.size() == 0) {
         return;
     }
-    gpuMemoryBlockFreeAll(gpuMemoryBlocks[currentFrame]);
     gpuMemoryBlockAddHostVisible(gpuMemoryBlocks[currentFrame], (void*)vertices.data(), sizeof(Vertex2D) * vertices.size());
     vertices.clear();
 }
