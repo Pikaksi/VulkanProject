@@ -38,5 +38,6 @@ glm::ivec3 getChunkLocation(glm::ivec3 blockLocation);
 BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk* chunk);
 BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk& chunk);
 void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk);
+void chunkSetBlock(int i, BlockType blockType, Chunk& chunk);
 
 int alwaysPosModulo(int value, unsigned int m);

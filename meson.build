@@ -5,6 +5,7 @@ project('my_app', 'cpp',
 run_env = environment()
 
 src = [
+  'src/util/threadPool.cpp',
   'src/util/stbi_images.cpp',
   'src/World/chunkMesher.cpp',
   'src/util/tlsfAllocator.cpp',

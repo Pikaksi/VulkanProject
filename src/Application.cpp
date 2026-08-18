@@ -13,6 +13,7 @@
 #include "VulkanRendering/SwapChain.hpp"
 #include "Player/PlayerControls.hpp"
 #include "BlockDataLookup.hpp"
+#include "threadPool.hpp"
 
 #include <time.h>
 
@@ -46,6 +47,8 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 
 void Application::initGame()
 {
+    globalThreadPool.init(8);
+
     PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
 
@@ -173,8 +176,10 @@ void Application::gameMainLoop()
     if (PlayerInputHandler::getInstance().f4Pressed) {
         renderingEnabled = !renderingEnabled;
     }
-    if (renderingEnabled)
+    if (renderingEnabled) {
+        worldManager.processChunkGenerationResults();
         chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
+    }
 
     playerInventoryManager.update(uiManager);
 

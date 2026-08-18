@@ -1,9 +1,13 @@
 #include <iostream>
 #include <random>
+#include <utility>
 
 #include "ChunkGenerator.hpp"
+#include "BlockType.hpp"
+#include "Chunk.hpp"
 #include "ChunkRenderer.hpp"
 #include "FastNoise/FastNoise.h"
+#include "assertm.hpp"
 
 const int grassDirtLayerHeight = 3;
 const float noiseAirMinValue = 0.0f;
@@ -38,49 +42,9 @@ int treeNoiseChunkLocationToIndex(const int x, const int y, const int z)
     return z + y * treeNoiseWidth + x * treeNoiseHeight * treeNoiseWidth;
 }
 
-// Does not care if x, y and z are outside of chunk.
-void placeStructureBlock(int x,
-                         int y,
-                         int z,
-                         glm::ivec3 chunkLocationOffset,
-                         BlockType block,
-                         WorldManager* worldManager,
-                         ChunkRenderer& chunkRenderer)
-{
-    glm::ivec3 chunkLocation = getChunkLocation(x, y, z) + chunkLocationOffset;
-    glm::ivec3 blockLocation = glm::ivec3(alwaysPosModulo(x, 32), alwaysPosModulo(y, 32), alwaysPosModulo(z, 32));
-
-    if (worldManager->chunks.contains(chunkLocation)) {
-        Chunk& chunk = worldManager->chunks.at(chunkLocation);
-        BlockType blockToReplace = chunkGetBlockAtLocation(
-            blockLocation.x, blockLocation.y, blockLocation.z, worldManager->chunks.at(chunkLocation));
-
-        if (blockToReplace == BlockType::air) {
-            chunkSetBlock(
-                blockLocation.x, blockLocation.y, blockLocation.z, block, worldManager->chunks.at(chunkLocation));
-            chunkRenderer.rerenderChunkAgain(chunkLocation);
-        }
-        return;
-    }
-
-    if (!worldManager->ungeneratedStructures.contains(chunkLocation)) {
-        worldManager->ungeneratedStructures.insert(std::make_pair(chunkLocation, Chunk(false)));
-    }
-    chunkSetBlock(blockLocation.x,
-                  blockLocation.y,
-                  blockLocation.z,
-                  block,
-                  worldManager->ungeneratedStructures.at(chunkLocation));
-}
-
 // X, y and z might not be in chunk.
-void generateTree(int x,
-                  int y,
-                  int z,
-                  glm::i32vec3 chunkLocation,
-                  WorldManager* worldManager,
-                  std::vector<glm::ivec3>& chunksToRerender,
-                  ChunkRenderer& chunkRenderer)
+void generateTree(
+    int x, int y, int z, glm::i32vec3 chunkLocation, std::vector<std::pair<glm::i32vec3, BlockType>>& structureBlocks)
 {
     // for the tool:
     // log:
@@ -152,46 +116,16 @@ void generateTree(int x,
                 float treeTrunkNoiseValue =
                     treeTrunkNoiseOutput[treeNoiseChunkLocationToIndex(xOffset, yOffset, zOffset)];
 
-                if (treeNoiseValue + logExtraNoiseValue < -3.0f ||
-                    treeTrunkNoiseValue < -3.0f) { // value is adjusted by testing the tree generator in FastNoise2
-                                                   // noise tool by substracting that amount from the
-                    placeStructureBlock(x + xOffset - treetopNoiseMapRadius,
-                                        y + yOffset + treeStructureHeightOffset,
-                                        z + zOffset - treetopNoiseMapRadius,
-                                        chunkLocation,
-                                        BlockType::oakLog,
-                                        worldManager,
-                                        chunkRenderer);
+                glm::i32vec3 loc = glm::i32vec3{x + xOffset - treetopNoiseMapRadius,
+                                    y + yOffset + treeStructureHeightOffset,
+                                    z + zOffset - treetopNoiseMapRadius} + chunkLocation * CHUNK_SIZE;
+
+                if (treeNoiseValue + logExtraNoiseValue < -3.0f || treeTrunkNoiseValue < -3.0f) {
+                    structureBlocks.push_back(std::make_pair(loc, BlockType::oakLog));
                 }
                 else if (treeNoiseValue < 0.12f) {
-                    placeStructureBlock(x + xOffset - treetopNoiseMapRadius,
-                                        y + yOffset + treeStructureHeightOffset,
-                                        z + zOffset - treetopNoiseMapRadius,
-                                        chunkLocation,
-                                        BlockType::oakLeaf,
-                                        worldManager,
-                                        chunkRenderer);
+                    structureBlocks.push_back(std::make_pair(loc, BlockType::oakLeaf));
                 }
-            }
-        }
-    }
-
-    glm::ivec3 blockCornerNegative =
-        chunkLocation * CHUNK_SIZE +
-        glm::ivec3(x - treetopNoiseMapRadius, y + treeStructureHeightOffset, z - treetopNoiseMapRadius) -
-        glm::ivec3(32, 32, 32);
-    glm::ivec3 blockCornerPositive = chunkLocation * CHUNK_SIZE +
-                                     glm::ivec3(x + treetopNoiseMapRadius,
-                                                y + treeNoiseHeight + treeStructureHeightOffset,
-                                                z + treetopNoiseMapRadius) +
-                                     glm::ivec3(32, 32, 32);
-    glm::ivec3 chunkCornerNegative = getChunkLocation(blockCornerNegative);
-    glm::ivec3 chunkCornerPositive = getChunkLocation(blockCornerPositive);
-
-    for (int chunkX = chunkCornerNegative.x; chunkX <= chunkCornerPositive.x; chunkX++) {
-        for (int chunkY = chunkCornerNegative.y; chunkY <= chunkCornerPositive.y; chunkY++) {
-            for (int chunkZ = chunkCornerNegative.z; chunkZ <= chunkCornerPositive.z; chunkZ++) {
-                chunksToRerender.push_back(glm::i32vec3(chunkX, chunkY, chunkZ));
             }
         }
     }
@@ -200,13 +134,13 @@ void generateTree(int x,
 float randomFloat01() { return static_cast<float>(rand()) / static_cast<float>(RAND_MAX); }
 
 void generateChunk(glm::i32vec3 chunkLocation,
-                   WorldManager* worldManager,
-                   std::vector<glm::ivec3>& chunksToRenderAgain,
-                   ChunkRenderer& chunkRenderer)
+                   Chunk& chunk,
+                   std::vector<std::pair<glm::i32vec3, BlockType>>& structureBlocks)
 {
+    chunk = Chunk(true);
     // The string is generated with the FastNoise2 noisetool.
-    static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree(
-        "E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
+    //static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
+    static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECKabRDsECiQJLgAB@BCQ0ABQ@BjhejRACQc@ABIRBA9Cle/GGZmZj8EA5qZGT8LAACAPxwDAABwQgQ=");
 
     std::vector<float> noiseOutput(CHUNK_SIZE * (CHUNK_SIZE + grassDirtLayerHeight) * CHUNK_SIZE);
 
@@ -222,16 +156,7 @@ void generateChunk(glm::i32vec3 chunkLocation,
                                       frequency,
                                       1337);
 
-    if (worldManager->ungeneratedStructures.contains(chunkLocation)) {
-        worldManager->chunks.insert(
-            std::make_pair(chunkLocation, worldManager->ungeneratedStructures.at(chunkLocation)));
-        worldManager->ungeneratedStructures.erase(chunkLocation);
-    }
-    else {
-        worldManager->chunks.insert(std::make_pair(chunkLocation, Chunk(true)));
-    }
-
-    Chunk& chunk = worldManager->chunks.at(chunkLocation);
+    assertm(chunk.blocks.size() == CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE, "Chunk size is wrong in generation");
 
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int y = 0; y < CHUNK_SIZE; y++) {
@@ -250,15 +175,14 @@ void generateChunk(glm::i32vec3 chunkLocation,
 
                         bool hasAirOnTop = yExtra == 1;
                         if (hasAirOnTop) {
-                            worldManager->chunks.at(chunkLocation).blocks[chunkLocationToIndex(x, y, z)] =
-                                BlockType::grass;
+                            chunk.blocks[chunkLocationToIndex(x, y, z)] = BlockType::grass;
 
                             if (randomFloat01() < 0.3f) {
-                                placeStructureBlock(
-                                    x, y + 1, z, chunkLocation, BlockType::grassPlant, worldManager, chunkRenderer);
+                                structureBlocks.push_back(
+                                    std::make_pair(glm::i32vec3{x, y + 1, z} + chunkLocation * CHUNK_SIZE, BlockType::grassPlant));
                             }
                             if (randomFloat01() < 0.002f) {
-                                generateTree(x, y + 1, z, chunkLocation, worldManager, chunksToRenderAgain, chunkRenderer);
+                                generateTree(x, y + 1, z, chunkLocation, structureBlocks);
                             }
                         }
                         else {
@@ -287,7 +211,7 @@ void generateChunk(glm::i32vec3 chunkLocation,
         }
     }
     if (!containsDifferentBlocks) {
-        chunkResize(chunk, false); // contains only one element in block array to reduce space by CHUNK_SIZE * CHUNK_SIZE *
-                             // CHUNK_SIZE amount.
+        chunkResize(chunk, false); // contains only one element in block array to reduce space by CHUNK_SIZE *
+                                   // CHUNK_SIZE * CHUNK_SIZE amount.
     }
 }

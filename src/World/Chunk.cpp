@@ -104,3 +104,14 @@ void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk)
     }
 }
 
+void chunkSetBlock(int i, BlockType blockType, Chunk& chunk)
+{
+    if (!chunk.containsDifferentBlocks && chunk.blocks[0] != blockType) {
+        chunkResize(chunk, true);
+    }
+
+    if (chunk.containsDifferentBlocks) {
+        chunk.blocks[i] = blockType;
+    }
+}
+
