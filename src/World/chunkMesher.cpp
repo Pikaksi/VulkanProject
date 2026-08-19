@@ -1,6 +1,7 @@
 #include "chunkMesher.hpp"
 
 #include <chrono>
+#include <algorithm>
 
 #include "BlockType.hpp"
 #include "Chunk.hpp"
