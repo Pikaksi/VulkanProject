@@ -71,7 +71,7 @@ if not vulkan_dep.found()
     include_directories : vulkan_sdk_path / 'include',
     dependencies: vulkan_lib
   )
-  
+
   layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
   run_env.set('VK_LAYER_PATH', layer_path)
 endif
@@ -141,10 +141,12 @@ my_exe = executable('myexe',
   install : should_install
 )
 
-run_env = environment()
-layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
-message(layer_path)
-run_env.set('VK_LAYER_PATH', layer_path)
+if host_machine.system() == 'linux'
+  run_env = environment()
+  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
+  message(layer_path)
+  run_env.set('VK_LAYER_PATH', layer_path)
+endif
 
 if host_machine.system() == 'windows'
   install_data(
