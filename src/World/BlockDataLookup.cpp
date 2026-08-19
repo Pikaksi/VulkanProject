@@ -9,6 +9,7 @@
 #include "FilePathHandler.hpp"
 #include "ECS/Components.hpp"
 #include "assertm.hpp"
+#include "blockEntity.hpp"
 
 // clang-format off
 
@@ -41,7 +42,7 @@ struct BlockProperties
     BlockType blockType;
     BlockRenderType blockRenderType;
     bool isInteractable;
-    uint64_t blockComponents;
+    BlockEntityType blockEntityType;
 };
 
 const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
@@ -50,49 +51,49 @@ const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
         .blockType = BlockType::air,
         .blockRenderType = BlockRenderType::dontRender,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::stone,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::grass,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::dirt,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::oakLog,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::oakLeaf,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::grassPlant,
         .blockRenderType = BlockRenderType::custom,
         .isInteractable = false,
-        .blockComponents = 0,
+        .blockEntityType = BlockEntityType::none,
     },
     BlockProperties {
         .blockType = BlockType::furnace,
         .blockRenderType = BlockRenderType::solid,
         .isInteractable = true,
-        .blockComponents = inventoryComponentBitmask,
+        .blockEntityType = BlockEntityType::furnace,
     }
 };
 
@@ -120,14 +121,9 @@ BlockRenderType getBlockRenderType(BlockType blockType)
     return blockTypeToRenderType[blockType];
 }
 
-bool blockHasComponent(BlockType blockType, uint64_t componentBitmask)
+bool getIsBlockEntity(BlockType blockType)
 {
-    return blockTypeToComponents[blockType] & componentBitmask != 0;
-}
-
-bool blockHasComponent(BlockType blockType)
-{
-    return blockTypeToComponents[blockType] != 0;
+    return blockTypeToBlockEntityType[blockType] != BlockEntityType::none;
 }
 
 const BlockRenderType blockTypeToRenderType[BlockType::maxEnum] = {
@@ -152,15 +148,15 @@ const bool blockTypeIsInteractable[BlockType::maxEnum] = {
     blockPropertiesLookup[7].isInteractable
 };
 
-const uint64_t blockTypeToComponents[BlockType::maxEnum] = {
-    blockPropertiesLookup[0].blockComponents,
-    blockPropertiesLookup[1].blockComponents,
-    blockPropertiesLookup[2].blockComponents,
-    blockPropertiesLookup[3].blockComponents,
-    blockPropertiesLookup[4].blockComponents,
-    blockPropertiesLookup[5].blockComponents,
-    blockPropertiesLookup[6].blockComponents,
-    blockPropertiesLookup[7].blockComponents
+const BlockEntityType blockTypeToBlockEntityType[BlockType::maxEnum] = {
+    blockPropertiesLookup[0].blockEntityType,
+    blockPropertiesLookup[1].blockEntityType,
+    blockPropertiesLookup[2].blockEntityType,
+    blockPropertiesLookup[3].blockEntityType,
+    blockPropertiesLookup[4].blockEntityType,
+    blockPropertiesLookup[5].blockEntityType,
+    blockPropertiesLookup[6].blockEntityType,
+    blockPropertiesLookup[7].blockEntityType,
 };
 
 // clang-format on

@@ -1,10 +1,11 @@
 project('my_app', 'cpp',
   version : '0.1',
-  default_options : ['warning_level=1'])
+  default_options : ['warning_level=1', 'b_ndebug=if-release'])
 
 run_env = environment()
 
 src = [
+  'src/blockEntities/blockEntityManager.cpp',
   'src/util/threadPool.cpp',
   'src/util/stbi_images.cpp',
   'src/World/chunkMesher.cpp',
@@ -43,7 +44,6 @@ src = [
   'src/PlayerInputHandler.cpp',
   'src/Player/PlaceBlock.cpp',
   'src/ECS/EntityManager.cpp',
-  'src/ECS/EntityCreator.cpp',
   'src/Rendering/Vertex.cpp',
   'src/FilePathHandler.cpp',
   'src/CameraHandler.cpp',
@@ -125,6 +125,7 @@ include_dirs = [
   include_directories('src/World'),
   include_directories('src/VulkanRendering'),
   include_directories('src/util'),
+  include_directories('src/blockEntities'),
 ]
 
 should_install = false
@@ -138,7 +139,7 @@ my_exe = executable('myexe',
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
   cpp_args : ['-W -g'],
-  install : should_install
+  install : should_install,
 )
 
 run_env = environment()

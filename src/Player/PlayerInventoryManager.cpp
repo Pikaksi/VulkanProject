@@ -1,83 +1,83 @@
 #include "PlayerInventoryManager.hpp"
 
+#include "Inventory.hpp"
 #include "PlayerInputHandler.hpp"
 
-void PlayerInventoryManager::update(UIManager& uiManager)
+void update(PlayerInfo& playerInfo, UIManager& uiManager, BlockEntityManager& blockEntityManager)
 {
-	if (PlayerInputHandler::getInstance().rPressed) {
-		if (inventoryIsActive) {
-			closeInventory();
-		}
-		else {
-			openInventory(std::nullopt);
-		}
-	}
+    if (PlayerInputHandler::getInstance().rPressed) {
+        if (playerInfo.inventoryIsActive) {
+            closeInventory();
+        }
+        else {
+            openInventory(std::nullopt, blockEntityManager);
+        }
+    }
 
-	if (inventoryIsActive) {
-		processOpenInventory(uiManager);
-	}
+    if (inventoryIsActive) {
+        processOpenInventory(uiManager, blockEntityManager);
+    }
 }
 
-void PlayerInventoryManager::openInventory(std::optional<EntityID> additionalInventoryEntityID)
+void openInventory(PlayerInfo& playerInfo)
 {
-	inventoryIsActive = true;
-	PlayerInputHandler::getInstance().enableCursor();
-	additionalOpenInventory = additionalInventoryEntityID;
+    playerInfo.inventoryIsActive = true;
+    PlayerInputHandler::getInstance().enableCursor();
 }
 
-void PlayerInventoryManager::closeInventory()
+void closeInventory(PlayerInfo& playerInfo)
 {
-	inventoryIsActive = false;
-	PlayerInputHandler::getInstance().disableCursor();
+    playerInfo.inventoryIsActive = false;
+    PlayerInputHandler::getInstance().disableCursor();
 }
 
-void PlayerInventoryManager::processOpenInventory(UIManager& uiManager)
+void processOpenInventory(UIManager& uiManager, BlockEntityManager& blockEntityManager)
 {
-	std::optional<int> clickedSlotPlayerInventory, howerOverSlotPlayerInventory, clickedSlotAdditionalInventory, howerOverSlotAdditionalInventory;
+    std::optional<int> clickedSlotPlayerInventory, howerOverSlotPlayerInventory, clickedSlotAdditionalInventory,
+        howerOverSlotAdditionalInventory;
 
-	renderInventory(
-		uiManager, 
-		clickedSlotPlayerInventory, 
-		howerOverSlotPlayerInventory, 
-		playerInventory, 
-		playerInventoryLayout,
-		true);
-	SelectedSlotInfo selectedSlotInfo {
-		clickedSlotPlayerInventory,
-		std::nullopt
-	};
+    renderInventory(uiManager,
+                    clickedSlotPlayerInventory,
+                    howerOverSlotPlayerInventory,
+                    playerInventory,
+                    playerInventoryLayout,
+                    true);
+    SelectedSlotInfo selectedSlotInfo{clickedSlotPlayerInventory, std::nullopt};
 
-	if (additionalOpenInventory.has_value()) {
-		std::cout << "additional inventory\n";
-		std::cout << "entityID = " << additionalOpenInventory.value() << "\n";
-		renderInventory(
-			uiManager, 
-			clickedSlotAdditionalInventory, 
-			howerOverSlotAdditionalInventory, 
-			entityManager.entities[additionalOpenInventory.value()].getComponent<Inventory>(), 
-			InventoryLayout::output1Input1,
-			false);
+    if (additionalOpenInventory.has_value()) {
+        std::cout << "additional inventory\n";
+        std::cout << "entityID = " << additionalOpenInventory.value() << "\n";
 
-		if (clickedSlotAdditionalInventory.has_value()) {
-			selectedSlotInfo.slotNumber = clickedSlotAdditionalInventory;
-			selectedSlotInfo.inventoryEntityID = additionalOpenInventory;
-		}
-	}
+        BlockEntity* entity = blockEntityManager.entities[additionalOpenInventory.value()];
+        Inventory
 
-	handleClickedSlot(selectedSlotInfo);
+            renderInventory(uiManager,
+                            clickedSlotAdditionalInventory,
+                            howerOverSlotAdditionalInventory,
+
+                            // entityManager.entities[additionalOpenInventory.value()].getComponent<Inventory>(),
+                            InventoryLayout::output1Input1,
+                            false);
+
+        if (clickedSlotAdditionalInventory.has_value()) {
+            selectedSlotInfo.slotNumber = clickedSlotAdditionalInventory;
+            selectedSlotInfo.inventoryEntityID = additionalOpenInventory;
+        }
+    }
+
+    handleClickedSlot(selectedSlotInfo);
 }
 
-void PlayerInventoryManager::handleClickedSlot(SelectedSlotInfo selectedSlotInfo)
+void handleClickedSlot(SelectedSlotInfo selectedSlotInfo)
 {
-	if (!selectedSlotInfo.slotNumber.has_value()) {
-		return;
-	}
+    if (!selectedSlotInfo.slotNumber.has_value()) {
+        return;
+    }
 
-	Inventory& otherInventory = 
-		selectedSlotInfo.inventoryEntityID.has_value()
-		? entityManager.entities[selectedSlotInfo.inventoryEntityID.value()].getComponent<Inventory>()
-		: playerInventory;
+    Inventory& otherInventory =
+        selectedSlotInfo.inventoryEntityID.has_value()
+            ? entityManager.entities[selectedSlotInfo.inventoryEntityID.value()].getComponent<Inventory>()
+            : playerInventory;
 
-	swapSlots(0, selectedSlotInfo.slotNumber.value(), cursorInventory, otherInventory);
+    swapSlots(0, selectedSlotInfo.slotNumber.value(), cursorInventory, otherInventory);
 }
-

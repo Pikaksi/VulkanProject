@@ -28,13 +28,9 @@ struct WorldManager
     std::queue<ChunkGenerationTask*> generationResults;
     std::unordered_set<glm::i32vec3, Vec3LocalizedHash> chunksGenerating;
 
-    std::unordered_map<glm::i32vec3, std::unordered_map<glm::i32vec3, EntityID, Vec3LocalizedHash>, Vec3LocalizedHash>
-        blockEntities;
-
     WorldManager() {}
 
     void addChunkToGenerate(glm::i32vec3 loc);
     void processChunkGenerationResults();
     //void tryGeneratingNewChunk(glm::i32vec3 chunkLocation, std::vector<glm::ivec3>& chunksToRerender, ChunkRenderer& chunkRenderer);
-    EntityID generateEntity(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, uint64_t componentBitmask);
 };

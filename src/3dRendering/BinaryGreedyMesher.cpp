@@ -3,6 +3,7 @@
 #include <numbers>
 #include <bitset>
 #include <algorithm>
+#include <iostream>
 
 #include "World/BlockDataLookup.hpp"
 #include "World/Chunk.hpp"

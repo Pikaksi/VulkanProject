@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/vec3.hpp>
+/*#include <glm/vec3.hpp>
 
 #include <cstdint>
 #include <bit>
@@ -25,4 +25,4 @@ constexpr int getComponentIndex()
 constexpr int getComponentIndex(uint64_t componentBitmask)
 {
     return std::countr_zero(componentBitmask);
-}
+}*/

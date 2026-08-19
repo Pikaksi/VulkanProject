@@ -10,6 +10,7 @@
 #include <glm/vec3.hpp>
 
 #include "BlockType.hpp"
+#include "blockEntity.hpp"
 
 enum class BlockRenderType : uint8_t
 {
@@ -21,7 +22,9 @@ enum class BlockRenderType : uint8_t
 
 extern const BlockRenderType blockTypeToRenderType[BlockType::maxEnum];
 extern const bool blockTypeIsInteractable[BlockType::maxEnum];
-extern const uint64_t blockTypeToComponents[BlockType::maxEnum];
+
+extern const BlockEntityType blockTypeToBlockEntityType[BlockType::maxEnum];
+bool getIsBlockEntity(BlockType blockType);
 
 inline std::vector<stbi_uc*> blockImages;
 inline std::vector<glm::vec3> blockImageColors;
@@ -37,5 +40,8 @@ bool isBlockSolid(BlockType blocktype);
 BlockRenderType getRenderType(BlockType blockType);
 bool isRenderableNonSolid(BlockType blocktype);
 BlockRenderType getBlockRenderType(BlockType blockType);
+
+bool blockHasComponent(BlockType blockType);
+
 bool blockHasComponent(BlockType blockType, uint64_t componentBitmask);
 bool blockHasComponent(BlockType blockType);

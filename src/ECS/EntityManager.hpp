@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+/*#include <vector>
 #include <bitset>
 
 #include "Components.hpp"
@@ -101,4 +101,4 @@ T& Entity::getComponent()
     constexpr int componentPoolIndex = getComponentIndex<T>();
     std::vector<T>* componentPool = static_cast<std::vector<T>*>(componentPoolManager.componentPools[componentPoolIndex]);
     return (*componentPool)[componentIndecies[componentPoolIndex]];
-}
+}*/

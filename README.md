@@ -21,8 +21,11 @@ requires vulkan sdk 1.4
 meson setup --wipe build --native-file clang.ini
 cd build/
 meson compile run
+#### Release build
+meson setup --wipe buildRelease --native-file clang.ini --buildtype=release
 
-### Installing for debugging
-Modify glfw wrap meson options file to install.
+### External build for debugging
 Installs in the /bin/vulkanProject directory.
+
+Modify glfw wrap meson options file to install.
 meson install

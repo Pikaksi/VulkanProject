@@ -1,6 +1,6 @@
 #include "EntityManager.hpp"
 
-#include <stdexcept>
+/*#include <stdexcept>
 
 EntityManager entityManager;
 ComponentPoolManager componentPoolManager;
@@ -64,4 +64,4 @@ void EntityManager::deleteEntity(EntityID entityID)
         componentBitmask &= componentBitmask - 1; // remove lsb
     }
 
-}
+}*/

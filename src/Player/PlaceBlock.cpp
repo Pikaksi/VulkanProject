@@ -3,25 +3,25 @@
 #include <iostream>
 
 #include "BlockDataLookup.hpp"
+#include "assertm.hpp"
+#include "blockEntity.hpp"
 
-void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk, BlockType blockToPlace, WorldManager& worldManager, ChunkRenderer& chunkRenderer)
+void placeBlock(glm::ivec3 chunkLocation,
+                glm::ivec3 blockLocation,
+                BlockType blockToPlace,
+                WorldManager& worldManager,
+                BlockEntityManager& blockEntityManager,
+                ChunkRenderer& chunkRenderer)
 {
+    assertm(worldManager.chunks.contains(chunkLocation), "Trying to place to a chunk that is not rendered");
+
+    Chunk& chunk = worldManager.chunks.at(chunkLocation);
     chunkSetBlock(blockLocation.x, blockLocation.y, blockLocation.z, blockToPlace, chunk);
-    if (blockHasComponent(blockToPlace)) {
-        uint64_t components = blockTypeToComponents[blockToPlace];
-        EntityID entityID = worldManager.generateEntity(chunkLocation, blockLocation, components);
-        worldManager.blockEntities[chunkLocation][blockLocation] = entityID;
 
-        std::cout << "entityID creation = " << entityID << "\n";
-
-        if (blockHasComponent(blockToPlace, inventoryComponentBitmask)) {
-            entityManager.entities[entityID].getComponent<Inventory>().setSize(blockTypeInventorySize.at(blockToPlace));
-            
-            std::cout << "set size\n";
-            std::cout << entityManager.entities[entityID].getComponent<Inventory>().getSize() << "\n";
-        }
-        std::cout << "creation chunk = " << chunkLocation.x << chunkLocation.y << chunkLocation.z << blockLocation.x << blockLocation.y << blockLocation.z << "\n";
-        std::cout << "entityID after creation = " << worldManager.blockEntities.at(chunkLocation).at(blockLocation) << "\n";
+    BlockEntityType blockEntityType = blockTypeToBlockEntityType[blockToPlace];
+    if (blockEntityType != BlockEntityType::none) {
+        glm::i32vec3 worldLocation = blockLocation + chunkLocation * CHUNK_SIZE;
+        blockEntityManager.createEntity(worldLocation, blockEntityType);
     }
 
     if (blockLocation.x == CHUNK_SIZE - 1) {
@@ -43,45 +43,4 @@ void placeBlock(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, Chunk& chunk
         chunkRenderer.rerenderChunkAgain({chunkLocation.x, chunkLocation.y, chunkLocation.z - 1});
     }
     chunkRenderer.rerenderChunkAgain(chunkLocation);
-}
-
-void interactWithBlock(
-    glm::ivec3 chunkLocation,
-    glm::ivec3 blockLocation,
-    BlockType blockAtLocation,
-    WorldManager& worldManager,
-    ChunkRenderer& chunkRenderer,
-    PlayerInventoryManager& playerInventoryManager)
-{
-    if (blockHasComponent(blockAtLocation, inventoryComponentBitmask)) {
-        EntityID entityID = worldManager.blockEntities.at(chunkLocation).at(blockLocation);
-        std::cout << "creation chunk = " << chunkLocation.x << chunkLocation.y << chunkLocation.z << blockLocation.x << blockLocation.y << blockLocation.z << "\n";
-        std::cout << "entityID open = " << entityID << "\n";
-        playerInventoryManager.openInventory(entityID);
-    }
-}
-
-void processRightClick(
-    glm::vec3 position,
-    WorldManager& worldManager,
-    ChunkRenderer& chunkRenderer,
-    PlayerInventoryManager& playerInventoryManager)
-{
-    glm::ivec3 worldBlockLocation = floor(position);
-    glm::ivec3 chunkLocation = getChunkLocation(worldBlockLocation);
-    glm::ivec3 blockLocation =  {
-        alwaysPosModulo(worldBlockLocation.x, CHUNK_SIZE),
-        alwaysPosModulo(worldBlockLocation.y, CHUNK_SIZE),
-        alwaysPosModulo(worldBlockLocation.z, CHUNK_SIZE),
-    };
-
-    Chunk& chunk = worldManager.chunks.at(chunkLocation);
-    BlockType blockAtLocation = chunkGetBlockAtLocation(blockLocation.x, blockLocation.y, blockLocation.z, chunk);
-
-    if (blockTypeIsInteractable[blockAtLocation]) {
-        interactWithBlock(chunkLocation, blockLocation, BlockType::furnace, worldManager, chunkRenderer, playerInventoryManager);
-    }
-    if (blockAtLocation == BlockType::air) {
-        placeBlock(chunkLocation, blockLocation, chunk, BlockType::furnace, worldManager, chunkRenderer);
-    }
 }

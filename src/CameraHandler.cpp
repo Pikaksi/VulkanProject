@@ -69,7 +69,7 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
                                                  // positive right axis appear on the right of the screen.
         );
     glm::mat4x4 cameraProj =
-        glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
+        glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 4000.0f);
 
     ubo.camera = cameraProj * cameraView;
     // ubo.camera[1][1] *= -1;

@@ -29,6 +29,7 @@
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
 #include "Player/PlayerInventoryManager.hpp"
+#include "blockEntityManager.hpp"
 
 class Application
 {
@@ -92,7 +93,10 @@ private:
     WorldManager worldManager;
     UIManager uiManager;
     DebugMenu debugMenu;
+    BlockEntityManager blockEntityManager;
+
     PlayerInventoryManager playerInventoryManager;
+    PlayerInfo playerInfo;
 
     std::chrono::steady_clock::time_point fpsTimer;
 

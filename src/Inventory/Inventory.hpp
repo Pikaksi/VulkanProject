@@ -5,9 +5,10 @@
 
 #include "ItemStack.hpp"
 
-class Inventory
+struct Inventory
 {
-public:
+    std::vector<ItemStack> itemStacks;
+
     Inventory(uint32_t size)
     {
         setSize(size);
@@ -28,8 +29,6 @@ public:
     void setItem(int itemSlot, ItemStack itemStack);
     uint32_t getSize();
 
-private:
-    std::vector<ItemStack> itemStacks;
 };
 
 // Returns true if the item was moved. If moved item is empty return true.

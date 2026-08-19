@@ -91,6 +91,20 @@ void WorldManager::processChunkGenerationResults()
         }
         generationResults.pop();
     }
+
+    if (debugMenuGlobals.isEnabledCopy) {
+        debugMenuGlobals.chunkCount = chunks.size();
+        debugMenuGlobals.chunkCountCompressed = 0;
+        debugMenuGlobals.blockSizeTotal = 0;
+        for (auto& pair : chunks) {
+            Chunk& chunk = pair.second;
+            debugMenuGlobals.blockSizeTotal += chunk.blocks.size();
+
+            if (!chunk.containsDifferentBlocks) {
+                debugMenuGlobals.chunkCountCompressed += 1;
+            }
+        }
+    }
 }
 
 /*struct Cube

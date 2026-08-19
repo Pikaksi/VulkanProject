@@ -47,7 +47,7 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 
 void Application::initGame()
 {
-    globalThreadPool.init(8);
+    globalThreadPool.init(2);
 
     PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
@@ -181,9 +181,8 @@ void Application::gameMainLoop()
         chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
     }
 
+    updatePlayerControls(cameraHandler.position, worldManager, blockEntityManager, chunkRenderer, playerInfo);
     playerInventoryManager.update(uiManager);
-
-    updatePlayerControls(cameraHandler.position, worldManager, chunkRenderer, playerInventoryManager);
 
     debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);
 }

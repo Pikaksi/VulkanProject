@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Chunk.hpp"
 #include "VertexBufferManager.hpp"
 #include "VulkanTypes.hpp"
 #include "World/WorldManager.hpp"
@@ -42,7 +43,7 @@ glm::i32vec3 roundLocationLod(glm::i32vec3 loc, int lod)
 }
 
 // Gives two corners of the chunk area required for the command
-void renderCommandChunkArea(ChunkRenderingCommand& command, glm::i32vec3& loc, int32_t& size)
+void getRenderCommandChunkArea(ChunkRenderingCommand& command, glm::i32vec3& loc, int32_t& size)
 {
     int lodSize = 1 << command.toLod;
     if (command.replace) {
@@ -151,24 +152,15 @@ void generateRenderingOrder(std::vector<ChunkOrderInfo>& offsets,
 
 ChunkRenderer::ChunkRenderer() {}
 
+void ChunkRenderer::removeChunk(glm::i32vec3 loc, VertexBufferManager& vertexBufferManager)
+{
+    uint64_t memoryLoc = chunkInfos.at(loc).memoryLocation;
+    chunkInfos.erase(loc);
+    vertexBufferManager.freeWorldVerticesMemory(memoryLoc);
+}
+
 ChunkRenderingCommand ChunkRenderer::getNextChunkToRender(glm::i32vec3 playerLocation, int& orderIndex)
 {
-    /*{
-        for (; nextChunkRenderIndex < chunkRenderingOrder.size(); nextChunkRenderIndex++) {
-            ChunkRenderingCommand command;
-            command.noChunksToRender = false;
-            command.replace = false;
-            command.loc = playerLocation + chunkRenderingOrder[nextChunkRenderIndex].loc;
-            command.toLod = chunkRenderingOrder[nextChunkRenderIndex].lod;
-            command.fullDetail = chunkRenderingOrder[nextChunkRenderIndex].fullDetail;
-            nextChunkRenderIndex++;
-            return command;
-        }
-        ChunkRenderingCommand command;
-        command.noChunksToRender = true;
-        return command;
-    }*/
-
     for (; orderIndex < chunkRenderingOrder.size(); orderIndex++) {
         ChunkRenderingCommand command;
         command.noChunksToRender = false;
@@ -234,9 +226,7 @@ void ChunkRenderer::handleRenderCommand(VulkanCoreInfo& vulkanCoreInfo,
         glm::i32vec3 largeChunkLoc = roundLocationLod(renderCommand.loc, renderCommand.fromLod);
 
         assertm(chunkInfos.contains(largeChunkLoc), "Chunk was not found when replacing one");
-        uint64_t memoryLoc = chunkInfos.at(largeChunkLoc).memoryLocation;
-        chunkInfos.erase(largeChunkLoc);
-        vertexBufferManager.freeWorldVerticesMemory(memoryLoc);
+        removeChunk(largeChunkLoc, vertexBufferManager);
 
         int chunks = (1 << renderCommand.fromLod) >> renderCommand.toLod;
         for (int x = 0; x < chunks; x++) {
@@ -264,9 +254,7 @@ void ChunkRenderer::handleRenderCommand(VulkanCoreInfo& vulkanCoreInfo,
             for (int z = 0; z < chunkSize; z++) {
                 glm::i32vec3 loc = renderCommand.loc + glm::i32vec3{x, y, z};
                 if (chunkInfos.contains(loc)) {
-                    uint64_t memoryLoc = chunkInfos.at(loc).memoryLocation;
-                    chunkInfos.erase(loc);
-                    vertexBufferManager.freeWorldVerticesMemory(memoryLoc);
+                    removeChunk(loc, vertexBufferManager);
                 }
             }
         }
@@ -319,9 +307,9 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo,
         createChunkMeshFullDetail(worldManager, loc, vertices);
 
         auto debugEndWait = std::chrono::high_resolution_clock::now();
-        debugMenuGlobals.chunkGenTimeTotal +=
+        debugMenuGlobals.chunkMeshTimeTotal +=
             std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
-        debugMenuGlobals.chunksGenerated += 1;
+        debugMenuGlobals.chunksMeshed += 1;
 
         if (vertices.size() == 0) {
             return;
@@ -336,9 +324,9 @@ void ChunkRenderer::renderChunk(VulkanCoreInfo& vulkanCoreInfo,
         createChunkMeshLod(worldManager, loc, vertices, lod);
 
         auto debugEndWait = std::chrono::high_resolution_clock::now();
-        debugMenuGlobals.chunkGenTimeTotal +=
+        debugMenuGlobals.chunkMeshTimeTotal +=
             std::chrono::duration<float, std::chrono::microseconds::period>(debugEndWait - debugStartWait).count();
-        debugMenuGlobals.chunksGenerated += 1;
+        debugMenuGlobals.chunksMeshed += 1;
 
         if (vertices.size() == 0) {
             return;
@@ -363,7 +351,7 @@ void ChunkRenderer::queueGenerationOfNewChunks(VulkanCoreInfo& vulkanCoreInfo,
 
     glm::i32vec3 loc;
     int32_t size;
-    renderCommandChunkArea(renderCommand, loc, size);
+    getRenderCommandChunkArea(renderCommand, loc, size);
     for (int x = 0; x < size; x++) {
         for (int y = 0; y < size; y++) {
             for (int z = 0; z < size; z++) {
@@ -374,35 +362,104 @@ void ChunkRenderer::queueGenerationOfNewChunks(VulkanCoreInfo& vulkanCoreInfo,
     nextChunkGenerationIndex++;
 }
 
+// returns if the rendering was succesfull. Requires that chunks were loaded
+bool ChunkRenderer::tryExecuteRenderingCommand(VulkanCoreInfo& vulkanCoreInfo,
+                                               VkCommandPool commandPool,
+                                               WorldManager& worldManager,
+                                               VertexBufferManager& vertexBufferManager,
+                                               ChunkRenderingCommand& command,
+                                               int& work)
+{
+    glm::i32vec3 loc;
+    int32_t size;
+    getRenderCommandChunkArea(command, loc, size);
+    for (int x = 0; x < size; x++) {
+        for (int y = 0; y < size; y++) {
+            for (int z = 0; z < size; z++) {
+                if (!worldManager.chunks.contains(loc + glm::i32vec3{x, y, z})) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    work += workConstant;
+    int higherLod = std::max(command.toLod, command.fromLod);
+    work += workCubic * (1 << higherLod) * (1 << higherLod) * (1 << higherLod);
+
+    handleRenderCommand(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, command);
+    return true;
+}
+
 void ChunkRenderer::updateRenderCommands(VulkanCoreInfo& vulkanCoreInfo,
                                          VkCommandPool commandPool,
                                          WorldManager& worldManager,
                                          VertexBufferManager& vertexBufferManager,
                                          glm::i32vec3 playerLocation)
 {
-    const int maxUpdatesPerFrame = 30;
-    int startIndex = nextChunkRenderIndex;
+    int workDone = 0;
+
+    for (glm::i32vec3 chunkLoc : chunksToRenderAgain) {
+        assertm(chunkInfos.contains(chunkLoc), "Tried to render chunk again that does not exist");
+        ChunkInfo chunk = chunkInfos.at(chunkLoc);
+        ChunkRenderingCommand command{.loc = chunkLoc,
+                                      .fromLod = chunk.lod,
+                                      .toLod = chunk.lod,
+                                      .replace = true,
+                                      .noChunksToRender = false,
+                                      .fullDetail = chunk.fullDetail};
+        bool success = tryExecuteRenderingCommand(
+            vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, command, workDone);
+        assertm(success, "Tried to rerender chunk but it was unloaded while that happened. Not supported yet.");
+    }
+    chunksToRenderAgain.clear();
+
     while (true) {
-        if (startIndex + 30 < nextChunkRenderIndex) return;
+        if (workDone > maxWorkPerFrame) {
+            break;
+        }
         ChunkRenderingCommand command = getNextChunkToRender(playerLocation, nextChunkRenderIndex);
         if (command.noChunksToRender) {
             return;
         }
-        glm::i32vec3 loc;
-        int32_t size;
-        renderCommandChunkArea(command, loc, size);
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                for (int z = 0; z < size; z++) {
-                    if (!worldManager.chunks.contains(loc + glm::i32vec3{x, y, z})) {
-                        return;
-                    }
-                }
+        bool success = tryExecuteRenderingCommand(
+            vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, command, workDone);
+        if (success) {
+            nextChunkRenderIndex += 1;
+        }
+        else {
+            break;
+        }
+    }
+}
+
+void ChunkRenderer::derenderChunksOutOfRenderdistance(glm::i32vec3 playerChunkLocation,
+                                                      VertexBufferManager& vertexBufferManager)
+{
+    std::vector<glm::i32vec3> eraseKeys;
+    for (int i = 0; i < 10; i++) {
+
+        auto it = chunkInfos.cbegin(nextDerenderBucketIndex);
+        while (it != chunkInfos.cend(nextDerenderBucketIndex)) {
+            const glm::i32vec3& offset = it->first - playerChunkLocation;
+            const int lod = it->second.lod;
+            const int dstSquared = offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
+            const int requiredDstSquared = (renderDistances[lod + 1] + extraRangeToDerenderChunk) *
+                                           (renderDistances[lod + 1] + extraRangeToDerenderChunk);
+            if (dstSquared > requiredDstSquared) {
+                eraseKeys.push_back(it->first);
             }
+            it++;
         }
 
-        nextChunkRenderIndex += 1;
-        handleRenderCommand(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, command);
+        nextDerenderBucketIndex++;
+        if (nextDerenderBucketIndex >= chunkInfos.bucket_count()) {
+            nextDerenderBucketIndex = 0;
+        }
+    }
+    for (glm::i32vec3& loc : eraseKeys) {
+        assertm(chunkInfos.contains(loc), "Derendering chunk that does not exist");
+        removeChunk(loc, vertexBufferManager);
     }
 }
 
@@ -446,8 +503,7 @@ void ChunkRenderer::update(VulkanCoreInfo& vulkanCoreInfo,
     }
     updateRenderCommands(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, playerChunkLocation);
 
-    // TODO: Derender chunks
-    // derenderChunksOutOfRenderdistance(playerChunkLocation, vertexBufferManager);
+    derenderChunksOutOfRenderdistance(playerChunkLocation, vertexBufferManager);
 }
 
 void ChunkRenderer::rerenderChunkAgain(glm::i32vec3 chunkLocation)

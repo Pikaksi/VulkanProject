@@ -6,9 +6,11 @@
 #include "World/BlockType.hpp"
 #include "3dRendering/ChunkRenderer.hpp"
 #include "Player/PlayerInventoryManager.hpp"
+#include "blockEntityManager.hpp"
 
-void processRightClick(
-    glm::vec3 position,
-    WorldManager& worldManager,
-    ChunkRenderer& chunkRenderer,
-    PlayerInventoryManager& playerInventoryManager);
+void placeBlock(glm::ivec3 chunkLocation,
+                glm::ivec3 blockLocation,
+                BlockType blockToPlace,
+                WorldManager& worldManager,
+                BlockEntityManager& blockEntityManager,
+                ChunkRenderer& chunkRenderer);
