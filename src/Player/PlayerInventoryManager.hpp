@@ -10,11 +10,7 @@
 #include "blockEntityManager.hpp"
 #include "playerInfo.hpp"
 
-struct SelectedSlotInfo
-{
-    std::optional<int> slotNumber;
-    std::optional<BlockEntityId> inventoryEntityID; // is player inventory if there is no value
-};
+void updatePlayerInventory(PlayerInfo& playerInfo, UIManager& uiManager, BlockEntityManager& blockEntityManager);
 
 /*struct PlayerInventoryManager
 {

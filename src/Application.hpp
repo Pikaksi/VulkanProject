@@ -95,7 +95,6 @@ private:
     DebugMenu debugMenu;
     BlockEntityManager blockEntityManager;
 
-    PlayerInventoryManager playerInventoryManager;
     PlayerInfo playerInfo;
 
     std::chrono::steady_clock::time_point fpsTimer;

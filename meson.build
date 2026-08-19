@@ -5,6 +5,7 @@ project('my_app', 'cpp',
 run_env = environment()
 
 src = [
+  'src/blockEntities/blockEntity.cpp',
   'src/blockEntities/blockEntityManager.cpp',
   'src/util/threadPool.cpp',
   'src/util/stbi_images.cpp',

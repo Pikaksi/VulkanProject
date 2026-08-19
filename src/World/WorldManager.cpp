@@ -149,9 +149,3 @@ bool cubesIntersect(Cube& cube1, Cube& cube2)
     }
 }*/
 
-EntityID WorldManager::generateEntity(glm::ivec3 chunkLocation, glm::ivec3 blockLocation, uint64_t componentBitmask)
-{
-    EntityID entityID = entityManager.createEntity(componentBitmask);
-    blockEntities[chunkLocation][blockLocation] = entityID;
-    return entityID;
-}

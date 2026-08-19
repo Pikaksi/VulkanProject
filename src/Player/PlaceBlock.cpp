@@ -21,6 +21,7 @@ void placeBlock(glm::ivec3 chunkLocation,
     BlockEntityType blockEntityType = blockTypeToBlockEntityType[blockToPlace];
     if (blockEntityType != BlockEntityType::none) {
         glm::i32vec3 worldLocation = blockLocation + chunkLocation * CHUNK_SIZE;
+        std::cout << "created " << (int)blockEntityType << std::endl;
         blockEntityManager.createEntity(worldLocation, blockEntityType);
     }
 

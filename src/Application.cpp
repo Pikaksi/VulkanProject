@@ -57,7 +57,6 @@ void Application::initGame()
     generateInventoryLayouts();
 
     debugMenu = DebugMenu();
-    playerInventoryManager = PlayerInventoryManager();
 
     int worldVertexBufferSize = 1 * 1024 * 1024 * 1024;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldVertexBufferSize);
@@ -182,7 +181,7 @@ void Application::gameMainLoop()
     }
 
     updatePlayerControls(cameraHandler.position, worldManager, blockEntityManager, chunkRenderer, playerInfo);
-    playerInventoryManager.update(uiManager);
+    updatePlayerInventory(playerInfo, uiManager, blockEntityManager);
 
     debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);
 }

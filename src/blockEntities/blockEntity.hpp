@@ -17,8 +17,8 @@ struct BlockEntity
 
 struct BlockEntityFurnace
 {
-    BlockEntityType type;
-    Inventory inventory;
+    BlockEntityType type = BlockEntityType::furnace;
+    Inventory inventory = Inventory(2);
 };
 
-bool tryGetInventory(BlockEntity* entity);
+bool tryGetInventory(BlockEntity* entity, Inventory* inventory);

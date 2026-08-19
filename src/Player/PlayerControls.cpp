@@ -25,13 +25,18 @@ void updatePlayerControls(glm::vec3 position,
         BlockType block = chunkGetBlockAtLocation(blockLocation.x, blockLocation.y, blockLocation.z, chunk);
 
         if (block == BlockType::air) {
-            playerInfo.isLookingAtBlock = false;
             placeBlock(
                 chunkLocation, blockLocation, BlockType::furnace, worldManager, blockEntityManager, chunkRenderer);
+            playerInfo.interactedWithBlock = false;
         }
         else {
-            playerInfo.isLookingAtBlock = true;
-            playerInfo.lookingAtLocation = blockLocation;
+            playerInfo.interactedWithBlock = true;
+            std::cout << "interacted with block" << std::endl;
         }
+
+        playerInfo.isLookingAtBlock = true;
+        playerInfo.lookingAtLocationWorld = worldBlockLocation;
+        playerInfo.lookingAtLocationChunk = chunkLocation;
+        playerInfo.lookingAtLocationInChunk = blockLocation;
     }
 }
