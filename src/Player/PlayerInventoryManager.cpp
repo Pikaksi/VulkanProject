@@ -25,6 +25,7 @@ void updateActiveInventory(PlayerInfo& playerInfo, UIManager& uiManager, BlockEn
         .slotSelected = false,
     };
 
+    assertm(playerInfo.playerInventory.itemStacks.size() != 0, "Player inventory has size 0");
     renderInventory(uiManager,
                     clickedSlotPlayer,
                     howerOverSlotPlayer,
@@ -46,6 +47,8 @@ void updateActiveInventory(PlayerInfo& playerInfo, UIManager& uiManager, BlockEn
         Inventory* inventory = nullptr;
         bool hasInventory = tryGetInventory(entity, inventory);
         if (hasInventory) {
+            assertm(inventory != nullptr, "Block entity owns null inventory");
+            assertm(inventory->itemStacks.size() != 0, "0 size");
             renderInventory(
                 uiManager, clickedSlotOther, howerOverSlotOther, *inventory, InventoryLayout::output1Input1, false);
 

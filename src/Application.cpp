@@ -13,6 +13,7 @@
 #include "VulkanRendering/SwapChain.hpp"
 #include "Player/PlayerControls.hpp"
 #include "BlockDataLookup.hpp"
+#include "assertm.hpp"
 #include "threadPool.hpp"
 
 #include <time.h>
@@ -49,8 +50,12 @@ void Application::initGame()
 {
     globalThreadPool.init(2);
 
+    blockDataLookupInit();
+
     PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
     PlayerInputHandler::getInstance().initGLFWControlCallbacks();
+    
+    playerInfo.playerInventory.itemStacks[0] = ItemStack{Item::dirt, 10};
 
     uiManager.init(vulkanCoreInfo, swapChainInfo.extent);
 
@@ -60,8 +65,6 @@ void Application::initGame()
 
     int worldVertexBufferSize = 1 * 1024 * 1024 * 1024;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldVertexBufferSize);
-
-    blockDataLookupInit();
 }
 
 void Application::initVulkan()
@@ -137,6 +140,8 @@ void Application::mainLoop()
         cameraHandler.updateCameraTransform();
 
         gameMainLoop();
+
+        assertm(swapChainInfo.sunShadowImage.view != nullptr, "is null");
 
         FrameDrawInfo frame{.pipelineLod = graphicsPipelineInfoLod,
                             .pipeline3d = graphicsPipelineInfo3d,

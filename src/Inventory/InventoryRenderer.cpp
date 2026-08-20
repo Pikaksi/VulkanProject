@@ -1,5 +1,6 @@
 #include "InventoryRenderer.hpp"
 
+#include <cassert>
 #include <chrono>
 
 #include "2dRendering/ItemToTexLayer.hpp"
@@ -7,6 +8,7 @@
 #include "PlayerInputHandler.hpp"
 #include "2dRendering/DefaultWindow.hpp"
 #include "UIQuad.hpp"
+#include "assertm.hpp"
 
 void renderInventory(UIManager& uiManager,
                      std::optional<int>& clickedSlot,
@@ -15,6 +17,8 @@ void renderInventory(UIManager& uiManager,
                      InventoryLayout inventoryLayout,
                      bool renderWindow)
 {
+    assertm(inventory.itemStacks.size() != 0, "Inventory size is 0");
+
     auto startingTime = std::chrono::high_resolution_clock::now();
 
     clickedSlot = std::nullopt;
@@ -40,9 +44,10 @@ void renderInventory(UIManager& uiManager,
     glm::vec2 windowBodySize = windowSize - glm::vec2(0.0f, topBarHeight);
     std::vector<InventorySlotLocation>& inventorySlotLocations = getInventoryLayoutPositions(inventoryLayout);
 
+    assertm(inventorySlotLocations.size() == inventory.itemStacks.size(), "Inventory size and layout size do not match");
+
     glm::vec2 mouseLocation = uiManager.getMousePositionScreenSpace();
     for (int i = 0; i < inventorySlotLocations.size(); i++) {
-        std::cout << i << "\n";
         InventorySlotLocation slotLocation = inventorySlotLocations[i];
         scaleBoxToWindow(windowBodyLocation, windowBodySize, slotLocation);
 
@@ -63,7 +68,6 @@ void renderInventory(UIManager& uiManager,
                 clickedSlot = i;
             }
         }
-        std::cout << inventory.getSize() << "\n";
         ItemStack itemStackInSlot = inventory.getItem(i);
 
         if (itemStackInSlot.item != Item::empty) {

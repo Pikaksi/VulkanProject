@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <vector>
 #include <array>
+#include <iostream>
 
 #include "FrameDrawer.hpp"
 #include "Constants.hpp"
@@ -321,6 +322,13 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
     getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
 
     {
+        std::cout << "views:\n";
+        for (auto& view : swapChainInfo.imageViews) {
+            std::cout << view << std::endl;
+        }
+        std::cout << swapChainInfo.sunShadowImage.view << std::endl;
+        std::cout << swapChainInfo.colorImage.view << std::endl;
+        std::cout << swapChainInfo.depthImage.view << std::endl;
         vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,

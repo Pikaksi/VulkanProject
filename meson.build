@@ -139,7 +139,9 @@ my_exe = executable('myexe',
   dependencies : deps,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
-  cpp_args : ['-W -g'],
+  cpp_args : ['-w'],
+  #cpp_args : ['-fsanitize=address', '-shared-libasan', '-w'],
+  #link_args: ['-fsanitize=address', '-shared-libasan', '-Wl,-rpath=/usr/lib/llvm-18/lib/clang/18/lib/linux'],
   install : should_install,
 )
 

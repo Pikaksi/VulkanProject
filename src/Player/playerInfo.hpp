@@ -7,7 +7,6 @@
 
 struct PlayerInfo
 {
-    const InventoryLayout playerInventoryLayout = InventoryLayout::grid10x4Inventory;
     bool inventoryIsActive = false;
 
     bool interactedWithBlock = false;
@@ -16,6 +15,7 @@ struct PlayerInfo
     glm::i32vec3 lookingAtLocationChunk = glm::ivec3{0, 0, 0};
     glm::i32vec3 lookingAtLocationInChunk = glm::ivec3{0, 0, 0};
 
+    const InventoryLayout playerInventoryLayout = InventoryLayout::grid10x4Inventory;
     Inventory playerInventory = Inventory(getInventoryLayoutSize(playerInventoryLayout));
     Inventory cursorInventory = Inventory(1);
 };

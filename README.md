@@ -21,6 +21,8 @@ requires vulkan sdk 1.4
 meson setup --wipe build --native-file clang.ini
 cd build/
 meson compile run
+#### Address sanitizer
+add line into setup: -Db_sanitize=address
 #### Release build
 meson setup --wipe buildRelease --native-file clang.ini --buildtype=release
 

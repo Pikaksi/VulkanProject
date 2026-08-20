@@ -21,4 +21,4 @@ struct BlockEntityFurnace
     Inventory inventory = Inventory(2);
 };
 
-bool tryGetInventory(BlockEntity* entity, Inventory* inventory);
+bool tryGetInventory(BlockEntity* entity, Inventory*& inventory);

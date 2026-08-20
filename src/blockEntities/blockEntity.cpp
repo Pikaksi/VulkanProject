@@ -2,7 +2,7 @@
 #include "assertm.hpp"
 #include <string>
 
-bool tryGetInventory(BlockEntity* entity, Inventory* inventory)
+bool tryGetInventory(BlockEntity* entity, Inventory*& inventory)
 {
     BlockEntityType type = entity->type;
     if (type == BlockEntityType::furnace) {

@@ -38,28 +38,6 @@ struct FrameDrawInfo
 };
 
 void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, FrameDrawInfo& draw);
-
-/*void drawFrame(
-    VulkanCoreInfo& vulkanCoreInfo,
-    SwapChainInfo& swapChainInfo,
-    GraphicsPipelineInfo& graphicsPipelineInfo3d,
-    GraphicsPipelineInfo& graphicsPipelineInfoSunShadow,
-    GraphicsPipelineInfo& graphicsPipelineInfo2d,
-    std::vector<VkDescriptorSet>& descriptorSets3d,
-    std::vector<VkDescriptorSet>& descriptorSets2d,
-    std::vector<UniformBufferInfo>& uniformBufferInfos,
-    uint32_t& currentFrame,
-    bool& framebufferResized,
-    std::vector<VkCommandBuffer>& commandBuffers,
-    std::vector<VkSemaphore>& imageAvailableSemaphores,
-    std::vector<VkSemaphore>& renderFinishedSemaphores,
-    std::vector<VkFence>& inFlightFences,
-    VkCommandPool commandPool,
-    CameraHandler& cameraHandler,
-    VertexBufferManager& vertexBufferManager,
-    UIManager& uIManager,
-    DebugMenu& debugMenu);*/
-
 void createSyncObjects(
     VulkanCoreInfo& vulkanCoreInfo,
     SwapChainInfo& swapChainInfo,
