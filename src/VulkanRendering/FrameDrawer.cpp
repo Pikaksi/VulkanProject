@@ -120,7 +120,10 @@ bool chunkIsInViewingFrustumLod(glm::vec3& cameraLocation,
                     viewingFrustumNormals.left) < 0.0f;
 }
 
-void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint32_t swapChainImageIndex)
+void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
+                         SwapChainInfo& swapChainInfo,
+                         FrameDrawInfo& draw,
+                         uint32_t swapChainImageIndex)
 {
     auto commandBuffer = draw.commandBuffers[draw.currentFrame];
 
@@ -135,6 +138,11 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
     std::vector<WorldDrawCallData> worldDrawCallData;
     VkBuffer worldIndexBuffer;
     draw.vertexBufferManager.getWorldGeometryForRendering(worldVertexBuffer, worldDrawCallData, worldIndexBuffer);
+
+    VkBufferDeviceAddressInfo addressInfo{};
+    addressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    addressInfo.buffer = worldVertexBuffer;
+    VkDeviceAddress worldVertexBufferPointer = vkGetBufferDeviceAddress(vulkanCoreInfo.device, &addressInfo);
     /*std::cout << "chunk locations are: ";
     for (auto a : worldDrawCallData) std::cout << a.chunkLocation.x << " " << a.chunkLocation.y << " " <<
     a.chunkLocation.z << " | "; std::cout << std::endl;*/
@@ -152,326 +160,320 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
             .image = draw.sunShadowImage.image,
-            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
-        };
-        VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                                               .imageMemoryBarrierCount = 1,
-                                               .pImageMemoryBarriers = &shadowImageToAttachmentBarrier};
+            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}};
+    VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                           .imageMemoryBarrierCount = 1,
+                                           .pImageMemoryBarriers = &shadowImageToAttachmentBarrier};
 
-        vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
-    }
+    vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
+}
 
-    VkRenderingAttachmentInfo sunShadowDepthAttachmentInfo{};
-    sunShadowDepthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    sunShadowDepthAttachmentInfo.imageView = draw.sunShadowImage.view;
-    sunShadowDepthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-    sunShadowDepthAttachmentInfo.clearValue = VkClearValue{
-        .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}
-    };
-    sunShadowDepthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    sunShadowDepthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+VkRenderingAttachmentInfo sunShadowDepthAttachmentInfo{};
+sunShadowDepthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+sunShadowDepthAttachmentInfo.imageView = draw.sunShadowImage.view;
+sunShadowDepthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+sunShadowDepthAttachmentInfo.clearValue = VkClearValue{
+    .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}};
+sunShadowDepthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+sunShadowDepthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-    VkRenderingInfo sunShadowRenderingInfo{};
-    sunShadowRenderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    sunShadowRenderingInfo.colorAttachmentCount = 0;
-    sunShadowRenderingInfo.pColorAttachments = nullptr;
-    sunShadowRenderingInfo.pDepthAttachment = &sunShadowDepthAttachmentInfo;
-    sunShadowRenderingInfo.renderArea = VkRect2D{
-        .offset = {0,             0             },
-          .extent{.width = 2048, .height = 2048}
-    };
-    sunShadowRenderingInfo.layerCount = 1;
+VkRenderingInfo sunShadowRenderingInfo{};
+sunShadowRenderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+sunShadowRenderingInfo.colorAttachmentCount = 0;
+sunShadowRenderingInfo.pColorAttachments = nullptr;
+sunShadowRenderingInfo.pDepthAttachment = &sunShadowDepthAttachmentInfo;
+sunShadowRenderingInfo.renderArea = VkRect2D{
+    .offset = {0, 0}, .extent{.width = 2048, .height = 2048}};
+sunShadowRenderingInfo.layerCount = 1;
 
-    vkCmdBeginRendering(commandBuffer, &sunShadowRenderingInfo);
+vkCmdBeginRendering(commandBuffer, &sunShadowRenderingInfo);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineSunShadow.pipeline);
-    vkCmdSetDepthBias(commandBuffer, /*constant*/ 0.0f, /*clamp*/ 0.0f, /*slope*/ -1.0f);
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineSunShadow.pipeline);
+vkCmdSetDepthBias(commandBuffer, /*constant*/ 0.0f, /*clamp*/ 0.0f, /*slope*/ -1.0f);
 
-    {
-        vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffer,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                draw.pipeline3d.layout,
-                                0,
-                                1,
-                                &draw.descriptorSets3d[draw.currentFrame],
-                                0,
-                                nullptr);
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-        for (size_t i = 0; i < worldDrawCallData.size(); i++) {
-            WorldDrawCallData drawCallData = worldDrawCallData[i];
-            if (!drawCallData.fullDetail)
-                continue;
-
-            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
-            vkCmdPushConstants(commandBuffer,
-                               draw.pipeline3d.layout,
-                               VK_SHADER_STAGE_VERTEX_BIT,
-                               0,
-                               sizeof(PushConstant3d),
-                               &pushConstant);
-
-            // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(commandBuffer,
-                             drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
-                             1,
-                             0,
-                             drawCallData.memoryLocation / sizeof(Vertex),
-                             0);
-        }
-    }
-
-    vkCmdEndRendering(commandBuffer);
-
-    {
-        VkImageMemoryBarrier2 depthImageToReadOnlyBarrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-            .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
-            .srcAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            .dstStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
-            .dstAccessMask = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            .image = draw.sunShadowImage.image,
-            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
-        };
-
-        VkDependencyInfo barrierDependencyInfo{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
-        barrierDependencyInfo.imageMemoryBarrierCount = 1;
-        barrierDependencyInfo.pImageMemoryBarriers = &depthImageToReadOnlyBarrier;
-
-        vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
-    }
-
-    // ---------------- MAIN PASS----------------
-
-    VkRenderingAttachmentInfo colorAttachmentInfo{};
-    colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttachmentInfo.imageView = swapChainInfo.colorImage.view;
-    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-    colorAttachmentInfo.clearValue = VkClearValue{.color = VkClearColorValue{.float32 = {0.2, 0.1, 0.7, 1.0}}};
-    colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // VK_ATTACHMENT_STORE_OP_STORE
-
-    colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-    colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-    colorAttachmentInfo.resolveImageView = swapChainInfo.imageViews[swapChainImageIndex];
-
-    VkRenderingAttachmentInfo depthAttachmentInfo{};
-    depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    depthAttachmentInfo.imageView = swapChainInfo.depthImage.view;
-    depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
-    depthAttachmentInfo.clearValue = VkClearValue{
-        .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}
-    };
-    depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-    VkRenderingInfo renderingInfo{};
-    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    renderingInfo.colorAttachmentCount = 1;
-    renderingInfo.pColorAttachments = &colorAttachmentInfo;
-    renderingInfo.pDepthAttachment = &depthAttachmentInfo;
-    renderingInfo.renderArea = VkRect2D{
-        .extent{.width = swapChainInfo.extent.width, .height = swapChainInfo.extent.height}
-    };
-    renderingInfo.layerCount = 1;
-
-    {
-        VkImageMemoryBarrier2 presentImageToAttachmentBarrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-            .srcStageMask = VK_PIPELINE_STAGE_2_NONE,
-            .srcAccessMask = 0,
-            .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-            .image = swapChainInfo.images[swapChainImageIndex],
-            .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}
-        };
-        VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                                               .imageMemoryBarrierCount = 1,
-                                               .pImageMemoryBarriers = &presentImageToAttachmentBarrier};
-        vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
-    }
-
-    vkCmdBeginRendering(commandBuffer, &renderingInfo);
-
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = (float)swapChainInfo.extent.width;
-    viewport.height = (float)swapChainInfo.extent.height;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-    VkRect2D scissor{};
-    scissor.offset = {0, 0};
-    scissor.extent = swapChainInfo.extent;
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipeline3d.pipeline);
-
-    ViewingFrustumNormals viewingFrustumNormals;
-    draw.cameraHandler.getViewingFrustumNormals(swapChainInfo.extent, viewingFrustumNormals);
-    ChunkCenterOffsets chunkCenterOffsets;
-    getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
-
-    {
-        vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffer,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                draw.pipeline3d.layout,
-                                0,
-                                1,
-                                &draw.descriptorSets3d[draw.currentFrame],
-                                0,
-                                nullptr);
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-        for (int i = 0; i < worldDrawCallData.size(); i++) {
-            WorldDrawCallData drawCallData = worldDrawCallData[i];
-            if (!drawCallData.fullDetail)
-                continue;
-
-            if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
-                                            drawCallData.chunkLocation,
-                                            chunkCenterOffsets,
-                                            viewingFrustumNormals,
-                                            0)) {
-                continue;
-            }
-
-            // std::cout << "drawing with loc = " << drawCallData.memoryLocation << " size = " << drawCallData.dataSize
-            // << std::endl;
-            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE};
-            vkCmdPushConstants(commandBuffer,
-                               draw.pipeline3d.layout,
-                               VK_SHADER_STAGE_VERTEX_BIT,
-                               0,
-                               sizeof(PushConstant3d),
-                               &pushConstant);
-            // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(commandBuffer,
-                             drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
-                             1,
-                             0,
-                             drawCallData.memoryLocation / sizeof(Vertex),
-                             0);
-        }
-    }
-
-    // ---------------- LOD PASS ----------------
-
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineLod.pipeline);
-    {
-        vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdBindDescriptorSets(commandBuffer,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                draw.pipelineLod.layout,
-                                0,
-                                1,
-                                &draw.descriptorSetsLod[draw.currentFrame],
-                                0,
-                                nullptr);
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-        for (int i = 0; i < worldDrawCallData.size(); i++) {
-            WorldDrawCallData drawCallData = worldDrawCallData[i];
-            if (drawCallData.fullDetail)
-                continue;
-
-            if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
-                                            drawCallData.chunkLocation,
-                                            chunkCenterOffsets,
-                                            viewingFrustumNormals,
-                                            drawCallData.lod)) {
-                continue;
-            }
-
-            PushConstant3dLod pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 32.0f * (1 << drawCallData.lod)};
-            vkCmdPushConstants(commandBuffer,
-                               draw.pipelineLod.layout,
-                               VK_SHADER_STAGE_VERTEX_BIT,
-                               0,
-                               sizeof(PushConstant3dLod),
-                               &pushConstant);
-            // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(commandBuffer,
-                             drawCallData.dataSize / sizeof(VertexLod) / 2 * 3,
-                             1,
-                             0,
-                             drawCallData.memoryLocation / sizeof(VertexLod),
-                             0);
-        }
-    }
-
-    // ---------------- UI PASS----------------
-
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipeline2d.pipeline);
-
-    draw.uiManager.writeToBufferAndClear(draw.currentFrame);
-    VkBuffer uiVertexBuffer;
-    std::vector<VkDeviceSize> uiVertexOffsets;
-    std::vector<uint64_t> uiBatchSizes;
-    gpuMemoryBlockGetData(
-        draw.uiManager.gpuMemoryBlocks[draw.currentFrame], uiVertexBuffer, uiVertexOffsets, uiBatchSizes);
-    VkBuffer uiIndexBuffer = draw.vertexBufferManager.quadStripIndexBuffer.getBuffer();
-
+{
+    vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
     vkCmdBindDescriptorSets(commandBuffer,
                             VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            draw.pipeline2d.layout,
+                            draw.pipeline3d.layout,
                             0,
                             1,
-                            &draw.descriptorSets2d[draw.currentFrame],
+                            &draw.descriptorSets3d[draw.currentFrame],
                             0,
                             nullptr);
-    vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    VkBuffer vertexBuffers[] = {uiVertexBuffer};
+    VkBuffer vertexBuffers[] = {worldVertexBuffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    for (int i = 0; i < uiVertexOffsets.size(); i++) {
-        vkCmdDrawIndexed(commandBuffer, uiBatchSizes[i] / (sizeof(Vertex2D) * 2) * 3, 1, 0, uiVertexOffsets[i] / sizeof(Vertex2D), 0);
+    for (size_t i = 0; i < worldDrawCallData.size(); i++) {
+        WorldDrawCallData drawCallData = worldDrawCallData[i];
+        if (!drawCallData.fullDetail)
+            continue;
+
+        PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer};
+        vkCmdPushConstants(commandBuffer,
+                           draw.pipeline3d.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(PushConstant3d),
+                           &pushConstant);
+
+        // get index count by multiplying vertex count by 1.5
+        vkCmdDrawIndexed(commandBuffer,
+                         drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
+                         1,
+                         0,
+                         drawCallData.memoryLocation / sizeof(Vertex),
+                         0);
     }
-    // Single quad draw per draw call. Usefull for debugging.
-    /*for (int i = 0; i < uiVertexOffsets.size(); i++) {
-        for (int k = 0; k < uiBatchSizes[i] / (4 * sizeof(Vertex2D)); k++) {
-            vkCmdDrawIndexed(commandBuffer, 6, 1, 0, (uiVertexOffsets[i] / sizeof(Vertex2D) + k * 4), 0);
-        }
-    }*/
+}
 
-    vkCmdEndRendering(commandBuffer);
+vkCmdEndRendering(commandBuffer);
 
-    VkImageMemoryBarrier2 presentImageLayoutSwapBarrier{
+{
+    VkImageMemoryBarrier2 depthImageToReadOnlyBarrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-        .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-        .dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
-        .dstAccessMask = 0,
-        .oldLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .srcStageMask = VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+        .srcAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+        .dstAccessMask = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+        .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .image = draw.sunShadowImage.image,
+        .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}};
+
+    VkDependencyInfo barrierDependencyInfo{VK_STRUCTURE_TYPE_DEPENDENCY_INFO};
+    barrierDependencyInfo.imageMemoryBarrierCount = 1;
+    barrierDependencyInfo.pImageMemoryBarriers = &depthImageToReadOnlyBarrier;
+
+    vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
+}
+
+// ---------------- MAIN PASS----------------
+
+VkRenderingAttachmentInfo colorAttachmentInfo{};
+colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+colorAttachmentInfo.imageView = swapChainInfo.colorImage.view;
+colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+colorAttachmentInfo.clearValue = VkClearValue{.color = VkClearColorValue{.float32 = {0.2, 0.1, 0.7, 1.0}}};
+colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // VK_ATTACHMENT_STORE_OP_STORE
+
+colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+colorAttachmentInfo.resolveImageView = swapChainInfo.imageViews[swapChainImageIndex];
+
+VkRenderingAttachmentInfo depthAttachmentInfo{};
+depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+depthAttachmentInfo.imageView = swapChainInfo.depthImage.view;
+depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+depthAttachmentInfo.clearValue = VkClearValue{
+    .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}};
+depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+VkRenderingInfo renderingInfo{};
+renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+renderingInfo.colorAttachmentCount = 1;
+renderingInfo.pColorAttachments = &colorAttachmentInfo;
+renderingInfo.pDepthAttachment = &depthAttachmentInfo;
+renderingInfo.renderArea = VkRect2D{
+    .extent{.width = swapChainInfo.extent.width, .height = swapChainInfo.extent.height}};
+renderingInfo.layerCount = 1;
+
+{
+    VkImageMemoryBarrier2 presentImageToAttachmentBarrier{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+        .srcStageMask = VK_PIPELINE_STAGE_2_NONE,
+        .srcAccessMask = 0,
+        .dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
         .image = swapChainInfo.images[swapChainImageIndex],
-        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}
-    };
+        .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}};
+    VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                           .imageMemoryBarrierCount = 1,
+                                           .pImageMemoryBarriers = &presentImageToAttachmentBarrier};
+    vkCmdPipelineBarrier2(commandBuffer, &barrierDependencyInfo);
+}
 
-    VkDependencyInfo postRenderDepInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                                       .imageMemoryBarrierCount = 1,
-                                       .pImageMemoryBarriers = &presentImageLayoutSwapBarrier};
+vkCmdBeginRendering(commandBuffer, &renderingInfo);
 
-    vkCmdPipelineBarrier2(commandBuffer, &postRenderDepInfo);
+VkViewport viewport{};
+viewport.x = 0.0f;
+viewport.y = 0.0f;
+viewport.width = (float)swapChainInfo.extent.width;
+viewport.height = (float)swapChainInfo.extent.height;
+viewport.minDepth = 0.0f;
+viewport.maxDepth = 1.0f;
+vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to record command buffer!");
+VkRect2D scissor{};
+scissor.offset = {0, 0};
+scissor.extent = swapChainInfo.extent;
+vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipeline3d.pipeline);
+
+ViewingFrustumNormals viewingFrustumNormals;
+draw.cameraHandler.getViewingFrustumNormals(swapChainInfo.extent, viewingFrustumNormals);
+ChunkCenterOffsets chunkCenterOffsets;
+getChunkCenterOffsets(chunkCenterOffsets, viewingFrustumNormals);
+
+{
+    vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(commandBuffer,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            draw.pipeline3d.layout,
+                            0,
+                            1,
+                            &draw.descriptorSets3d[draw.currentFrame],
+                            0,
+                            nullptr);
+    VkBuffer vertexBuffers[] = {worldVertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+    for (int i = 0; i < worldDrawCallData.size(); i++) {
+        WorldDrawCallData drawCallData = worldDrawCallData[i];
+        if (!drawCallData.fullDetail)
+            continue;
+
+        if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
+                                        drawCallData.chunkLocation,
+                                        chunkCenterOffsets,
+                                        viewingFrustumNormals,
+                                        0)) {
+            continue;
+        }
+
+        // std::cout << "drawing with loc = " << drawCallData.memoryLocation << " size = " << drawCallData.dataSize
+        // << std::endl;
+
+        PushConstant3d pushConstant = {
+            drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer
+        };
+        vkCmdPushConstants(commandBuffer,
+                           draw.pipeline3d.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(PushConstant3d),
+                           &pushConstant);
+        // get index count by multiplying vertex count by 1.5
+        vkCmdDrawIndexed(commandBuffer,
+                         drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
+                         1,
+                         0,
+                         drawCallData.memoryLocation / sizeof(Vertex),
+                         0);
     }
+}
+
+// ---------------- LOD PASS ----------------
+
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineLod.pipeline);
+{
+    vkCmdBindIndexBuffer(commandBuffer, worldIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(commandBuffer,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            draw.pipelineLod.layout,
+                            0,
+                            1,
+                            &draw.descriptorSetsLod[draw.currentFrame],
+                            0,
+                            nullptr);
+    VkBuffer vertexBuffers[] = {worldVertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+    for (int i = 0; i < worldDrawCallData.size(); i++) {
+        WorldDrawCallData drawCallData = worldDrawCallData[i];
+        if (drawCallData.fullDetail)
+            continue;
+
+        if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
+                                        drawCallData.chunkLocation,
+                                        chunkCenterOffsets,
+                                        viewingFrustumNormals,
+                                        drawCallData.lod)) {
+            continue;
+        }
+
+        PushConstant3dLod pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 32.0f * (1 << drawCallData.lod), worldVertexBufferPointer};
+        vkCmdPushConstants(commandBuffer,
+                           draw.pipelineLod.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(PushConstant3dLod),
+                           &pushConstant);
+        // get index count by multiplying vertex count by 1.5
+        vkCmdDrawIndexed(commandBuffer,
+                         drawCallData.dataSize / sizeof(VertexLod) / 2 * 3,
+                         1,
+                         0,
+                         drawCallData.memoryLocation / sizeof(VertexLod),
+                         0);
+    }
+}
+
+// ---------------- UI PASS----------------
+
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipeline2d.pipeline);
+
+draw.uiManager.writeToBufferAndClear(draw.currentFrame);
+VkBuffer uiVertexBuffer;
+std::vector<VkDeviceSize> uiVertexOffsets;
+std::vector<uint64_t> uiBatchSizes;
+gpuMemoryBlockGetData(draw.uiManager.gpuMemoryBlocks[draw.currentFrame], uiVertexBuffer, uiVertexOffsets, uiBatchSizes);
+VkBuffer uiIndexBuffer = draw.vertexBufferManager.quadStripIndexBuffer.getBuffer();
+
+vkCmdBindDescriptorSets(commandBuffer,
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        draw.pipeline2d.layout,
+                        0,
+                        1,
+                        &draw.descriptorSets2d[draw.currentFrame],
+                        0,
+                        nullptr);
+vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+VkBuffer vertexBuffers[] = {uiVertexBuffer};
+VkDeviceSize offsets[] = {0};
+vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+for (int i = 0; i < uiVertexOffsets.size(); i++) {
+    vkCmdDrawIndexed(
+        commandBuffer, uiBatchSizes[i] / (sizeof(Vertex2D) * 2) * 3, 1, 0, uiVertexOffsets[i] / sizeof(Vertex2D), 0);
+}
+// Single quad draw per draw call. Usefull for debugging.
+/*for (int i = 0; i < uiVertexOffsets.size(); i++) {
+    for (int k = 0; k < uiBatchSizes[i] / (4 * sizeof(Vertex2D)); k++) {
+        vkCmdDrawIndexed(commandBuffer, 6, 1, 0, (uiVertexOffsets[i] / sizeof(Vertex2D) + k * 4), 0);
+    }
+}*/
+
+vkCmdEndRendering(commandBuffer);
+
+VkImageMemoryBarrier2 presentImageLayoutSwapBarrier{
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+    .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+    .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+    .dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
+    .dstAccessMask = 0,
+    .oldLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+    .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    .image = swapChainInfo.images[swapChainImageIndex],
+    .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1}};
+
+VkDependencyInfo postRenderDepInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                   .imageMemoryBarrierCount = 1,
+                                   .pImageMemoryBarriers = &presentImageLayoutSwapBarrier};
+
+vkCmdPipelineBarrier2(commandBuffer, &postRenderDepInfo);
+
+if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+    throw std::runtime_error("failed to record command buffer!");
+}
 }
 
 void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, FrameDrawInfo& draw)
@@ -504,7 +506,7 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
     vkResetFences(vulkanCoreInfo.device, 1, &draw.inFlightFences[draw.currentFrame]);
 
     vkResetCommandBuffer(draw.commandBuffers[draw.currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    recordCommandBuffer(swapChainInfo, draw, swapChainImageIndex);
+    recordCommandBuffer(vulkanCoreInfo, swapChainInfo, draw, swapChainImageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

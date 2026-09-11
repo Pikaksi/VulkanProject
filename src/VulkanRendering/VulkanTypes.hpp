@@ -70,10 +70,12 @@ struct CameraUniformBufferObject
 struct PushConstant3d
 {
     glm::vec3 chunkWorldLocation;
+    uint64_t vertexBuffer;
 };
 
 struct PushConstant3dLod
 {
     glm::vec3 chunkWorldLocation;
     float chunkSize;
+    uint64_t vertexBuffer;
 };

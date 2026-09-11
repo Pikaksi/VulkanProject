@@ -15,7 +15,7 @@ struct Vertex {
     // uv 2 * 10
     // tex layer 10
     uint32_t pos;
-    uint16_t color;
+    uint32_t color;
     uint32_t texCoord;
     uint32_t aligma;
 

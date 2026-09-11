@@ -228,8 +228,10 @@ bool isDeviceSuitable(VulkanCoreInfo& vulkanCoreInfo)
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(vulkanCoreInfo.physicalDevice, &supportedFeatures);
 
-    std::vector<VkFormat> neededVertexBufferFormats = {
-        VK_FORMAT_R8G8_UNORM, VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_FORMAT_A2R10G10B10_UNORM_PACK32, VK_FORMAT_A8B8G8R8_UNORM_PACK32};
+    std::vector<VkFormat> neededVertexBufferFormats = {VK_FORMAT_R8G8_UNORM,
+                                                       VK_FORMAT_A2B10G10R10_UNORM_PACK32,
+                                                       VK_FORMAT_A2R10G10B10_UNORM_PACK32,
+                                                       VK_FORMAT_A8B8G8R8_UNORM_PACK32};
     bool supportsFormats = true;
     for (auto format : neededVertexBufferFormats) {
         VkFormatProperties formatProperties;
@@ -252,8 +254,8 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
 
     // if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     // if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-    //if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-    //if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    // if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    // if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
     if (counts & VK_SAMPLE_COUNT_4_BIT) {
         return VK_SAMPLE_COUNT_4_BIT;
     }
@@ -312,9 +314,14 @@ void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo)
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.depthClamp = VK_TRUE;
 
+    VkPhysicalDeviceBufferDeviceAddressFeatures bdaFeatures{};
+    bdaFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+    bdaFeatures.bufferDeviceAddress = VK_TRUE;
+
     VkPhysicalDeviceVulkan12Features enabledVk12Features{};
     enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+    enabledVk12Features.pNext = &bdaFeatures;
     // enabledVk12Features.descriptorIndexing = true;
     // enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
     // enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
