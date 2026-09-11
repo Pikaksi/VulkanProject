@@ -18,4 +18,7 @@ struct BlockEntityManager
     std::unordered_map<glm::i32vec3, BlockEntityId, Vec3LocalizedHash> blockEntityLocations;
 
     BlockEntityId createEntity(glm::i32vec3 loc, BlockEntityType blockType);
+    void updateBlockEntities();
+    void updateBlockEntity(BlockEntityId id, glm::i32vec3 loc);
 };
+

@@ -9,5 +9,9 @@ bool tryGetInventory(BlockEntity* entity, Inventory*& inventory)
         inventory = &((BlockEntityFurnace*)entity)->inventory;
         return true;
     }
+    else if (type == BlockEntityType::drill) {
+        inventory = &((BlockEntityDrill*)entity)->inventory;
+        return true;
+    }
     return false;
 }

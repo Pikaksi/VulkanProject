@@ -21,8 +21,10 @@ requires vulkan sdk 1.4
 meson setup --wipe build --native-file clang.ini
 cd build/
 meson compile run
-#### Address sanitizer
-add line into setup: -Db_sanitize=address
+#### Address sanitizer and undefined behaviour sanitizer setup
+meson setup --wipe build --native-file clang.ini -Dc_link_args="-L/usr/lib/llvm-18/lib/clang/18/lib/linux -Wl,-rpath=/usr/lib/llvm-18/lib/clang/18/lib/linux" -Dcpp_link_args="-L/usr/lib/llvm-18/lib/clang/18/lib/linux -Wl,-rpath=/usr/lib/llvm-18/lib/clang/18/lib/linux" -Db_sanitize=address -Db_sanitize=undefined -Db_lundef=false
+#### Undefined behaviour sanitizer setup
+meson setup --wipe build --native-file clang.ini -Dc_link_args="-L/usr/lib/llvm-18/lib/clang/18/lib/linux -Wl,-rpath=/usr/lib/llvm-18/lib/clang/18/lib/linux" -Dcpp_link_args="-L/usr/lib/llvm-18/lib/clang/18/lib/linux -Wl,-rpath=/usr/lib/llvm-18/lib/clang/18/lib/linux"  -Db_lundef=false
 #### Release build
 meson setup --wipe buildRelease --native-file clang.ini --buildtype=release
 

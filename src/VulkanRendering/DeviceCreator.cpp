@@ -79,7 +79,8 @@ void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create
 void createInstance(VulkanCoreInfo& vulkanCoreInfo)
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
-        throw std::runtime_error("validation layers requested, but not available!");
+        enableValidationLayers = false;
+        std::cout << "validation layers requested, but not available! Running without validaiton layers.";
     }
 
     VkApplicationInfo appInfo{};
@@ -313,6 +314,7 @@ void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo)
 
     VkPhysicalDeviceVulkan12Features enabledVk12Features{};
     enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
     // enabledVk12Features.descriptorIndexing = true;
     // enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
     // enabledVk12Features.descriptorBindingVariableDescriptorCount = true;

@@ -11,17 +11,3 @@
 #include "playerInfo.hpp"
 
 void updatePlayerInventory(PlayerInfo& playerInfo, UIManager& uiManager, BlockEntityManager& blockEntityManager);
-
-/*struct PlayerInventoryManager
-{
-    PlayerInventoryManager()
-    {
-    }
-
-    void update(UIManager& uiManager, BlockEntityManager& blockEntityManager);
-    void openInventory(std::optional<BlockEntityId> additionalInventoryEntityID,
-                       BlockEntityManager& blockEntityManager);
-    void closeInventory();
-    void processOpenInventory(UIManager& uiManager, BlockEntityManager& blockEntityManager);
-    void handleClickedSlot(SelectedSlotInfo selectedSlotInfo);
-};*/

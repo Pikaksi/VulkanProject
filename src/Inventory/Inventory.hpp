@@ -25,10 +25,7 @@ struct Inventory
     bool hasItem(ItemStack itemStack);
     bool hasSpaceForItem(ItemStack itemStack);
     void swapSlots(int firstSlot, int secondSlot);
-    ItemStack getItem(int itemSlot);
-    void setItem(int itemSlot, ItemStack itemStack);
     uint32_t getSize();
-
 };
 
 // Returns true if the item was moved. If moved item is empty return true.

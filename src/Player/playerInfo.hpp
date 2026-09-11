@@ -8,6 +8,7 @@
 struct PlayerInfo
 {
     bool inventoryIsActive = false;
+    int selectedHotbarSlot = 0;
 
     bool interactedWithBlock = false;
     bool isLookingAtBlock = false;
@@ -16,7 +17,7 @@ struct PlayerInfo
     glm::i32vec3 lookingAtLocationInChunk = glm::ivec3{0, 0, 0};
 
     const InventoryLayout playerInventoryLayout = InventoryLayout::grid10x4Inventory;
-    Inventory playerInventory = Inventory(getInventoryLayoutSize(playerInventoryLayout));
+    Inventory playerInventory = Inventory(40);
     Inventory cursorInventory = Inventory(1);
 };
 

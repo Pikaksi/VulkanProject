@@ -1,6 +1,5 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/vec3.hpp>
 
 #include <vector>
@@ -26,17 +25,19 @@ struct Chunk
     }
 };
 
-void chunkResize(Chunk& chunk, bool containsDifferentBlocks);
 int chunkLocationToIndex(const int x, const int y, const int z);
-bool locationOutOfChunk(int x, int y, int z);
-bool locationOutOfChunk(int x, int y);
 int chunkLocationToIndex(const int x, const int y);
+bool isLocationOutOfChunk(int x, int y, int z);
+bool isLocationOutOfChunk(int x, int y);
 void chunkIndexToLocation(const int index, int& x, int& y, int& z);
-glm::ivec3 getChunkLocation(int x, int y, int z);
-glm::ivec3 getChunkLocation(glm::ivec3 blockLocation);
 
-BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk* chunk);
+glm::ivec3 worldToChunkLocation(int x, int y, int z);
+glm::ivec3 worldToChunkLocation(glm::ivec3 loc);
+glm::i32vec3 worldToBlockLocation(glm::i32vec3 loc);
+
+void chunkResize(Chunk& chunk, bool containsDifferentBlocks);
 BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk& chunk);
+BlockType chunkGetBlockAtLocation(const glm::i32vec3 loc, Chunk& chunk);
 void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk);
 void chunkSetBlock(int i, BlockType blockType, Chunk& chunk);
 

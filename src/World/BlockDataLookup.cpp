@@ -5,9 +5,9 @@
 #include <filesystem>
 #include <cmath>
 
+#include "BlockType.hpp"
 #include "Constants.hpp"
 #include "FilePathHandler.hpp"
-#include "ECS/Components.hpp"
 #include "assertm.hpp"
 #include "blockEntity.hpp"
 
@@ -19,13 +19,17 @@
 // With 3 elements element [0] = top, [1] = side, [2] = bottom.
 // With 6 elements the order of the sides goes +x, -x, +y, -y, +z, -z.
 const std::unordered_map<BlockType, std::vector<std::string>> blockTypeToFileNames = {
-    {BlockType::stone, {"Stone"}},
-    {BlockType::grass, {"GrassTop", "GrassSide", "Dirt"}},
-    {BlockType::dirt, {"Dirt"}},
-    {BlockType::oakLog, {"OakLogTop", "OakLogSide"}},
-    {BlockType::oakLeaf, {"OakLeafOpaque"}},
-    {BlockType::grassPlant, {"GrassPlant"}},
-    {BlockType::furnace, {"FurnaceTop", "FurnaceSide"}}
+    {BlockType::stone, {"stone"}},
+    {BlockType::grass, {"grassTop", "grassSide", "dirt"}},
+    {BlockType::dirt, {"dirt"}},
+    {BlockType::oakLog, {"oakLogTop", "oakLogSide"}},
+    {BlockType::oakLeaf, {"oakLeafOpaque"}},
+    {BlockType::grassPlant, {"grassPlant"}},
+    {BlockType::furnace, {"furnaceTop", "furnaceSide"}},
+    {BlockType::drill, {"drill"}},
+    {BlockType::pipe, {"pipe"}},
+    {BlockType::pipeIn, {"pipeIn"}},
+    {BlockType::pipeOut, {"pipeOut"}},
 };
 
 const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVertexOffsets = {
@@ -37,64 +41,106 @@ const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVer
     }}
 };
 
+BlockRenderType blockTypeToRenderType[BlockType::maxEnum];
+bool blockTypeIsInteractable[BlockType::maxEnum];
+BlockEntityType blockTypeToBlockEntityType[BlockType::maxEnum];
+std::unordered_map<Item, BlockType> itemToBlockType;
+
 struct BlockProperties
 {
-    BlockType blockType;
-    BlockRenderType blockRenderType;
+    BlockType type;
+    BlockRenderType renderType;
     bool isInteractable;
-    BlockEntityType blockEntityType;
+    BlockEntityType entityType;
+    Item placedWithItem;
 };
 
 const BlockProperties blockPropertiesLookup[BlockType::maxEnum]
 {
     BlockProperties {
-        .blockType = BlockType::air,
-        .blockRenderType = BlockRenderType::dontRender,
+        .type = BlockType::air,
+        .renderType = BlockRenderType::dontRender,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::empty,
     },
     BlockProperties {
-        .blockType = BlockType::stone,
-        .blockRenderType = BlockRenderType::solid,
+        .type = BlockType::stone,
+        .renderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::stone,
     },
     BlockProperties {
-        .blockType = BlockType::grass,
-        .blockRenderType = BlockRenderType::solid,
+        .type = BlockType::grass,
+        .renderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::grassBlock,
     },
     BlockProperties {
-        .blockType = BlockType::dirt,
-        .blockRenderType = BlockRenderType::solid,
+        .type = BlockType::dirt,
+        .renderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::dirt,
     },
     BlockProperties {
-        .blockType = BlockType::oakLog,
-        .blockRenderType = BlockRenderType::solid,
+        .type = BlockType::oakLog,
+        .renderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::oakLog,
     },
     BlockProperties {
-        .blockType = BlockType::oakLeaf,
-        .blockRenderType = BlockRenderType::solid,
+        .type = BlockType::oakLeaf,
+        .renderType = BlockRenderType::solid,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::empty,
     },
     BlockProperties {
-        .blockType = BlockType::grassPlant,
-        .blockRenderType = BlockRenderType::custom,
+        .type = BlockType::grassPlant,
+        .renderType = BlockRenderType::custom,
         .isInteractable = false,
-        .blockEntityType = BlockEntityType::none,
+        .entityType = BlockEntityType::none,
+        .placedWithItem = Item::empty,
     },
     BlockProperties {
-        .blockType = BlockType::furnace,
-        .blockRenderType = BlockRenderType::solid,
+        .type = BlockType::furnace,
+        .renderType = BlockRenderType::solid,
         .isInteractable = true,
-        .blockEntityType = BlockEntityType::furnace,
-    }
+        .entityType = BlockEntityType::furnace,
+        .placedWithItem = Item::furnaceBlock,
+    },
+    BlockProperties {
+        .type = BlockType::drill,
+        .renderType = BlockRenderType::solid,
+        .isInteractable = true,
+        .entityType = BlockEntityType::drill,
+        .placedWithItem = Item::drillBlock,
+    },
+    BlockProperties {
+        .type = BlockType::pipe,
+        .renderType = BlockRenderType::solid,
+        .isInteractable = false,
+        .entityType = BlockEntityType::pipe,
+        .placedWithItem = Item::pipeBlock,
+    },
+    BlockProperties {
+        .type = BlockType::pipeIn,
+        .renderType = BlockRenderType::solid,
+        .isInteractable = false,
+        .entityType = BlockEntityType::pipeIn,
+        .placedWithItem = Item::pipeInBlock,
+    },
+    BlockProperties {
+        .type = BlockType::pipeOut,
+        .renderType = BlockRenderType::solid,
+        .isInteractable = false,
+        .entityType = BlockEntityType::pipeOut,
+        .placedWithItem = Item::pipeOutBlock,
+    },
 };
 
 const std::map<BlockType, int> blockTypeInventorySize
@@ -126,39 +172,6 @@ bool getIsBlockEntity(BlockType blockType)
     return blockTypeToBlockEntityType[blockType] != BlockEntityType::none;
 }
 
-const BlockRenderType blockTypeToRenderType[BlockType::maxEnum] = {
-    blockPropertiesLookup[0].blockRenderType,
-    blockPropertiesLookup[1].blockRenderType,
-    blockPropertiesLookup[2].blockRenderType,
-    blockPropertiesLookup[3].blockRenderType,
-    blockPropertiesLookup[4].blockRenderType,
-    blockPropertiesLookup[5].blockRenderType,
-    blockPropertiesLookup[6].blockRenderType,
-    blockPropertiesLookup[7].blockRenderType
-};
-
-const bool blockTypeIsInteractable[BlockType::maxEnum] = {
-    blockPropertiesLookup[0].isInteractable,
-    blockPropertiesLookup[1].isInteractable,
-    blockPropertiesLookup[2].isInteractable,
-    blockPropertiesLookup[3].isInteractable,
-    blockPropertiesLookup[4].isInteractable,
-    blockPropertiesLookup[5].isInteractable,
-    blockPropertiesLookup[6].isInteractable,
-    blockPropertiesLookup[7].isInteractable
-};
-
-const BlockEntityType blockTypeToBlockEntityType[BlockType::maxEnum] = {
-    blockPropertiesLookup[0].blockEntityType,
-    blockPropertiesLookup[1].blockEntityType,
-    blockPropertiesLookup[2].blockEntityType,
-    blockPropertiesLookup[3].blockEntityType,
-    blockPropertiesLookup[4].blockEntityType,
-    blockPropertiesLookup[5].blockEntityType,
-    blockPropertiesLookup[6].blockEntityType,
-    blockPropertiesLookup[7].blockEntityType,
-};
-
 // clang-format on
 
 glm::vec3 calculateImageColorInLinearSpace(stbi_uc* image, int height, int width)
@@ -183,7 +196,7 @@ glm::vec3 calculateImageColorInLinearSpace(stbi_uc* image, int height, int width
     return color;
 }
 
-void blockDataLookupInit()
+void initBlockImages()
 {
     std::unordered_map<std::string, uint32_t> fileNameToImageIndex;
     uint32_t i = 0;
@@ -265,5 +278,34 @@ void blockDataLookupInit()
     for (stbi_uc* image : blockImages) {
         glm::vec3 color = calculateImageColorInLinearSpace(image, BLOCK_TEXTURE_PIXEL_COUNT, BLOCK_TEXTURE_PIXEL_COUNT);
         blockImageColors.push_back(color);
+    }
+}
+
+void initBlockLookupArrays()
+{
+    for (int i = 0; i < (int)BlockType::maxEnum; i++) {
+        blockTypeToRenderType[i] = blockPropertiesLookup[i].renderType;
+    }
+    for (int i = 0; i < (int)BlockType::maxEnum; i++) {
+        blockTypeIsInteractable[i] = blockPropertiesLookup[i].isInteractable;
+    }
+    for (int i = 0; i < (int)BlockType::maxEnum; i++) {
+        blockTypeToBlockEntityType[i] = blockPropertiesLookup[i].entityType;
+    }
+    for (int i = 0; i < (int)BlockType::maxEnum; i++) {
+        itemToBlockType.insert(std::make_pair(blockPropertiesLookup[i].placedWithItem, (BlockType)i));
+    }
+}
+
+void initBlockDataLookup()
+{
+    initBlockLookupArrays();
+    initBlockImages();
+}
+
+void blockDataLookupCleanup()
+{
+    for (int i = 0; i < blockImages.size(); i++) {
+        stbi_image_free(blockImages[i]);
     }
 }

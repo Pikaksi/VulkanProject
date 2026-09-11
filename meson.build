@@ -5,6 +5,8 @@ project('my_app', 'cpp',
 run_env = environment()
 
 src = [
+  'src/Rendering/sunShadows.cpp',
+  'src/blockEntities/blockEntityCrafting.cpp',
   'src/blockEntities/blockEntity.cpp',
   'src/blockEntities/blockEntityManager.cpp',
   'src/util/threadPool.cpp',
@@ -44,7 +46,6 @@ src = [
   'src/World/WorldManager.cpp',
   'src/PlayerInputHandler.cpp',
   'src/Player/PlaceBlock.cpp',
-  'src/ECS/EntityManager.cpp',
   'src/Rendering/Vertex.cpp',
   'src/FilePathHandler.cpp',
   'src/CameraHandler.cpp',
@@ -118,7 +119,6 @@ include_dirs = [
   include_directories('src'),
   include_directories('src/2dRendering'),
   include_directories('src/3dRendering'),
-  include_directories('src/ECS'),
   include_directories('src/Inventory'),
   include_directories('src/Player'),
   include_directories('src/Rendering'),
@@ -140,8 +140,6 @@ my_exe = executable('myexe',
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
   cpp_args : ['-w'],
-  #cpp_args : ['-fsanitize=address', '-shared-libasan', '-w'],
-  #link_args: ['-fsanitize=address', '-shared-libasan', '-Wl,-rpath=/usr/lib/llvm-18/lib/clang/18/lib/linux'],
   install : should_install,
 )
 

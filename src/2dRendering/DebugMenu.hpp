@@ -26,8 +26,11 @@ struct DebugMenu
     bool isEnabled = false;
     float refreshInterval = 0.2f;
     int fpsCounter = 0;
+    double maxFrameTimeMs = 0;
+    double maxFrameTimeMsDisplay = 0;
     int lastRecordedFPS = 0;
     float textSize = 0.05f;
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastFrameTime;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastFpsCounterResetTime;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastUIRefreshTime;
 

@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <unordered_set>
 
+#include "assertm.hpp"
 #include "Rendering/TextureCreator.hpp"
 #include "FilePathHandler.hpp"
 
@@ -22,19 +23,11 @@ void createUIImageInfos(VulkanCoreInfo& vulkanCoreInfo, VkCommandPool commandPoo
     }
 
     for (int i = 0; i < imageCount; i++) {
-        if (textureToFileName.contains(i) && uiTextureFiles.contains(textureToFileName.at(i))) {
+        assertm(textureToFileName.contains(i), "textureToFileName table is too small compared to ui image count");
+        assertm(uiTextureFiles.contains(textureToFileName.at(i)),
+                "The uploaded ui images do not contain '" << textureToFileName.at(i) << ".png'");
 
-            std::string filePath = "/UITextures/" + textureToFileName.at(i) + ".png";
-            createTextureImage(vulkanCoreInfo, uiImageInfos[i], commandPool, false, filePath);
-        }
-        else {
-            if (textureToFileName.contains(i)) {
-                std::cout << "Did not have enum " << i << ".";
-            }
-            else {
-                std::cout << "the file corresponding to enum with the value " << i << "was not found.";
-            }
-            throw std::runtime_error("textureToFileName contains bad values");
-        }
+        std::string filePath = "/UITextures/" + textureToFileName.at(i) + ".png";
+        createTextureImage(vulkanCoreInfo, uiImageInfos[i], commandPool, false, filePath);
     }
 }

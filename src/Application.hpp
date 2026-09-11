@@ -57,6 +57,7 @@ private:
     ImageInfo blockTextureImageArray = ImageInfo();
     VkSampler blockTextureArraySampler;
 
+    ImageInfo sunShadowImage = ImageInfo();
     VkSampler sunShadowSampler;
 
     ImageInfo blockTextureImage = ImageInfo();

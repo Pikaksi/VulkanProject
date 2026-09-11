@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifdef NDEBUG
 #define assertm(a, b)
 #else

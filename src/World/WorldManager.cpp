@@ -32,12 +32,11 @@ void WorldManager::addChunkToGenerate(glm::i32vec3 loc)
         return;
     }
     chunksGenerating.insert(loc);
-    ChunkGenerationTask* param = new ChunkGenerationTask{
+    generationResults.push(ChunkGenerationTask{
         .loc = loc,
         .done = false,
-    };
-    generationResults.push(param);
-    globalThreadPool.addWork(&workerGenerateChunk, (void*)param);
+    });
+    globalThreadPool.addWork(&workerGenerateChunk, (void*)&generationResults.back());
 }
 
 void mergeChunk(Chunk& chunk, Chunk& chunkToMerge)
@@ -60,24 +59,24 @@ void mergeChunk(Chunk& chunk, Chunk& chunkToMerge)
 void WorldManager::processChunkGenerationResults()
 {
     while (generationResults.size() != 0) {
-        ChunkGenerationTask* task = generationResults.front();
-        if (!task->done) {
+        ChunkGenerationTask& task = generationResults.front();
+        if (!task.done) {
             break;
         }
-        assertm(!chunks.contains(task->loc), "Generated chunk that already exists");
+        assertm(!chunks.contains(task.loc), "Generated chunk that already exists");
 
-        if (ungeneratedStructures.contains(task->loc)) {
-            mergeChunk(task->chunk, ungeneratedStructures.at(task->loc));
-            ungeneratedStructures.extract(task->loc);
+        if (ungeneratedStructures.contains(task.loc)) {
+            mergeChunk(task.chunk, ungeneratedStructures.at(task.loc));
+            ungeneratedStructures.extract(task.loc);
         }
 
-        chunks.insert(std::make_pair(task->loc, task->chunk));
+        chunks.insert(std::make_pair(task.loc, task.chunk));
 
-        for (auto [blockLocWorld, block] : task->structureBlocks) {
+        for (auto [blockLocWorld, block] : task.structureBlocks) {
             glm::i32vec3 blockLoc = {alwaysPosModulo(blockLocWorld.x, CHUNK_SIZE),
                                      alwaysPosModulo(blockLocWorld.y, CHUNK_SIZE),
                                      alwaysPosModulo(blockLocWorld.z, CHUNK_SIZE)};
-            glm::i32vec3 chunkLoc = getChunkLocation(blockLocWorld);
+            glm::i32vec3 chunkLoc = worldToChunkLocation(blockLocWorld);
             if (chunks.contains(chunkLoc)) {
                 chunkSetBlock(blockLoc.x, blockLoc.y, blockLoc.z, block, chunks.at(chunkLoc));
             }

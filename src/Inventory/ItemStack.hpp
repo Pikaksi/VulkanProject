@@ -5,6 +5,6 @@
 
 struct ItemStack
 {
-	Item item;
-	uint32_t amount;
+    Item item;
+    int amount;
 };

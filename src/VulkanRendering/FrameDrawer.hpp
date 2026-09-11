@@ -23,6 +23,8 @@ struct FrameDrawInfo
     uint32_t& currentFrame;
     bool& framebufferResized;
 
+    ImageInfo sunShadowImage;
+
     std::vector<GpuMemoryBlock> drawCallBuffers;
     std::vector<VkCommandBuffer>& commandBuffers;
     std::vector<VkSemaphore>& imageAvailableSemaphores;

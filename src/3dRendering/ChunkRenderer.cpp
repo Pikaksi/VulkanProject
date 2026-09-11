@@ -117,7 +117,7 @@ void generateRenderingOrder(std::vector<ChunkOrderInfo>& offsets,
                 glm::i32vec3{1, 1, 1},
             };
             for (glm::i32vec3 a : cubeOffsets) {
-                offsets.push_back(ChunkOrderInfo{.loc = chunk.loc + a * (1 << newLod), .lod = newLod});
+                offsets.push_back(ChunkOrderInfo{.loc = offsets[k].loc + a * (1 << newLod), .lod = newLod});
             }
         }
     }
@@ -222,11 +222,12 @@ void ChunkRenderer::handleRenderCommand(VulkanCoreInfo& vulkanCoreInfo,
               << "\n  fromLod: " << renderCommand.fromLod << std::endl;*/
 
     // replace a large chunk with smaller ones
-    if (renderCommand.replace && renderCommand.toLod <= renderCommand.fromLod) {
+    if (renderCommand.replace && renderCommand.toLod < renderCommand.fromLod) {
         glm::i32vec3 largeChunkLoc = roundLocationLod(renderCommand.loc, renderCommand.fromLod);
 
-        assertm(chunkInfos.contains(largeChunkLoc), "Chunk was not found when replacing one");
-        removeChunk(largeChunkLoc, vertexBufferManager);
+        if (chunkInfos.contains(largeChunkLoc)) {
+            removeChunk(largeChunkLoc, vertexBufferManager);
+        }
 
         int chunks = (1 << renderCommand.fromLod) >> renderCommand.toLod;
         for (int x = 0; x < chunks; x++) {
@@ -384,8 +385,11 @@ bool ChunkRenderer::tryExecuteRenderingCommand(VulkanCoreInfo& vulkanCoreInfo,
     }
 
     work += workConstant;
-    int higherLod = std::max(command.toLod, command.fromLod);
-    work += workCubic * (1 << higherLod) * (1 << higherLod) * (1 << higherLod);
+    int lod = command.toLod;
+    if (command.replace && command.fromLod > lod) {
+        lod = command.fromLod;
+    }
+    work += workCubic * (1 << lod) * (1 << lod) * (1 << lod);
 
     handleRenderCommand(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, command);
     return true;
@@ -400,14 +404,32 @@ void ChunkRenderer::updateRenderCommands(VulkanCoreInfo& vulkanCoreInfo,
     int workDone = 0;
 
     for (glm::i32vec3 chunkLoc : chunksToRenderAgain) {
-        assertm(chunkInfos.contains(chunkLoc), "Tried to render chunk again that does not exist");
-        ChunkInfo chunk = chunkInfos.at(chunkLoc);
+        // Check chunk in full detail render distance
+        int dist = renderDistancelodFull + extraRangeToDerenderChunk;
+        glm::i32vec3 v2 = -chunkLoc + playerLocation;
+        if (dist * dist < v2.x * v2.x + v2.y * v2.y + v2.z * v2.z) {
+            continue;
+        }
+
+        // Check that there are no LOD chunks in the way
+        bool shouldSkip = false;
+        for (int lod = 0; lod < renderDistances.size() - 1; lod++) {
+            glm::i32vec3 loc = roundLocationLod(chunkLoc, lod);
+            if (chunkInfos.contains(loc) && chunkInfos.at(loc).fullDetail == false) {
+                shouldSkip = true;
+                break;
+            }
+        }
+        if (shouldSkip) {
+            continue;
+        }
+
         ChunkRenderingCommand command{.loc = chunkLoc,
-                                      .fromLod = chunk.lod,
-                                      .toLod = chunk.lod,
+                                      .fromLod = 0,
+                                      .toLod = 0,
                                       .replace = true,
                                       .noChunksToRender = false,
-                                      .fullDetail = chunk.fullDetail};
+                                      .fullDetail = true};
         bool success = tryExecuteRenderingCommand(
             vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, command, workDone);
         assertm(success, "Tried to rerender chunk but it was unloaded while that happened. Not supported yet.");
@@ -506,11 +528,8 @@ void ChunkRenderer::update(VulkanCoreInfo& vulkanCoreInfo,
     derenderChunksOutOfRenderdistance(playerChunkLocation, vertexBufferManager);
 }
 
-void ChunkRenderer::rerenderChunkAgain(glm::i32vec3 chunkLocation)
+void ChunkRenderer::renderChunkAgain(glm::i32vec3 chunkLocation)
 {
-    if (!chunkInfos.contains(chunkLocation)) {
-        return;
-    }
     for (size_t i = 0; i < chunksToRenderAgain.size(); i++) {
         if (chunksToRenderAgain[i] == chunkLocation) {
             return;

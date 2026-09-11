@@ -187,23 +187,9 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
                     1,
                     VK_IMAGE_VIEW_TYPE_2D);
 
-    createImageInfo(vulkanCoreInfo,
-                    swapChainInfo.sunShadowImage,
-                    2048,
-                    2048,
-                    1,
-                    VK_SAMPLE_COUNT_1_BIT,
-                    swapChainInfo.depthImageFormat,
-                    VK_IMAGE_TILING_OPTIMAL,
-                    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                    VK_IMAGE_ASPECT_DEPTH_BIT,
-                    1,
-                    VK_IMAGE_VIEW_TYPE_2D);
-
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(vulkanCoreInfo, commandPool);
 
-    std::array<VkImageMemoryBarrier2, 3> outputBarriers{
+    std::array<VkImageMemoryBarrier2, 2> outputBarriers{
         VkImageMemoryBarrier2{
                               .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
                               .srcStageMask = 0,
@@ -224,16 +210,6 @@ void createSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInf
                               .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
                               .image = swapChainInfo.depthImage.image,
                               .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}},
-        VkImageMemoryBarrier2{
-                              .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
-                              .srcStageMask = 0,
-                              .srcAccessMask = 0,
-                              .dstStageMask = 0,
-                              .dstAccessMask = 0,
-                              .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                              .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-                              .image = swapChainInfo.sunShadowImage.image,
-                              .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}}
     };
     VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                                            .imageMemoryBarrierCount = outputBarriers.size(),
@@ -253,10 +229,6 @@ void cleanupSwapChain(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainIn
     vkDestroyImageView(vulkanCoreInfo.device, swapChainInfo.colorImage.view, nullptr);
     vkDestroyImage(vulkanCoreInfo.device, swapChainInfo.colorImage.image, nullptr);
     vkFreeMemory(vulkanCoreInfo.device, swapChainInfo.colorImage.memory, nullptr);
-
-    vkDestroyImageView(vulkanCoreInfo.device, swapChainInfo.sunShadowImage.view, nullptr);
-    vkDestroyImage(vulkanCoreInfo.device, swapChainInfo.sunShadowImage.image, nullptr);
-    vkFreeMemory(vulkanCoreInfo.device, swapChainInfo.sunShadowImage.memory, nullptr);
 
     for (auto imageView : swapChainInfo.imageViews) {
         vkDestroyImageView(vulkanCoreInfo.device, imageView, nullptr);

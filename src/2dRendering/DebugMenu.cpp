@@ -25,14 +25,23 @@ void DebugMenu::update(UIManager& uiManager,
     auto currentTime = std::chrono::high_resolution_clock::now();
     auto timeFromLastUIRefresh =
         std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastUIRefreshTime).count();
+    auto timeFromLastFrame =
+        std::chrono::duration<double, std::chrono::milliseconds::period>(currentTime - lastFrameTime).count();
+
+    maxFrameTimeMs = std::max(maxFrameTimeMs, timeFromLastFrame);
+
     if (timeFromLastUIRefresh > refreshInterval) {
         lastUIRefreshTime = currentTime;
 
         lastRecordedFPS = fpsCounter / timeFromLastUIRefresh;
+        maxFrameTimeMsDisplay = maxFrameTimeMs;
+        maxFrameTimeMs = 0;
 
         fpsCounter = 0;
     }
     drawUI(uiManager, vertexBufferManager, lastRecordedFPS, worldManager, cameraHandler);
+
+    lastFrameTime = currentTime;
 }
 
 void DebugMenu::drawUI(UIManager& uiManager,
@@ -46,6 +55,7 @@ void DebugMenu::drawUI(UIManager& uiManager,
         uiManager, {-1.0f, -1.0f}, 0.05f, UICenteringMode::topLeft, UICenteringMode::topLeft,
         
         "Fps: " + std::to_string(fps) + '\n' +
+        "Max frame time: " + std::to_string(maxFrameTimeMsDisplay) + '\n' +
         "Fence wait duration: " + std::to_string(fenceWaitTimeLast) + " ms" + '\n' +
         "Chunk mesh time avg: " + std::to_string(debugMenuGlobals.chunkMeshTimeTotal / (double)debugMenuGlobals.chunksMeshed) + " micro s" + '\n' +
         "vertex count: " + std::to_string(gpuMemoryBlockDataSize(*vertexBufferManager.worldGpuMemoryBlock) / sizeof(Vertex)) +
@@ -65,7 +75,7 @@ void DebugMenu::drawUI(UIManager& uiManager,
 
 void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)
 {
-    if (PlayerInputHandler::getInstance().f3Pressed) {
+    if (inputHandler.keyPressed(GLFW_KEY_F3)) {
         if (isEnabled) {
             disableMenu(uiManager);
         }
