@@ -42,8 +42,8 @@ struct ChunkRenderer
 
     std::vector<ChunkOrderInfo> chunkRenderingOrder;
 
-    const int renderDistancelodFull = 10;
-    const int renderDistancelod0 = 16;
+    const int renderDistancelodFull = 2;
+    const int renderDistancelod0 = 10;
     const int renderDistancelod1 = 24;
     //const int renderDistancelod2 = 50;
     //const int renderDistancelod3 = 25;

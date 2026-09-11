@@ -11,86 +11,18 @@
 struct Vertex {
     // pos 3 * 8
     // normal 3 * 8
-    // in shadow 1
-    // uv 2 * 10
-    // tex layer 10
-    uint32_t pos;
-    uint32_t color;
-    uint32_t texCoord;
-    uint32_t aligma;
-
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R8G8_UNORM;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_A2B10G10R10_UNORM_PACK32; // VK_FORMAT_B10G11R11_UFLOAT_PACK32
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-        /*attributeDescriptions[3].binding = 0;
-        attributeDescriptions[3].location = 3;
-        attributeDescriptions[3].format = VK_FORMAT_R32_SFLOAT;
-        attributeDescriptions[3].offset = offsetof(Vertex, texLayer);*/
-
-        return attributeDescriptions;
-    }
-
-    /*bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }*/
+    // uv 2 * 8
+    // tex layer 32
+    // in shadow 32 (is a 0 or 1 value)
+    uint32_t posAndNorm;
+    uint32_t normAndUv;
+    float texCoord;
+    float inShadow;
 };
 
 struct VertexLod {
-    uint32_t pos;
-    uint32_t colorAndNormal;
-
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(VertexLod);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_A2B10G10R10_UNORM_PACK32;
-        attributeDescriptions[0].offset = offsetof(VertexLod, pos);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-        attributeDescriptions[1].offset = offsetof(VertexLod, colorAndNormal);
-
-        return attributeDescriptions;
-    }
-
-    /*bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }*/
+    uint32_t pos; // A2B10G10R10
+    uint32_t colorAndNormal; // A8B8G8R8
 };
 
 struct Vertex2D {
@@ -133,8 +65,4 @@ struct Vertex2D {
 
         return attributeDescriptions;
     }
-
-    /*bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }*/
 };

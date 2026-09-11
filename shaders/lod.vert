@@ -1,6 +1,6 @@
-#version 450
+#version 460
 
-#extension GL_EXT_buffer_reference2 : require
+#extension GL_EXT_buffer_reference : require
 #extension GL_EXT_scalar_block_layout : require
 
 layout(binding = 0) uniform UniformBufferObject {
@@ -14,7 +14,7 @@ struct Vertex {
     uint position;
     uint colorNormal;
 };
-layout(buffer_reference, std430, buffer_reference_align = 4) readonly buffer VertexBuffer {
+layout(buffer_reference, std430, buffer_reference_align = 8) readonly buffer VertexBuffer {
     Vertex vertices[];
 };
 
@@ -36,7 +36,7 @@ const vec3 faceNormals[6] = vec3[6](
     vec3( 0.0,  1.0,  0.0), vec3( 0.0, -1.0,  0.0),
     vec3( 0.0,  0.0,  1.0), vec3( 0.0,  0.0, -1.0));
 
-vec4 unpackA2B10G10R10(uint p)
+/*vec4 unpackA2B10G10R10(uint p)
 {
     // 1. Extract the integer bits using bitshifts and masks
     // 0x3FF is 1023 in hex (10 bits of 1s)
@@ -56,17 +56,19 @@ vec4 unpackA2B10G10R10(uint p)
         1.0 / 1023.0, 
         1.0 / 3.0
     );
-}
+}*/
 
 void main() {
-    vec4 inPositionAndShadow = unpackA2B10G10R10(pc.vertexBuffer.vertices[gl_VertexIndex].position);
+    vec3 inPositionAndShadow = unpackUnorm4x8(pc.vertexBuffer.vertices[gl_VertexIndex].position).xyz;
     outPos = pc.chunkWorldLocation + inPositionAndShadow.xyz * pc.chunkSize;
 
     outWorldToSunMat = ubo.worldToSun;
 
-    outNormal = vec3(0, 0, 0);
-    outShadow = 0;
-    outColor = vec3(0, 0, 0);
+    outNormal = vec3(1.0, 0, 0);
+    //outNormal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)];
+    outShadow = dot(ubo.sunDir, outNormal) > 0 ? 1.0 : 0.0;
+
+    outColor = vec3(0.5, 0.5, 0.5);
 
     /*outPos = pushConstants.chunkWorldLocation + inPosAndShadow.xyz * pushConstants.chunkSize;
     gl_Position = ubo.camera * vec4(outPos, 1.0);

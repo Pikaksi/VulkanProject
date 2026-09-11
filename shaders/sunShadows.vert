@@ -1,7 +1,6 @@
-#version 450
+#version 460
 
 #extension GL_EXT_buffer_reference : require
-#extension GL_EXT_buffer_reference2 : require
 #extension GL_EXT_scalar_block_layout : require
 
 layout(binding = 0) uniform UniformBufferObject {
@@ -15,7 +14,7 @@ struct Vertex {
     uint normal;
     uint padding;
 };
-layout(buffer_reference, std430, buffer_reference_align = 4) readonly buffer VertexBuffer {
+layout(buffer_reference, std430, buffer_reference_align = 8) readonly buffer VertexBuffer {
     Vertex vertices[];
 };
 

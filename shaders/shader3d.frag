@@ -5,7 +5,7 @@ layout(binding = 2) uniform sampler2DShadow sunShadowSampler;
 
 layout(location = 0) in vec3 inPos;
 layout(location = 1) in vec3 inNormal;
-layout(location = 2) centroid in vec2 inUV;
+layout(location = 2) in centroid vec2 inUV;
 layout(location = 3) in float inTextureLayer;
 layout(location = 4) in float inShadow;
 layout(location = 5) in mat4 inWorldToSunMat;
@@ -39,8 +39,13 @@ void main() {
     if (inShadow == 0) {
         shadow = sampleShadow(inPos);
     }
+
+    //float epsilon = 0.001;
+    //vec2 safeUV = vec2(clamp(inUV.x, epsilon, 1.0 - epsilon), clamp(inUV.y, epsilon, 1.0 - epsilon));
+
     color.xyz = color.xyz * (0.2 + 0.8 * shadow);
-    
+    //color.xyz = vec3(inUV.xy, 0);
+    //color.xyz = vec3(inUV.x < 0.00001 ? 1.0 : 0.0, inUV.y < 0.00001 ? 1.0 : 0.0, 0);
 
     outColor = color;
 }

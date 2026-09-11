@@ -314,19 +314,14 @@ void createLogicalDevice(VulkanCoreInfo& vulkanCoreInfo)
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.depthClamp = VK_TRUE;
 
-    VkPhysicalDeviceBufferDeviceAddressFeatures bdaFeatures{};
-    bdaFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
-    bdaFeatures.bufferDeviceAddress = VK_TRUE;
-
     VkPhysicalDeviceVulkan12Features enabledVk12Features{};
     enabledVk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
-    enabledVk12Features.pNext = &bdaFeatures;
     // enabledVk12Features.descriptorIndexing = true;
     // enabledVk12Features.shaderSampledImageArrayNonUniformIndexing = true;
     // enabledVk12Features.descriptorBindingVariableDescriptorCount = true;
     // enabledVk12Features.runtimeDescriptorArray = true;
-    // enabledVk12Features.bufferDeviceAddress = true;
+    enabledVk12Features.bufferDeviceAddress = true;
 
     VkPhysicalDeviceVulkan13Features enabledVk13Features{};
     enabledVk13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;

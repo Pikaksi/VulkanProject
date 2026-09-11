@@ -7,7 +7,10 @@
 void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
                         GpuMemoryBlock& gpuMemoryBlock,
                         uint64_t bufferSize,
-                        bool isHostVisible)
+                        bool isHostVisible,
+                        VkBufferUsageFlags bufferUsageFlags,
+                        VkMemoryPropertyFlags memoryPropertyFlags,
+                        VkMemoryAllocateFlags allocatePropertyFlags)
 {
     gpuMemoryBlock.bufferSize = bufferSize;
     gpuMemoryBlock.isHostVisible = isHostVisible;
@@ -17,8 +20,9 @@ void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
     if (gpuMemoryBlock.isHostVisible) {
         createBuffer(vulkanCoreInfo,
                      gpuMemoryBlock.bufferSize,
-                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, // TODO: use device local and host coherent? maybe perf gain.
+                     bufferUsageFlags,
+                     memoryPropertyFlags,
+                     allocatePropertyFlags,
                      gpuMemoryBlock.buffer,
                      gpuMemoryBlock.deviceMemory);
 
@@ -32,8 +36,9 @@ void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
     else {
         createBuffer(vulkanCoreInfo,
                      gpuMemoryBlock.bufferSize,
-                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     bufferUsageFlags,
+                     memoryPropertyFlags,
+                     allocatePropertyFlags,
                      gpuMemoryBlock.buffer,
                      gpuMemoryBlock.deviceMemory);
     }
@@ -70,8 +75,7 @@ void gpuMemoryBlockGetDataMerged(GpuMemoryBlock& gpuMemoryBlock,
 
     while (block != nullptr) {
         if (block->free == false) {
-            if (lastBlockFree == false &&
-                batchSizes.back() + block->size <= batchMaxSize) {
+            if (lastBlockFree == false && batchSizes.back() + block->size <= batchMaxSize) {
                 batchSizes.back() += block->size;
             }
             else {
@@ -84,10 +88,7 @@ void gpuMemoryBlockGetDataMerged(GpuMemoryBlock& gpuMemoryBlock,
     }
 }
 
-void gpuMemoryBlockFreeAll(GpuMemoryBlock& gpuMemoryBlock)
-{
-    tlsfFreeAll(gpuMemoryBlock.allocator);
-}
+void gpuMemoryBlockFreeAll(GpuMemoryBlock& gpuMemoryBlock) { tlsfFreeAll(gpuMemoryBlock.allocator); }
 
 void gpuMemoryBlockCopyDataHostVisible(GpuMemoryBlock& gpuMemoryBlock, uint64_t location, uint64_t size, void* data)
 {
@@ -138,6 +139,7 @@ uint64_t gpuMemoryBlockAddDeviceLocal(VulkanCoreInfo& vulkanCoreInfo,
                  size,
                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 0,
                  stagingBuffer,
                  stagingBufferMemory);
 

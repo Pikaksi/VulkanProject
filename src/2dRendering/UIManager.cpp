@@ -26,7 +26,8 @@ void UIManager::writeToBufferAndClear(uint32_t currentFrame)
     if (vertices.size() == 0) {
         return;
     }
-    gpuMemoryBlockAddHostVisible(gpuMemoryBlocks[currentFrame], (void*)vertices.data(), sizeof(Vertex2D) * vertices.size());
+    gpuMemoryBlockAddHostVisible(
+        gpuMemoryBlocks[currentFrame], (void*)vertices.data(), sizeof(Vertex2D) * vertices.size());
     vertices.clear();
 }
 
@@ -35,8 +36,13 @@ void UIManager::init(VulkanCoreInfo& vulkanCoreInfo, VkExtent2D extent)
     changeExtent(extent);
 
     for (size_t i = 0; i < gpuMemoryBlocks.size(); i++) {
-        gpuMemoryBlockInit(
-            vulkanCoreInfo, gpuMemoryBlocks[i], UI_GPU_BUFFER_SIZE, true);
+        gpuMemoryBlockInit(vulkanCoreInfo,
+                           gpuMemoryBlocks[i],
+                           UI_GPU_BUFFER_SIZE,
+                           true,
+                           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           0);
     }
 }
 

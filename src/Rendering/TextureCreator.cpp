@@ -40,6 +40,7 @@ void createTextureImage(VulkanCoreInfo& vulkanCoreInfo,
                  imageSize,
                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 0,
                  stagingBuffer,
                  stagingBufferMemory);
 
@@ -241,6 +242,7 @@ void createBlockTextureArray(VulkanCoreInfo& vulkanCoreInfo,
                  imageArraySize,
                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 0,
                  stagingBuffer,
                  stagingBufferMemory);
 

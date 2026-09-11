@@ -57,7 +57,7 @@ void Application::initGame()
     inputHandler.window = vulkanCoreInfo.window;
     inputHandler.initGLFWControlCallbacks();
 
-    playerInfo.playerInventory.itemStacks[0] = ItemStack{Item::drillBlock, 10};
+    playerInfo.playerInventory.itemStacks[0] = ItemStack{Item::grassBlock, 10};
     playerInfo.playerInventory.itemStacks[1] = ItemStack{Item::furnaceBlock, 10};
     playerInfo.playerInventory.itemStacks[2] = ItemStack{Item::stick, 10};
     playerInfo.playerInventory.itemStacks[3] = ItemStack{Item::oakLog, 10};

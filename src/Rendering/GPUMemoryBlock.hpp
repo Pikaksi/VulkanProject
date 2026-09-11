@@ -23,7 +23,10 @@ struct GpuMemoryBlock
 void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
                         GpuMemoryBlock& gpuMemoryBlock,
                         uint64_t bufferSize,
-                        bool isHostVisible);
+                        bool isHostVisible,
+                        VkBufferUsageFlags bufferUsageFlags,
+                        VkMemoryPropertyFlags memoryPropertyFlags,
+                        VkMemoryAllocateFlags allocatePropertyFlags);
 void gpuMemoryBlockGetData(GpuMemoryBlock& gpuMemoryBlock,
                            VkBuffer& outVertexBuffer,
                            std::vector<VkDeviceSize>& vertexOffsets,

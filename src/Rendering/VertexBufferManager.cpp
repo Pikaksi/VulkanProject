@@ -4,6 +4,7 @@
 
 #include "Constants.hpp"
 #include "GPUMemoryBlock.hpp"
+#include "vulkan/vulkan_core.h"
 
 VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
                                          VkCommandPool commandPool,
@@ -11,7 +12,13 @@ VertexBufferManager::VertexBufferManager(VulkanCoreInfo& vulkanCoreInfo,
 {
     quadStripIndexBuffer = QuadStripIndexBuffer(vulkanCoreInfo, commandPool, INDEX_BUFFER_QUAD_COUNT);
     worldGpuMemoryBlock = new GpuMemoryBlock;
-    gpuMemoryBlockInit(vulkanCoreInfo, *worldGpuMemoryBlock, worldVertexBufferSize, false);
+    gpuMemoryBlockInit(vulkanCoreInfo,
+                       *worldGpuMemoryBlock,
+                       worldVertexBufferSize,
+                       false,
+                       VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
+                       VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
 }
 
 uint64_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
@@ -23,8 +30,7 @@ uint64_t VertexBufferManager::addVerticesToWorld(VulkanCoreInfo& vulkanCoreInfo,
     size_t dataSize = vertices.size() * sizeof(Vertex);
     uint64_t memoryLocation = gpuMemoryBlockAddDeviceLocal(
         vulkanCoreInfo, commandPool, *worldGpuMemoryBlock, (void*)vertices.data(), dataSize);
-    worldVertexTracker.addLocation(
-        static_cast<VkDeviceSize>(memoryLocation), dataSize, chunkLocation, 0, true);
+    worldVertexTracker.addLocation(static_cast<VkDeviceSize>(memoryLocation), dataSize, chunkLocation, 0, true);
     return memoryLocation;
 }
 
