@@ -94,10 +94,10 @@ struct VertexLod {
 };
 
 struct Vertex2D {
-    glm::vec2 pos;
-    glm::vec4 color;
-    glm::vec2 texCoord;
-    uint32_t texLayer;
+    alignas(16) glm::vec2 pos;
+    alignas(16) glm::vec4 color;
+    alignas(16) glm::vec2 texCoord;
+    alignas(16) uint32_t texLayer;
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};

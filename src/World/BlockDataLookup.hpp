@@ -10,6 +10,8 @@
 #include <glm/vec3.hpp>
 
 #include "BlockType.hpp"
+#include "blockEntity.hpp"
+#include "Item.hpp"
 
 enum class BlockRenderType : uint8_t
 {
@@ -19,9 +21,12 @@ enum class BlockRenderType : uint8_t
     custom = 3
 };
 
-extern const BlockRenderType blockTypeToRenderType[BlockType::maxEnum];
-extern const bool blockTypeIsInteractable[BlockType::maxEnum];
-extern const uint64_t blockTypeToComponents[BlockType::maxEnum];
+extern BlockRenderType blockTypeToRenderType[BlockType::maxEnum];
+extern bool blockTypeIsInteractable[BlockType::maxEnum];
+extern std::unordered_map<Item, BlockType> itemToBlockType;
+
+extern BlockEntityType blockTypeToBlockEntityType[BlockType::maxEnum];
+bool getIsBlockEntity(BlockType blockType);
 
 inline std::vector<stbi_uc*> blockImages;
 inline std::vector<glm::vec3> blockImageColors;
@@ -31,11 +36,16 @@ extern const std::unordered_map<BlockType, std::vector<std::string>> blockTypeTo
 extern const std::unordered_map<BlockType, std::vector<glm::vec3>> blockCustomRenderVertexOffsets;
 extern const std::map<BlockType, int> blockTypeInventorySize;
 
-void blockDataLookupInit();
+void initBlockDataLookup();
 
 bool isBlockSolid(BlockType blocktype);
 BlockRenderType getRenderType(BlockType blockType);
 bool isRenderableNonSolid(BlockType blocktype);
 BlockRenderType getBlockRenderType(BlockType blockType);
+
+bool blockHasComponent(BlockType blockType);
+
 bool blockHasComponent(BlockType blockType, uint64_t componentBitmask);
 bool blockHasComponent(BlockType blockType);
+
+void blockDataLookupCleanup();

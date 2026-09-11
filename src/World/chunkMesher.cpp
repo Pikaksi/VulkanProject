@@ -317,7 +317,6 @@ void createChunkMeshLod(WorldManager& worldManager,
     int blockLenght = CHUNK_SIZE >> lod;
 
     // TODO: Make better
-    bool canSkip = true;
     for (int cx = 0; cx < chunkLenght; cx++) {
         for (int cy = 0; cy < chunkLenght; cy++) {
             for (int cz = 0; cz < chunkLenght; cz++) {
@@ -325,16 +324,13 @@ void createChunkMeshLod(WorldManager& worldManager,
                 assertm(worldManager.chunks.contains(lodChunkLoc), "Chunk not found while generating lod");
                 Chunk& chunk = worldManager.chunks.at(lodChunkLoc);
                 if (chunk.containsDifferentBlocks) {
-                    canSkip = false;
-                    goto skipLabel;
+                    goto cantSkipRendering;
                 }
             }
         }
     }
-skipLabel:
-    if (canSkip) {
-        return;
-    }
+    return;
+cantSkipRendering:
 
     std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)> blocks =
         std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2)>();

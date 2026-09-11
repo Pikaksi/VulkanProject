@@ -8,7 +8,8 @@
 enum class InventoryLayout
 {
     grid10x4Inventory = 0,
-    output1Input1 = 1
+    output1Input1 = 1,
+    slot1 = 2,
 };
 
 struct InventorySlotLocation
@@ -19,4 +20,3 @@ struct InventorySlotLocation
 
 std::vector<InventorySlotLocation>& getInventoryLayoutPositions(InventoryLayout InventoryLayout);
 void generateInventoryLayouts();
-uint32_t getInventoryLayoutSize(InventoryLayout inventoryLayout);

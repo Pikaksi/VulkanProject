@@ -44,8 +44,6 @@ struct SwapChainInfo
     VkFormat depthImageFormat;
 
     ImageInfo colorImage = ImageInfo();
-
-    ImageInfo sunShadowImage = ImageInfo();
 };
 
 struct GraphicsPipelineInfo

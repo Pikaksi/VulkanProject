@@ -4,7 +4,6 @@
 #include <cmath>
 #include <iostream>
 
-
 int alwaysPosModulo(int value, unsigned int m)
 {
     int mod = value % m;
@@ -36,23 +35,23 @@ void chunkResize(Chunk& chunk, bool allocateFullSize)
     }
 }
 
-bool locationOutOfChunk(int x, int y, int z)
+bool isLocationOutOfChunk(int x, int y, int z)
 {
     return x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE || z < 0 || z >= CHUNK_SIZE;
 }
 
-bool locationOutOfChunk(int x, int y) { return x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE; }
+bool isLocationOutOfChunk(int x, int y) { return x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_SIZE; }
 
 int chunkLocationToIndex(const int x, const int y, const int z)
 {
-    assertm(!locationOutOfChunk(x, y, z), "tried to access chunk out of range");
+    assertm(!isLocationOutOfChunk(x, y, z), "tried to access chunk out of range");
 
     return x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
 }
 
 int chunkLocationToIndex(const int x, const int y)
 {
-    assertm(!locationOutOfChunk(x, y), "tried to access 2d chunk out of range");
+    assertm(!isLocationOutOfChunk(x, y), "tried to access 2d chunk out of range");
 
     return x + y * CHUNK_SIZE;
 }
@@ -66,31 +65,37 @@ void chunkIndexToLocation(const int index, int& x, int& y, int& z)
     z = index / (CHUNK_SIZE * CHUNK_SIZE);
 }
 
-BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk* chunk)
+BlockType chunkGetBlockAtLocation(const glm::i32vec3 loc, Chunk& chunk)
 {
-    assertm(!locationOutOfChunk(x, y, z), "tried to access chunk out of range");
+    assertm(!isLocationOutOfChunk(loc.x, loc.y, loc.z), "tried to access chunk out of range");
 
-    return chunk->blocks[chunk->containsDifferentBlocks * (x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE)];
+    return chunk.blocks[chunk.containsDifferentBlocks * (loc.x + loc.y * CHUNK_SIZE + loc.z * CHUNK_SIZE * CHUNK_SIZE)];
 }
 
 BlockType chunkGetBlockAtLocation(const int x, const int y, const int z, Chunk& chunk)
 {
-    assertm(!locationOutOfChunk(x, y, z), "tried to access chunk out of range");
+    assertm(!isLocationOutOfChunk(x, y, z), "tried to access chunk out of range");
 
     return chunk.blocks[chunk.containsDifferentBlocks * (x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE)];
 }
 
-glm::ivec3 getChunkLocation(int x, int y, int z)
+glm::ivec3 worldToChunkLocation(int x, int y, int z)
 {
     return glm::ivec3(
         std::floor(x / (float)CHUNK_SIZE), std::floor(y / (float)CHUNK_SIZE), std::floor(z / (float)CHUNK_SIZE));
 }
 
-glm::ivec3 getChunkLocation(glm::ivec3 blockLocation)
+glm::ivec3 worldToChunkLocation(glm::ivec3 loc)
 {
-    return glm::ivec3(std::floor(blockLocation.x / (float)CHUNK_SIZE),
-                      std::floor(blockLocation.y / (float)CHUNK_SIZE),
-                      std::floor(blockLocation.z / (float)CHUNK_SIZE));
+    return glm::ivec3(std::floor(loc.x / (float)CHUNK_SIZE),
+                      std::floor(loc.y / (float)CHUNK_SIZE),
+                      std::floor(loc.z / (float)CHUNK_SIZE));
+}
+
+glm::i32vec3 worldToBlockLocation(glm::i32vec3 loc)
+{
+    return glm::i32vec3{
+        alwaysPosModulo(loc.x, CHUNK_SIZE), alwaysPosModulo(loc.y, CHUNK_SIZE), alwaysPosModulo(loc.z, CHUNK_SIZE)};
 }
 
 void chunkSetBlock(int x, int y, int z, BlockType blockType, Chunk& chunk)
@@ -114,4 +119,3 @@ void chunkSetBlock(int i, BlockType blockType, Chunk& chunk)
         chunk.blocks[i] = blockType;
     }
 }
-

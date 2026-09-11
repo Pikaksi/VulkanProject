@@ -10,8 +10,8 @@
 
 glm::vec2 UIManager::getMousePositionScreenSpace()
 {
-    return glm::vec2((float)PlayerInputHandler::getInstance().mouseLocationX * 2.0f / (float)extent.width - 1.0f,
-                     (float)PlayerInputHandler::getInstance().mouseLocationY * 2.0f / (float)extent.height - 1.0f);
+    return glm::vec2((float)inputHandler.mouseLocationX * 2.0f / (float)extent.width - 1.0f,
+                     (float)inputHandler.mouseLocationY * 2.0f / (float)extent.height - 1.0f);
 }
 
 void UIManager::changeExtent(VkExtent2D newExtent)

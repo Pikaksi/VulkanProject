@@ -12,9 +12,11 @@ const uint32_t INDEX_BUFFER_QUAD_COUNT = 100000;
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 900;
+//const uint32_t WIDTH = 1920;
+//const uint32_t HEIGHT = 1127;
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+static bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+static bool enableValidationLayers = true;
 #endif

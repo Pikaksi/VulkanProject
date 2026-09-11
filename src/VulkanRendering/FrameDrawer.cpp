@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <vector>
 #include <array>
+#include <iostream>
 
 #include "FrameDrawer.hpp"
 #include "Constants.hpp"
@@ -150,7 +151,7 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
             .dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-            .image = swapChainInfo.sunShadowImage.image,
+            .image = draw.sunShadowImage.image,
             .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
         };
         VkDependencyInfo barrierDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
@@ -162,7 +163,7 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
 
     VkRenderingAttachmentInfo sunShadowDepthAttachmentInfo{};
     sunShadowDepthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    sunShadowDepthAttachmentInfo.imageView = swapChainInfo.sunShadowImage.view;
+    sunShadowDepthAttachmentInfo.imageView = draw.sunShadowImage.view;
     sunShadowDepthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
     sunShadowDepthAttachmentInfo.clearValue = VkClearValue{
         .depthStencil = VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}
@@ -234,7 +235,7 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
             .dstAccessMask = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
             .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            .image = swapChainInfo.sunShadowImage.image,
+            .image = draw.sunShadowImage.image,
             .subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
         };
 
@@ -425,7 +426,6 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
         draw.uiManager.gpuMemoryBlocks[draw.currentFrame], uiVertexBuffer, uiVertexOffsets, uiBatchSizes);
     VkBuffer uiIndexBuffer = draw.vertexBufferManager.quadStripIndexBuffer.getBuffer();
 
-    vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
     vkCmdBindDescriptorSets(commandBuffer,
                             VK_PIPELINE_BIND_POINT_GRAPHICS,
                             draw.pipeline2d.layout,
@@ -434,13 +434,20 @@ void recordCommandBuffer(SwapChainInfo& swapChainInfo, FrameDrawInfo& draw, uint
                             &draw.descriptorSets2d[draw.currentFrame],
                             0,
                             nullptr);
-    for (int i = 0; i < uiVertexOffsets.size(); i++) {
-        VkBuffer vertexBuffers[] = {uiVertexBuffer};
-        VkDeviceSize offsets[] = {uiVertexOffsets[i]};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, uiIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    VkBuffer vertexBuffers[] = {uiVertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdDrawIndexed(commandBuffer, uiBatchSizes[i] / sizeof(Vertex2D) / 2 * 3, 1, 0, 0, 0);
+    for (int i = 0; i < uiVertexOffsets.size(); i++) {
+        vkCmdDrawIndexed(commandBuffer, uiBatchSizes[i] / (sizeof(Vertex2D) * 2) * 3, 1, 0, uiVertexOffsets[i] / sizeof(Vertex2D), 0);
     }
+    // Single quad draw per draw call. Usefull for debugging.
+    /*for (int i = 0; i < uiVertexOffsets.size(); i++) {
+        for (int k = 0; k < uiBatchSizes[i] / (4 * sizeof(Vertex2D)); k++) {
+            vkCmdDrawIndexed(commandBuffer, 6, 1, 0, (uiVertexOffsets[i] / sizeof(Vertex2D) + k * 4), 0);
+        }
+    }*/
 
     vkCmdEndRendering(commandBuffer);
 

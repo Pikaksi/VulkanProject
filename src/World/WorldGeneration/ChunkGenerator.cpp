@@ -7,6 +7,7 @@
 #include "Chunk.hpp"
 #include "ChunkRenderer.hpp"
 #include "FastNoise/FastNoise.h"
+#include "FastNoise/Generators/Generator.h"
 #include "assertm.hpp"
 
 const int grassDirtLayerHeight = 3;
@@ -117,8 +118,9 @@ void generateTree(
                     treeTrunkNoiseOutput[treeNoiseChunkLocationToIndex(xOffset, yOffset, zOffset)];
 
                 glm::i32vec3 loc = glm::i32vec3{x + xOffset - treetopNoiseMapRadius,
-                                    y + yOffset + treeStructureHeightOffset,
-                                    z + zOffset - treetopNoiseMapRadius} + chunkLocation * CHUNK_SIZE;
+                                                y + yOffset + treeStructureHeightOffset,
+                                                z + zOffset - treetopNoiseMapRadius} +
+                                   chunkLocation * CHUNK_SIZE;
 
                 if (treeNoiseValue + logExtraNoiseValue < -3.0f || treeTrunkNoiseValue < -3.0f) {
                     structureBlocks.push_back(std::make_pair(loc, BlockType::oakLog));
@@ -137,24 +139,35 @@ void generateChunk(glm::i32vec3 chunkLocation,
                    Chunk& chunk,
                    std::vector<std::pair<glm::i32vec3, BlockType>>& structureBlocks)
 {
-    chunk = Chunk(true);
     // The string is generated with the FastNoise2 noisetool.
-    //static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
-    static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECKabRDsECiQJLgAB@BCQ0ABQ@BjhejRACQc@ABIRBA9Cle/GGZmZj8EA5qZGT8LAACAPxwDAABwQgQ=");
+    // static FastNoise::SmartNode<> groundGenerator =
+    // FastNoise::NewFromEncodedNodeTree("E@BBZEG@BD8JFgIECArXozsECiQIw/UoPwkuAAE@BJDQAF@BC@AIEAJBw@ABZEED0KV78YZmZmPwQDmpkZPwsAAIA/HAMAAHBCBA==");
+    static FastNoise::SmartNode<> groundGenerator = FastNoise::NewFromEncodedNodeTree(
+        "E@BBZEG@BD8JFgIECKabRDsECiQJLgAB@BCQ0ABQ@BjhejRACQc@ABIRBA9Cle/GGZmZj8EA5qZGT8LAACAPxwDAABwQgQ=");
 
     std::vector<float> noiseOutput(CHUNK_SIZE * (CHUNK_SIZE + grassDirtLayerHeight) * CHUNK_SIZE);
 
-    groundGenerator->GenUniformGrid3D(noiseOutput.data(),
-                                      chunkLocation.z * CHUNK_SIZE,
-                                      chunkLocation.y * CHUNK_SIZE,
-                                      chunkLocation.x * CHUNK_SIZE,
-                                      CHUNK_SIZE,
-                                      CHUNK_SIZE + grassDirtLayerHeight,
-                                      CHUNK_SIZE,
-                                      frequency,
-                                      frequency,
-                                      frequency,
-                                      1337);
+    FastNoise::OutputMinMax noiseMinMax = groundGenerator->GenUniformGrid3D(noiseOutput.data(),
+                                                                            chunkLocation.z * CHUNK_SIZE,
+                                                                            chunkLocation.y * CHUNK_SIZE,
+                                                                            chunkLocation.x * CHUNK_SIZE,
+                                                                            CHUNK_SIZE,
+                                                                            CHUNK_SIZE + grassDirtLayerHeight,
+                                                                            CHUNK_SIZE,
+                                                                            frequency,
+                                                                            frequency,
+                                                                            frequency,
+                                                                            1337);
+    if (noiseMinMax.min >= noiseAirMinValue) {
+        chunk = Chunk(false);
+        chunk.blocks[0] = BlockType::air;
+    }
+    if (noiseMinMax.max <= noiseAirMinValue) {
+        chunk = Chunk(false);
+        chunk.blocks[0] = BlockType::stone;
+    }
+
+    chunk = Chunk(true);
 
     assertm(chunk.blocks.size() == CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE, "Chunk size is wrong in generation");
 
@@ -178,8 +191,8 @@ void generateChunk(glm::i32vec3 chunkLocation,
                             chunk.blocks[chunkLocationToIndex(x, y, z)] = BlockType::grass;
 
                             if (randomFloat01() < 0.3f) {
-                                structureBlocks.push_back(
-                                    std::make_pair(glm::i32vec3{x, y + 1, z} + chunkLocation * CHUNK_SIZE, BlockType::grassPlant));
+                                structureBlocks.push_back(std::make_pair(
+                                    glm::i32vec3{x, y + 1, z} + chunkLocation * CHUNK_SIZE, BlockType::grassPlant));
                             }
                             if (randomFloat01() < 0.002f) {
                                 generateTree(x, y + 1, z, chunkLocation, structureBlocks);

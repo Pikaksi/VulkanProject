@@ -29,6 +29,7 @@
 #include "CameraHandler.hpp"
 #include "World/WorldManager.hpp"
 #include "Player/PlayerInventoryManager.hpp"
+#include "blockEntityManager.hpp"
 
 class Application
 {
@@ -56,6 +57,7 @@ private:
     ImageInfo blockTextureImageArray = ImageInfo();
     VkSampler blockTextureArraySampler;
 
+    ImageInfo sunShadowImage = ImageInfo();
     VkSampler sunShadowSampler;
 
     ImageInfo blockTextureImage = ImageInfo();
@@ -92,7 +94,9 @@ private:
     WorldManager worldManager;
     UIManager uiManager;
     DebugMenu debugMenu;
-    PlayerInventoryManager playerInventoryManager;
+    BlockEntityManager blockEntityManager;
+
+    PlayerInfo playerInfo;
 
     std::chrono::steady_clock::time_point fpsTimer;
 

@@ -20,27 +20,27 @@ void CameraHandler::updateCameraTransform()
     float timePassed = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - timeLastFrame).count();
     timeLastFrame = currentTime;
 
-    float speed = speedNormal * (PlayerInputHandler::getInstance().shiftHeld ? slowerSpeedMultiplier : 1) *
-                  (PlayerInputHandler::getInstance().ctrlHeld ? fasterSpeedMultiplier : 1);
+    float speed = speedNormal * (inputHandler.keyHeld(GLFW_KEY_LEFT_SHIFT) ? slowerSpeedMultiplier : 1) *
+                  (inputHandler.keyHeld(GLFW_KEY_LEFT_ALT) ? fasterSpeedMultiplier : 1);
 
-    if (PlayerInputHandler::getInstance().wHeld) {
+    if (inputHandler.keyHeld(GLFW_KEY_W)) {
         position += cameraForwardDirection() * speed * timePassed;
     }
-    if (PlayerInputHandler::getInstance().sHeld) {
+    if (inputHandler.keyHeld(GLFW_KEY_S)) {
         position -= cameraForwardDirection() * speed * timePassed;
     }
 
-    if (PlayerInputHandler::getInstance().dHeld) {
+    if (inputHandler.keyHeld(GLFW_KEY_D)) {
         position += cameraRightDirection() * speed * timePassed;
     }
-    if (PlayerInputHandler::getInstance().aHeld) {
+    if (inputHandler.keyHeld(GLFW_KEY_A)) {
         position -= cameraRightDirection() * speed * timePassed;
     }
 
-    if (PlayerInputHandler::getInstance().eHeld) {
+    if (inputHandler.keyHeld(GLFW_KEY_SPACE)) {
         position += cameraUpDirection() * speed * timePassed;
     }
-    if (PlayerInputHandler::getInstance().qHeld) {
+    if (inputHandler.keyHeld(GLFW_KEY_LEFT_CONTROL)) {
         position -= cameraUpDirection() * speed * timePassed;
     }
 
@@ -49,14 +49,12 @@ void CameraHandler::updateCameraTransform()
         "  time passed is: " << timePassed <<
         "  rotation = " << rotationX << "   " << rotationY << "\n";*/
 
-    rotationX += PlayerInputHandler::getInstance().mouseMovementX * sensitivity;
-    rotationY += -PlayerInputHandler::getInstance().mouseMovementY * sensitivity;
+    if (inputHandler.cursorIsEnabled() == false) {
+        rotationX += inputHandler.mouseMovementX * sensitivity;
+        rotationY += -inputHandler.mouseMovementY * sensitivity;
+    }
 
     rotationY = std::clamp(rotationY, glm::radians(-89.0f), glm::radians(89.0f));
-
-    // Has to be done because mouse movement is only updated if the mouse is moved.
-    PlayerInputHandler::getInstance().mouseMovementX = 0.0f;
-    PlayerInputHandler::getInstance().mouseMovementY = 0.0f;
 }
 
 void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBufferObject& ubo)
@@ -69,7 +67,7 @@ void CameraHandler::getCameraMatrix(VkExtent2D swapChainExtent, CameraUniformBuf
                                                  // positive right axis appear on the right of the screen.
         );
     glm::mat4x4 cameraProj =
-        glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1500.0f);
+        glm::perspective(fovY, swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 4000.0f);
 
     ubo.camera = cameraProj * cameraView;
     // ubo.camera[1][1] *= -1;

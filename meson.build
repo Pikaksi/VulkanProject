@@ -1,10 +1,14 @@
 project('my_app', 'cpp',
   version : '0.1',
-  default_options : ['warning_level=1'])
+  default_options : ['warning_level=1', 'b_ndebug=if-release'])
 
 run_env = environment()
 
 src = [
+  'src/Rendering/sunShadows.cpp',
+  'src/blockEntities/blockEntityCrafting.cpp',
+  'src/blockEntities/blockEntity.cpp',
+  'src/blockEntities/blockEntityManager.cpp',
   'src/util/threadPool.cpp',
   'src/util/stbi_images.cpp',
   'src/World/chunkMesher.cpp',
@@ -42,8 +46,6 @@ src = [
   'src/World/WorldManager.cpp',
   'src/PlayerInputHandler.cpp',
   'src/Player/PlaceBlock.cpp',
-  'src/ECS/EntityManager.cpp',
-  'src/ECS/EntityCreator.cpp',
   'src/Rendering/Vertex.cpp',
   'src/FilePathHandler.cpp',
   'src/CameraHandler.cpp',
@@ -117,7 +119,6 @@ include_dirs = [
   include_directories('src'),
   include_directories('src/2dRendering'),
   include_directories('src/3dRendering'),
-  include_directories('src/ECS'),
   include_directories('src/Inventory'),
   include_directories('src/Player'),
   include_directories('src/Rendering'),
@@ -125,6 +126,7 @@ include_dirs = [
   include_directories('src/World'),
   include_directories('src/VulkanRendering'),
   include_directories('src/util'),
+  include_directories('src/blockEntities'),
 ]
 
 should_install = false
@@ -137,8 +139,8 @@ my_exe = executable('myexe',
   dependencies : deps,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
-  cpp_args : ['-W -g'],
-  install : should_install
+  cpp_args : ['-w'],
+  install : should_install,
 )
 
 if host_machine.system() == 'linux'

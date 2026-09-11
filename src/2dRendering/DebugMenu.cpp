@@ -15,29 +15,33 @@ void DebugMenu::update(UIManager& uiManager,
                        CameraHandler& cameraHandler)
 {
     checkIfEnabledStatus(uiManager);
+    debugMenuGlobals.isEnabledCopy = isEnabled;
     if (!isEnabled) {
         return;
     }
 
     fpsCounter++;
 
-    clock_gettime(CLOCK_MONOTONIC, &timeOsFpsEnd);
-    auto timeFromLastUIRefreshOs =
-        timeOsFpsEnd.tv_sec + 1e-9 * timeOsFpsEnd.tv_nsec - (timeOsFpsStart.tv_sec + 1e-9 * timeOsFpsStart.tv_nsec);
-
     auto currentTime = std::chrono::high_resolution_clock::now();
     auto timeFromLastUIRefresh =
         std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastUIRefreshTime).count();
+    auto timeFromLastFrame =
+        std::chrono::duration<double, std::chrono::milliseconds::period>(currentTime - lastFrameTime).count();
+
+    maxFrameTimeMs = std::max(maxFrameTimeMs, timeFromLastFrame);
+
     if (timeFromLastUIRefresh > refreshInterval) {
-        clock_gettime(CLOCK_MONOTONIC, &timeOsFpsStart);
         lastUIRefreshTime = currentTime;
 
         lastRecordedFPS = fpsCounter / timeFromLastUIRefresh;
-        lastRecordedFPSOs = fpsCounter / timeFromLastUIRefreshOs;
+        maxFrameTimeMsDisplay = maxFrameTimeMs;
+        maxFrameTimeMs = 0;
 
         fpsCounter = 0;
     }
     drawUI(uiManager, vertexBufferManager, lastRecordedFPS, worldManager, cameraHandler);
+
+    lastFrameTime = currentTime;
 }
 
 void DebugMenu::drawUI(UIManager& uiManager,
@@ -51,13 +55,13 @@ void DebugMenu::drawUI(UIManager& uiManager,
         uiManager, {-1.0f, -1.0f}, 0.05f, UICenteringMode::topLeft, UICenteringMode::topLeft,
         
         "Fps: " + std::to_string(fps) + '\n' +
-        "Fps Os clock: " + std::to_string(lastRecordedFPSOs) + '\n' +
+        "Max frame time: " + std::to_string(maxFrameTimeMsDisplay) + '\n' +
         "Fence wait duration: " + std::to_string(fenceWaitTimeLast) + " ms" + '\n' +
-        "Chunk mesh time avg: " + std::to_string(debugMenuGlobals.chunkGenTimeTotal / (double)debugMenuGlobals.chunksGenerated) + " micro s" + '\n' +
+        "Chunk mesh time avg: " + std::to_string(debugMenuGlobals.chunkMeshTimeTotal / (double)debugMenuGlobals.chunksMeshed) + " micro s" + '\n' +
         "vertex count: " + std::to_string(gpuMemoryBlockDataSize(*vertexBufferManager.worldGpuMemoryBlock) / sizeof(Vertex)) +
         '\n' + "Chunks loaded: " + std::to_string(worldManager.chunks.size()) +
         " percentage compressed : " +
-        std::to_string((float)debugMenuGlobals.chunksGeneratedCompressed / (float)debugMenuGlobals.chunksGenerated) +
+        std::to_string((float)debugMenuGlobals.chunkCountCompressed / (float)debugMenuGlobals.chunkCount) +
         " block size total: " + std::to_string(debugMenuGlobals.blockSizeTotal / 1024 / 1024) + "mB\n" +
         "x: " + std::to_string(cameraHandler.position.x) + " y: " + std::to_string(cameraHandler.position.y) +
         " z: " + std::to_string(cameraHandler.position.z) + '\n' + "pitch: " +
@@ -71,7 +75,7 @@ void DebugMenu::drawUI(UIManager& uiManager,
 
 void DebugMenu::checkIfEnabledStatus(UIManager& uiManager)
 {
-    if (PlayerInputHandler::getInstance().f3Pressed) {
+    if (inputHandler.keyPressed(GLFW_KEY_F3)) {
         if (isEnabled) {
             disableMenu(uiManager);
         }

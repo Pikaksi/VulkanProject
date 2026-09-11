@@ -18,7 +18,7 @@ void gpuMemoryBlockInit(VulkanCoreInfo& vulkanCoreInfo,
         createBuffer(vulkanCoreInfo,
                      gpuMemoryBlock.bufferSize,
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, // TODO: use device local and host coherent? maybe perf gain.
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, // TODO: use device local and host coherent? maybe perf gain.
                      gpuMemoryBlock.buffer,
                      gpuMemoryBlock.deviceMemory);
 

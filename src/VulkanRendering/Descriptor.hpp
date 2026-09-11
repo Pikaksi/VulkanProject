@@ -4,7 +4,7 @@
 
 VkDescriptorSetLayout createDescriptorSetLayout3d(VulkanCoreInfo& vulkanCoreInfo);
 VkDescriptorSetLayout createDescriptorSetLayoutLod(VulkanCoreInfo& vulkanCoreInfo);
-VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo);
+VkDescriptorSetLayout createDescriptorSetLayout2d(VulkanCoreInfo& vulkanCoreInfo, uint32_t imageCount);
 
 VkDescriptorPool createDescriptorPool(VulkanCoreInfo& vulkanCoreInfo, uint32_t uiImageCount);
 

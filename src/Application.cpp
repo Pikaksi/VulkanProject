@@ -13,7 +13,10 @@
 #include "VulkanRendering/SwapChain.hpp"
 #include "Player/PlayerControls.hpp"
 #include "BlockDataLookup.hpp"
+#include "assertm.hpp"
 #include "threadPool.hpp"
+#include "blockEntityCrafting.hpp"
+#include "sunShadows.hpp"
 
 #include <time.h>
 
@@ -47,22 +50,33 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 
 void Application::initGame()
 {
-    globalThreadPool.init(8);
+    globalThreadPool.init(1);
 
-    PlayerInputHandler::getInstance().window = vulkanCoreInfo.window;
-    PlayerInputHandler::getInstance().initGLFWControlCallbacks();
+    initBlockDataLookup();
+
+    inputHandler.window = vulkanCoreInfo.window;
+    inputHandler.initGLFWControlCallbacks();
+
+    playerInfo.playerInventory.itemStacks[0] = ItemStack{Item::drillBlock, 10};
+    playerInfo.playerInventory.itemStacks[1] = ItemStack{Item::furnaceBlock, 10};
+    playerInfo.playerInventory.itemStacks[2] = ItemStack{Item::stick, 10};
+    playerInfo.playerInventory.itemStacks[3] = ItemStack{Item::oakLog, 10};
+    playerInfo.playerInventory.itemStacks[4] = ItemStack{Item::oakPlank, 10};
+    playerInfo.playerInventory.itemStacks[5] = ItemStack{Item::dirt, 1};
+    playerInfo.playerInventory.itemStacks[6] = ItemStack{Item::pipeBlock, 10};
+    playerInfo.playerInventory.itemStacks[7] = ItemStack{Item::pipeInBlock, 10};
+    playerInfo.playerInventory.itemStacks[8] = ItemStack{Item::pipeOutBlock, 10};
 
     uiManager.init(vulkanCoreInfo, swapChainInfo.extent);
 
     generateInventoryLayouts();
 
+    initCraftingRecipes();
+
     debugMenu = DebugMenu();
-    playerInventoryManager = PlayerInventoryManager();
 
     int worldVertexBufferSize = 1 * 1024 * 1024 * 1024;
     vertexBufferManager = VertexBufferManager(vulkanCoreInfo, commandPool, worldVertexBufferSize);
-
-    blockDataLookupInit();
 }
 
 void Application::initVulkan()
@@ -79,6 +93,9 @@ void Application::initVulkan()
 
     createSwapChain(vulkanCoreInfo, swapChainInfo, commandPool);
 
+    uiTextureSampler = createUITextureSampler(vulkanCoreInfo);
+    createUIImageInfos(vulkanCoreInfo, commandPool, uiImageInfos);
+
     descriptorSetLayout3d = createDescriptorSetLayout3d(vulkanCoreInfo);
     createGraphicsPipeline3d(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo3d, descriptorSetLayout3d);
 
@@ -88,7 +105,7 @@ void Application::initVulkan()
     createGraphicsPipelineSunShadow(
         vulkanCoreInfo, swapChainInfo, graphicsPipelineInfoSunShadow, descriptorSetLayout3d);
 
-    descriptorSetLayout2d = createDescriptorSetLayout2d(vulkanCoreInfo);
+    descriptorSetLayout2d = createDescriptorSetLayout2d(vulkanCoreInfo, uiImageInfos.size());
     createGraphicsPipeline2d(vulkanCoreInfo, swapChainInfo, graphicsPipelineInfo2d, descriptorSetLayout2d);
 
     createCameraUniformBuffers(vulkanCoreInfo, cameraUniformBuffers);
@@ -96,10 +113,8 @@ void Application::initVulkan()
     blockTextureArraySampler = createBlockTextureSampler(vulkanCoreInfo);
     createBlockTextureArray(vulkanCoreInfo, blockTextureImageArray, commandPool, false);
 
+    createShadowDepthImage(vulkanCoreInfo, swapChainInfo, commandPool, sunShadowImage);
     sunShadowSampler = createSunShadowSampler(vulkanCoreInfo);
-
-    uiTextureSampler = createUITextureSampler(vulkanCoreInfo);
-    createUIImageInfos(vulkanCoreInfo, commandPool, uiImageInfos);
 
     descriptorPool = createDescriptorPool(vulkanCoreInfo, uiImageInfos.size());
 
@@ -107,7 +122,7 @@ void Application::initVulkan()
                                                 descriptorPool,
                                                 descriptorSetLayoutLod,
                                                 cameraUniformBuffers,
-                                                swapChainInfo.sunShadowImage,
+                                                sunShadowImage,
                                                 sunShadowSampler);
 
     descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo,
@@ -116,7 +131,7 @@ void Application::initVulkan()
                                               cameraUniformBuffers,
                                               blockTextureImageArray,
                                               blockTextureArraySampler,
-                                              swapChainInfo.sunShadowImage,
+                                              sunShadowImage,
                                               sunShadowSampler);
 
     descriptorSets2d =
@@ -133,11 +148,13 @@ void Application::mainLoop()
     while (!glfwWindowShouldClose(vulkanCoreInfo.window)) {
 
         glfwPollEvents();
-        PlayerInputHandler::getInstance().update();
+        inputHandler.update();
 
         cameraHandler.updateCameraTransform();
 
         gameMainLoop();
+
+        assertm(sunShadowImage.view != nullptr, "is null");
 
         FrameDrawInfo frame{.pipelineLod = graphicsPipelineInfoLod,
                             .pipeline3d = graphicsPipelineInfo3d,
@@ -147,6 +164,7 @@ void Application::mainLoop()
                             .descriptorSets3d = descriptorSets3d,
                             .descriptorSets2d = descriptorSets2d,
                             .uniformBufferInfos = cameraUniformBuffers,
+                            .sunShadowImage = sunShadowImage,
                             .currentFrame = currentFrame,
                             .framebufferResized = framebufferResized,
                             .commandBuffers = commandBuffers,
@@ -173,7 +191,7 @@ void Application::gameMainLoop()
                                               std::floor(cameraHandler.position.z / (float)CHUNK_SIZE));
 
     static bool renderingEnabled = true;
-    if (PlayerInputHandler::getInstance().f4Pressed) {
+    if (inputHandler.keyPressed(GLFW_KEY_F4)) {
         renderingEnabled = !renderingEnabled;
     }
     if (renderingEnabled) {
@@ -181,9 +199,10 @@ void Application::gameMainLoop()
         chunkRenderer.update(vulkanCoreInfo, commandPool, worldManager, vertexBufferManager, chunkLocation);
     }
 
-    playerInventoryManager.update(uiManager);
+    blockEntityManager.updateBlockEntities();
 
-    updatePlayerControls(cameraHandler.position, worldManager, chunkRenderer, playerInventoryManager);
+    updatePlayerControls(cameraHandler.position, worldManager, blockEntityManager, chunkRenderer, cameraHandler, playerInfo);
+    updatePlayerInventory(playerInfo, uiManager, blockEntityManager);
 
     debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);
 }
@@ -214,6 +233,10 @@ void Application::cleanup()
     }
 
     vkDestroyDescriptorPool(vulkanCoreInfo.device, descriptorPool, nullptr);
+
+    vkDestroyImageView(vulkanCoreInfo.device, sunShadowImage.view, nullptr);
+    vkDestroyImage(vulkanCoreInfo.device, sunShadowImage.image, nullptr);
+    vkFreeMemory(vulkanCoreInfo.device, sunShadowImage.memory, nullptr);
 
     vkDestroyImageView(vulkanCoreInfo.device, blockTextureImageArray.view, nullptr);
     vkDestroyImage(vulkanCoreInfo.device, blockTextureImageArray.image, nullptr);
@@ -253,4 +276,7 @@ void Application::cleanup()
     glfwDestroyWindow(vulkanCoreInfo.window);
 
     glfwTerminate();
+
+    globalThreadPool.destroy();
+    blockDataLookupCleanup();
 }

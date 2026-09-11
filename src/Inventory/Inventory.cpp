@@ -6,7 +6,7 @@
 
 bool moveItemFromInventory(int itemSlot, Inventory& srcInventory, Inventory& dstInventory)
 {
-    ItemStack itemStackToMove = srcInventory.getItem(itemSlot);
+    ItemStack itemStackToMove = srcInventory.itemStacks[itemSlot];
 
     if (itemStackToMove.item == Item::empty) {
         return true;
@@ -14,18 +14,18 @@ bool moveItemFromInventory(int itemSlot, Inventory& srcInventory, Inventory& dst
 
     if (dstInventory.hasSpaceForItem(itemStackToMove)) {
         dstInventory.insertItem(itemStackToMove);
-        srcInventory.setItem(itemSlot, ItemStack(Item::empty, 0));
+        srcInventory.itemStacks[itemSlot] = ItemStack(Item::empty, 0);
         return true;
     }
     return false;
 }
 
-void swapSlots(int firstSlot, int secondSlot, Inventory& firstInventory, Inventory& secondInventory)
+/*void swapSlots(int firstSlot, int secondSlot, Inventory& firstInventory, Inventory& secondInventory)
 {
-    ItemStack temporaryItemStack = firstInventory.getItem(firstSlot);
+    ItemStack temporaryItemStack = firstInventory.(firstSlot);
     firstInventory.setItem(firstSlot, secondInventory.getItem(secondSlot));
     secondInventory.setItem(secondSlot, temporaryItemStack);
-}
+}*/
 
 void Inventory::insertItem(ItemStack itemStack)
 {
@@ -120,17 +120,6 @@ void Inventory::swapSlots(int firstSlot, int secondSlot)
     ItemStack temporaryItemStack = itemStacks[firstSlot];
     itemStacks[firstSlot] = itemStacks[secondSlot];
     itemStacks[secondSlot] = temporaryItemStack;
-}
-
-ItemStack Inventory::getItem(int itemSlot)
-{
-    return itemStacks[itemSlot];
-}
-
-
-void Inventory::setItem(int itemSlot, ItemStack itemStack)
-{
-    itemStacks[itemSlot] = itemStack;
 }
 
 uint32_t Inventory::getSize()

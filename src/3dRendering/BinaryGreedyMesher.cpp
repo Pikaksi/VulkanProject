@@ -3,6 +3,7 @@
 #include <numbers>
 #include <bitset>
 #include <algorithm>
+#include <iostream>
 
 #include "World/BlockDataLookup.hpp"
 #include "World/Chunk.hpp"
@@ -25,7 +26,7 @@ void printChunkLayerX(Chunk& chunk, int x)
 {
     for (int y = 0; y < CHUNK_SIZE; y++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
-            std::cout << (int)chunkGetBlockAtLocation(x, y, z, &chunk);
+            std::cout << (int)chunkGetBlockAtLocation(x, y, z, chunk);
         }
         std::cout << "\n";
     }
@@ -308,7 +309,7 @@ void blockArrayMesher(std::array<BlockType, (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2) 
                 BlockType block = blocks[blockArrayLocToIndex(x, y, z)];
 
                 if (getRenderType(block) == BlockRenderType::transparent) {
-                    assertm(false, "custom block not implemented");
+                    assertm(false, "transparent block not implemented currently");
                     // renderNonSolidBlock(x, y, z, block, vertices);
                 }
                 if (getRenderType(block) == BlockRenderType::custom) {

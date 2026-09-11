@@ -1,32 +1,63 @@
 #include "PlayerInputHandler.hpp"
+#include "assertm.hpp"
 
 #include <iostream>
 
+InputHandler inputHandler = InputHandler();
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    PlayerInputHandler::getInstance().handleKeyPress(window, key, scancode, action, mods);
+    if (key == GLFW_DONT_CARE) return;
+    assertm(key <= GLFW_KEY_LAST, "glfw key callback gave a bad key somehow");
+    if (action == GLFW_PRESS) {
+        inputHandler.keyboardKeyStates[key].held = true;
+    }
+    else if (action == GLFW_RELEASE) {
+        inputHandler.keyboardKeyStates[key].held = false;
+    }
 }
 
 void cursorPositionCallback(GLFWwindow* window, double xPos, double yPos)
 {
-    PlayerInputHandler::getInstance().handleMouseMovement(window, xPos, yPos);
+    inputHandler.mouseLocationX = xPos;
+    inputHandler.mouseLocationY = yPos;
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    PlayerInputHandler::getInstance().handleMouseButtonCallback(window, button, action, mods);
+    if (action == GLFW_PRESS) {
+        inputHandler.mouseKeyStates[button].held = true;
+    }
+    else if (action == GLFW_RELEASE) {
+        inputHandler.mouseKeyStates[button].held = false;
+    }
 }
 
-void PlayerInputHandler::initGLFWControlCallbacks()
+void focusCallback(GLFWwindow* window, int focused)
 {
-	glfwSetKeyCallback(window, keyCallback);
+    if (focused) {
+        // The window gained focus back
+        inputHandler.framesSinceFocusedIn = 0;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    else {
+        // The window lost focus (tabbed out)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+}
 
+void InputHandler::initGLFWControlCallbacks()
+{
+    glfwSetWindowFocusCallback(window, focusCallback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    glfwSetKeyCallback(window, keyCallback);
+
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, cursorPositionCallback);
 }
 
-void PlayerInputHandler::enableCursor()
+void InputHandler::enableCursor()
 {
     cursorEnabledRequestCount += 1;
     if (cursorEnabledRequestCount == 1) {
@@ -39,11 +70,9 @@ void PlayerInputHandler::enableCursor()
     }
 }
 
-void PlayerInputHandler::disableCursor()
+void InputHandler::disableCursor()
 {
-    if (cursorEnabledRequestCount == 0) {
-        throw std::runtime_error("requested to disable cursor when it was already disabled");
-    }
+    assertm(cursorEnabledRequestCount != 0, "requested to disable cursor when it was already disabled");
 
     cursorEnabledRequestCount -= 1;
     if (cursorEnabledRequestCount == 0) {
@@ -51,72 +80,41 @@ void PlayerInputHandler::disableCursor()
     }
 }
 
-bool PlayerInputHandler::cursorIsEnabled()
+bool InputHandler::cursorIsEnabled() { return cursorEnabledRequestCount != 0; }
+bool InputHandler::keyPressed(int key)
 {
-    return cursorEnabledRequestCount != 0;
+    assertm(key <= GLFW_KEY_LAST, "Key code for keyboard does not exist");
+    return keyboardKeyStates[key].pressed;
 }
+bool InputHandler::keyHeld(int key) { return keyboardKeyStates[key].held; }
+bool InputHandler::mousePressed(int key) { 
+    assertm(key <= GLFW_MOUSE_BUTTON_LAST, "Key code for mouse does not exist");
+    return mouseKeyStates[key].pressed; }
+bool InputHandler::mouseHeld(int key) { return mouseKeyStates[key].held; }
 
-void PlayerInputHandler::handleMouseMovement(GLFWwindow* window, double xPos, double yPos)
+void InputHandler::update()
 {
-    if (!cursorIsEnabled()) {
-        mouseMovementX = xPos - mouseLocationX;
-        mouseMovementY = yPos - mouseLocationY;
+    for (int i = 0; i < keyboardKeyCount; i++) {
+        KeyState& keyState = keyboardKeyStates[i];
+        keyState.pressed = keyState.held && !keyState.heldPreviousFrame;
+        keyState.heldPreviousFrame = keyState.held;
     }
 
-    //std::cout << "mouse movement is " << mouseMovementX << "  " << mouseMovementY << "\n";
-
-    mouseLocationX = xPos;
-    mouseLocationY = yPos;
-}
-
-void PlayerInputHandler::handleMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
-{
-    toggleKeyHeld(GLFW_MOUSE_BUTTON_LEFT, mouseLeftHeld, button, action);
-    toggleKeyHeld(GLFW_MOUSE_BUTTON_RIGHT, mouseRightHeld, button, action);
-}
-
-void PlayerInputHandler::handleKeyPress(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    toggleKeyHeld(GLFW_KEY_W, wHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_A, aHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_S, sHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_D, dHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_Q, qHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_E, eHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_R, rHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_LEFT_SHIFT, shiftHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_LEFT_CONTROL, ctrlHeld, key, action);
-    toggleKeyHeld(GLFW_KEY_F3, f3Held, key, action);
-    toggleKeyHeld(GLFW_KEY_F4, f4Held, key, action);
-}
-
-void PlayerInputHandler::update()
-{
-    toggleKeyOnPress(rHeldPreviousFrame, rHeld, rPressed);
-    toggleKeyOnPress(f3HeldPreviousFrame, f3Held, f3Pressed);
-    toggleKeyOnPress(f4HeldPreviousFrame, f4Held, f4Pressed);
-
-    toggleKeyOnPress(mouseLeftHeldPreviousFrame, mouseLeftHeld, mouseLeftPressed);
-    toggleKeyOnPress(mouseRightHeldPreviousFrame, mouseRightHeld, mouseRightPressed);
-}
-
-void PlayerInputHandler::toggleKeyHeld(int glfwKeyToCompare, bool& valueToModify, int key, int action)
-{
-    if (key == glfwKeyToCompare && action == GLFW_PRESS) {
-        valueToModify = true;
+    for (int i = 0; i < mouseKeyCount; i++) {
+        KeyState& keyState = mouseKeyStates[i];
+        keyState.pressed = keyState.held && !keyState.heldPreviousFrame;
+        keyState.heldPreviousFrame = keyState.held;
     }
-    if (key == glfwKeyToCompare && action == GLFW_RELEASE) {
-        valueToModify = false;
-    }
-}
 
-void PlayerInputHandler::toggleKeyOnPress(bool& previousFrameValue, bool& currentValue, bool& valueToModify)
-{
-    if (previousFrameValue != currentValue && currentValue == true) {
-        valueToModify = true;
+    if (framesSinceFocusedIn > 3) {
+        mouseMovementX = -mousePreviousLocationX + mouseLocationX;
+        mouseMovementY = -mousePreviousLocationY + mouseLocationY;
     }
     else {
-        valueToModify = false;
+        mouseMovementX = 0;
+        mouseMovementY = 0;
     }
-    previousFrameValue = currentValue;
+    mousePreviousLocationX = mouseLocationX;
+    mousePreviousLocationY = mouseLocationY;
+    framesSinceFocusedIn++;
 }
