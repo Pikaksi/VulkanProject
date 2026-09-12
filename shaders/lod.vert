@@ -11,8 +11,8 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 
 struct Vertex {
-    uint position;
-    uint colorNormal;
+    uint positionAndNormal;
+    uint color;
 };
 layout(buffer_reference, std430, buffer_reference_align = 8) readonly buffer VertexBuffer {
     Vertex vertices[];
@@ -59,16 +59,20 @@ const vec3 faceNormals[6] = vec3[6](
 }*/
 
 void main() {
-    vec3 inPositionAndShadow = unpackUnorm4x8(pc.vertexBuffer.vertices[gl_VertexIndex].position).xyz;
-    outPos = pc.chunkWorldLocation + inPositionAndShadow.xyz * pc.chunkSize;
+    uint uint1 = pc.vertexBuffer.vertices[gl_VertexIndex].positionAndNormal;
+    uint uint2 = pc.vertexBuffer.vertices[gl_VertexIndex].color;
 
-    outWorldToSunMat = ubo.worldToSun;
+    vec3 pos = vec3(uint1 & 0xFF, (uint1 >> 8) & 0xFF, (uint1 >> 16) & 0xFF);
+    outPos = pc.chunkWorldLocation + pos.xyz * pc.chunkSize;
+    gl_Position = ubo.camera * vec4(outPos, 1.0);
 
-    outNormal = vec3(1.0, 0, 0);
-    //outNormal = faceNormals[uint(inColorAndNormal.w * 255.0 + 0.5)];
+    uint normalIndex = (uint1 >> 24) & 0xFF;
+    outNormal = faceNormals[normalIndex];
     outShadow = dot(ubo.sunDir, outNormal) > 0 ? 1.0 : 0.0;
 
-    outColor = vec3(0.5, 0.5, 0.5);
+    outColor = unpackUnorm4x8(uint2).xyz;
+
+    outWorldToSunMat = ubo.worldToSun;
 
     /*outPos = pushConstants.chunkWorldLocation + inPosAndShadow.xyz * pushConstants.chunkSize;
     gl_Position = ubo.camera * vec4(outPos, 1.0);

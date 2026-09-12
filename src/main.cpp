@@ -1,9 +1,8 @@
 #include <iostream>
+#include <numeric>
 #include <stdexcept>
 
 #include "Application.hpp"
-
-#include "util/tlsfAllocator.hpp"
 
 int main()
 {

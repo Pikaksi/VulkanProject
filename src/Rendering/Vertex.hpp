@@ -17,7 +17,7 @@ struct Vertex {
     uint32_t posAndNorm;
     uint32_t normAndUv;
     float texCoord;
-    float inShadow;
+    uint32_t inShadow;
 };
 
 struct VertexLod {

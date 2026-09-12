@@ -15,12 +15,39 @@ static int blockArrayLocToIndex(int x, int y, int z)
     return x + y * (CHUNK_SIZE + 2) + z * (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2);
 }
 
-uint32_t packR8G8B8A8_UNORM(float r, float g, float b, float a)
+uint32_t pack4x8(int a, int b, int c, int d) { return a | (b << 8) | (c << 16) | (d << 24); }
+uint32_t pack3x10(int a, int b, int c) { return a | (b << 10) | (c << 20); }
+
+int packUint8(float a) { return round(std::clamp(a, 0.0f, 255.0f)); }
+int packUint10VertexCoordinate(float a) { return round(std::clamp(a * 16.0f, 0.0f, 1023.0f)); }
+
+int packUnorm8(float a) { return round(std::clamp(a, 0.0f, 1.0f) * 255.0f); }
+int packSnorm8(float a) { return round(std::clamp(a, -1.0f, 1.0f) * 127.0f); }
+
+/*uint32_t packR8G8B8A8_UNORM(float r, float g, float b, float a)
 {
     int ri = round(std::clamp(r, 0.0f, 1.0f) * 255);
     int gi = round(std::clamp(g, 0.0f, 1.0f) * 255);
     int bi = round(std::clamp(b, 0.0f, 1.0f) * 255);
     int ai = round(std::clamp(a, 0.0f, 1.0f) * 255);
+    return ri | (gi << 8) | (bi << 16) | (ai << 24);
+}
+
+uint32_t packB8A8_UINT(float r, float g, float b, float a)
+{
+    int ri = round(std::clamp(r, 0.0f, 255.0f));
+    int gi = round(std::clamp(g, 0.0f, 255.0f));
+    int bi = round(std::clamp(b, 0.0f, 255.0f));
+    int ai = round(std::clamp(a, 0.0f, 255.0f));
+    return ri | (gi << 8) | (bi << 16) | (ai << 24);
+}
+
+uint32_t packR8G8_UNORM_B8A8_UINT(float r, float g, float b, float a)
+{
+    int ri = round(std::clamp(r, 0.0f, 1.0f) * 255);
+    int gi = round(std::clamp(g, 0.0f, 1.0f) * 255);
+    int bi = round(std::clamp(b, 0.0f, 255.0f));
+    int ai = round(std::clamp(a, 0.0f, 255.0f));
     return ri | (gi << 8) | (bi << 16) | (ai << 24);
 }
 
@@ -47,20 +74,31 @@ uint32_t packA2R10G10B10_UNORM(float r, float g, float b, float a)
     int bi = round(std::clamp(b, 0.0f, 1.0f) * 1023);
     int ai = round(std::clamp(a, 0.0f, 1.0f) * 3);
     return ri | (gi << 10) | (bi << 20) | (ai << 30);
-}
+}*/
 
 Vertex packVertex(
     float x, float y, float z, float normalX, float normalY, float normalZ, float u, float v, uint32_t textureIndex)
 {
+    // clang-format off
     return Vertex{
-        packR8G8B8A8_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, normalX + 1.0f / 2.0f),
-        packR8G8_UNORM_B8A8_UINT(normalY + 1.0f / 2.0f, normalZ + 1.0f / 2.0f, u, v),
+        pack3x10(packUint10VertexCoordinate(x),
+                packUint10VertexCoordinate(y),
+                packUint10VertexCoordinate(z)),
+        pack4x8(packSnorm8(normalX),
+                packSnorm8(normalY),
+                packSnorm8(normalZ),
+                0),
         (float)textureIndex,
-        0,
+        pack4x8(packUint8(u),
+                packUint8(v),
+                0,
+                0),
     };
+    // clang-format on
 }
 
-VertexLod packVertexLod(float x, float y, float z, float normalX, float normalY, float normalZ, float r, float g, float b)
+VertexLod
+packVertexLod(float x, float y, float z, float normalX, float normalY, float normalZ, float r, float g, float b)
 {
     int normal = 0;
     if (std::abs(normalY) > std::abs(normalX) && std::abs(normalY) > std::abs(normalZ))
@@ -73,8 +111,17 @@ VertexLod packVertexLod(float x, float y, float z, float normalX, float normalY,
         normal = 3;
     if (normal == 4 && normalZ < 0)
         normal = 5;
-    return VertexLod(packR8G8B8A8_UNORM(x / (float)CHUNK_SIZE, y / (float)CHUNK_SIZE, z / (float)CHUNK_SIZE, 0),
-                     packR8G8B8A8_UNORM(r, g, b, (float)normal));
+    // clang-format off
+    return VertexLod(pack4x8(packUint8(x),
+                             packUint8(y),
+                             packUint8(z),
+                             packUint8(normal)),
+
+                     pack4x8(packUnorm8(r),
+                             packUnorm8(g),
+                             packUnorm8(b),
+                             0));
+    // clang-format on
 }
 
 void downsampleBlocks(const std::vector<BlockType>& blocks, int currentSize, std::vector<BlockType>& downsample)

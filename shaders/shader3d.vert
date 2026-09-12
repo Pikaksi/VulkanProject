@@ -12,10 +12,10 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 
 struct Vertex {
-    uint posAndNormal;
-    uint normalAndUv;
+    uint pos;
+    uint normal;
     float texLayer;
-    float pad;
+    uint uv;
 };
 layout(std430, buffer_reference, buffer_reference_align = 8) readonly buffer VertexBuffer {
     Vertex vertices[];
@@ -36,19 +36,20 @@ layout(location = 5) out mat4 outWorldToSunMat;
 
 void main()
 {
-    vec4 unpack1 = unpackUnorm4x8(pc.vertexBuffer.vertices[gl_VertexIndex].posAndNormal);
-    vec3 pos = unpack1.xyz;
+    uint uint1 = pc.vertexBuffer.vertices[gl_VertexIndex].pos;
+    vec3 pos = vec3(uint1 & 0x3FF, (uint1 >> 10) & 0x3FF, (uint1 >> 20) & 0x3FF);
+    pos *= (1.0 / 16.0);
+    outPos = pc.chunkWorldLocation + pos;
+    gl_Position = ubo.camera * vec4(outPos, 1.0);
 
-    uint unpack2 = pc.vertexBuffer.vertices[gl_VertexIndex].normalAndUv;
-    outNormal = vec3(unpack1.w, unpackUnorm4x8(unpack2).xy) * 2.0 - 1.0;
+    uint uint2 = pc.vertexBuffer.vertices[gl_VertexIndex].normal;
+    outNormal = unpackSnorm4x8(uint2).xyz;
 
-    outUV = vec2((unpack2 >> 16) & 0x000000FF, (unpack2 >> 24) & 0x000000FF);
+    uint uint4 = pc.vertexBuffer.vertices[gl_VertexIndex].uv;
+    outUV = vec2(uint4 & 0xFF, (uint4 >> 8) & 0xFF);
 
     outTextureLayer = pc.vertexBuffer.vertices[gl_VertexIndex].texLayer;
     outShadow = dot(ubo.sunDir, outNormal) > 0 ? 1.0 : 0.0;
-
-    outPos = pc.chunkWorldLocation + pos * 32.0;
-    gl_Position = ubo.camera * vec4(outPos, 1.0);
 
     outWorldToSunMat = ubo.worldToSun;
 

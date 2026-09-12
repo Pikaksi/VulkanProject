@@ -104,7 +104,7 @@ void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustu
         viewingFrustumNormals.left.z > 0.0f ? -viewingFrustumSafetyOffset : CHUNK_SIZE + viewingFrustumSafetyOffset};
 }
 
-bool chunkIsInViewingFrustumLod(glm::vec3& cameraLocation,
+bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
                                 glm::ivec3& chunkLocation,
                                 ChunkCenterOffsets& chunkCenterOffsets,
                                 ViewingFrustumNormals& viewingFrustumNormals,
@@ -351,7 +351,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
             if (!drawCallData.fullDetail)
                 continue;
 
-            if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
+            if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
                                             drawCallData.chunkLocation,
                                             chunkCenterOffsets,
                                             viewingFrustumNormals,
@@ -400,7 +400,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
             if (drawCallData.fullDetail)
                 continue;
 
-            if (!chunkIsInViewingFrustumLod(draw.cameraHandler.position,
+            if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
                                             drawCallData.chunkLocation,
                                             chunkCenterOffsets,
                                             viewingFrustumNormals,
@@ -409,7 +409,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
             }
 
             PushConstant3dLod pushConstant = {
-                drawCallData.chunkLocation * CHUNK_SIZE, 32.0f * (1 << drawCallData.lod), worldVertexBufferPointer};
+                drawCallData.chunkLocation * CHUNK_SIZE, (float)(1 << drawCallData.lod), worldVertexBufferPointer};
             vkCmdPushConstants(commandBuffer,
                                draw.pipelineLod.layout,
                                VK_SHADER_STAGE_VERTEX_BIT,
