@@ -13,10 +13,12 @@
 #include "VulkanRendering/SwapChain.hpp"
 #include "Player/PlayerControls.hpp"
 #include "BlockDataLookup.hpp"
+#include "VulkanTypes.hpp"
 #include "assertm.hpp"
 #include "threadPool.hpp"
 #include "blockEntityCrafting.hpp"
 #include "sunShadows.hpp"
+#include "vulkan/vulkan_core.h"
 
 #include <time.h>
 
@@ -130,16 +132,20 @@ void Application::initVulkan()
                                               sunShadowImage,
                                               sunShadowSampler);
 
-    frameTimeQueryPools.resize(2);
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkQueryPoolCreateInfo queryPoolInfo{
             .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
             .queryCount = 2,
             .queryType = VK_QUERY_TYPE_TIMESTAMP,
         };
-        if (vkCreateQueryPool(vulkanCoreInfo.device, &queryPoolInfo, nullptr, &frameTimeQueryPools[i].queryPool) != VK_SUCCESS) {
+        VkQueryPool queryPool;
+        if (vkCreateQueryPool(vulkanCoreInfo.device, &queryPoolInfo, nullptr, &queryPool) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create timestamp query pool!");
         }
+        frameTimeQueryPools.push_back(QueryPoolInfo{
+            .queryPool = queryPool,
+            .hasBeenQueried = false,
+        });
     }
 
     descriptorSets2d =
@@ -270,6 +276,10 @@ void Application::cleanup()
     }
     for (size_t i = 0; i < swapChainInfo.images.size(); i++) {
         vkDestroySemaphore(vulkanCoreInfo.device, renderFinishedSemaphores[i], nullptr);
+    }
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroyQueryPool(vulkanCoreInfo.device, frameTimeQueryPools[i].queryPool, nullptr);
     }
 
     vkDestroyCommandPool(vulkanCoreInfo.device, commandPool, nullptr);

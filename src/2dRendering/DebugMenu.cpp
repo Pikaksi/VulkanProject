@@ -3,6 +3,7 @@
 #include "GPUMemoryBlock.hpp"
 #include "UICenteringMode.hpp"
 #include "UIText.hpp"
+#include "assertm.hpp"
 
 #include <string>
 #include <time.h>
@@ -66,7 +67,7 @@ void DebugMenu::drawUI(UIManager& uiManager,
     createUIText(
         uiManager, {-1.0f, -1.0f}, 0.05f, UICenteringMode::topLeft, UICenteringMode::topLeft,
         
-        "Fps: " + std::to_string(fps) + '\n' +
+        "Fps: " + std::to_string(fps)+ " frame time: " + std::to_string(1000.0 / fps) + '\n' +
         "Gpu average frame time: " + std::to_string(averageGpuFrameTime) + '\n' +
         "Max frame time: " + std::to_string(maxFrameTimeMsDisplay) + '\n' +
         "Fence wait duration: " + std::to_string(averageFenceTimeWaited) + " ms" + '\n' +
