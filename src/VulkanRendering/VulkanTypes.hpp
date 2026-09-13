@@ -79,3 +79,9 @@ struct PushConstant3dLod
     float chunkSize;
     uint64_t vertexBuffer;
 };
+
+struct QueryPoolInfo
+{
+    VkQueryPool queryPool;
+    bool hasBeenQueried = false;
+};

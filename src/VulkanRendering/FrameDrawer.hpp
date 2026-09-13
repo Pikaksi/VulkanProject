@@ -32,6 +32,7 @@ struct FrameDrawInfo
     std::vector<VkFence>& inFlightFences;
 
     VkCommandPool commandPool;
+    std::vector<QueryPoolInfo> frameTimeQueryPools;
 
     CameraHandler& cameraHandler;
     VertexBufferManager& vertexBufferManager;

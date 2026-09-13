@@ -13,6 +13,15 @@ struct DebugMenuGlobals
     uint64_t chunksMeshed = 0;
     double chunkMeshTimeTotal = 0.0;
 
+    double fenceWaitTimeSum = 0.0;
+    int fencesTimesWaited = 0;
+
+    double gpuFrameTimeSum = 0.0;
+    int gpuFramesTimed = 0.0;
+
+    double presentQueueWaitTimeSum = 0.0;
+    int presentQueuesWaited = 0;
+
     uint64_t chunkCount = 0;
     uint64_t chunkCountCompressed = 0;
     uint64_t blockSizeTotal = 0;
@@ -33,8 +42,9 @@ struct DebugMenu
     std::chrono::time_point<std::chrono::high_resolution_clock> lastFrameTime;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastFpsCounterResetTime;
     std::chrono::time_point<std::chrono::high_resolution_clock> lastUIRefreshTime;
-
-    double fenceWaitTimeLast;
+    double averageFenceTimeWaited = 0.0;
+    double averagePresentQueueTimeWaited = 0.0;
+    double averageGpuFrameTime = 0.0;
 
     DebugMenu() {}
 

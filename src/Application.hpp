@@ -88,6 +88,8 @@ private:
     uint32_t currentFrame = 0;
     uint32_t maxVertexInputBindings;
 
+    std::vector<QueryPoolInfo> frameTimeQueryPools;
+
     VertexBufferManager vertexBufferManager;
     ChunkRenderer chunkRenderer;
     CameraHandler cameraHandler;

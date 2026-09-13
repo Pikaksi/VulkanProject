@@ -20,7 +20,7 @@ float sampleShadow(vec3 viewPos) {
 }
 
 void main() {
-    float shadow = 0.0;
+    float shadow = 1.0;
     if (inShadow == 0) {
         sampleShadow(inPos);
     }

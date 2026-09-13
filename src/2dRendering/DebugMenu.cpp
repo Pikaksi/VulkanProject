@@ -37,6 +37,18 @@ void DebugMenu::update(UIManager& uiManager,
         maxFrameTimeMsDisplay = maxFrameTimeMs;
         maxFrameTimeMs = 0;
 
+        averageFenceTimeWaited = debugMenuGlobals.fenceWaitTimeSum / (double)debugMenuGlobals.fencesTimesWaited;
+        debugMenuGlobals.fenceWaitTimeSum = 0.0;
+        debugMenuGlobals.fencesTimesWaited = 0;
+
+        averageGpuFrameTime = debugMenuGlobals.gpuFrameTimeSum / (double)debugMenuGlobals.gpuFramesTimed;
+        debugMenuGlobals.gpuFrameTimeSum = 0.0;
+        debugMenuGlobals.gpuFramesTimed = 0;
+
+        averagePresentQueueTimeWaited = debugMenuGlobals.presentQueueWaitTimeSum / (double)debugMenuGlobals.presentQueuesWaited;
+        debugMenuGlobals.presentQueueWaitTimeSum = 0.0;
+        debugMenuGlobals.presentQueuesWaited = 0;
+
         fpsCounter = 0;
     }
     drawUI(uiManager, vertexBufferManager, lastRecordedFPS, worldManager, cameraHandler);
@@ -55,8 +67,10 @@ void DebugMenu::drawUI(UIManager& uiManager,
         uiManager, {-1.0f, -1.0f}, 0.05f, UICenteringMode::topLeft, UICenteringMode::topLeft,
         
         "Fps: " + std::to_string(fps) + '\n' +
+        "Gpu average frame time: " + std::to_string(averageGpuFrameTime) + '\n' +
         "Max frame time: " + std::to_string(maxFrameTimeMsDisplay) + '\n' +
-        "Fence wait duration: " + std::to_string(fenceWaitTimeLast) + " ms" + '\n' +
+        "Fence wait duration: " + std::to_string(averageFenceTimeWaited) + " ms" + '\n' +
+        "Present queue wait duration: " + std::to_string(averagePresentQueueTimeWaited) + " ms" + '\n' +
         "Chunk mesh time avg: " + std::to_string(debugMenuGlobals.chunkMeshTimeTotal / (double)debugMenuGlobals.chunksMeshed) + " micro s" + '\n' +
         "vertex count: " + std::to_string(gpuMemoryBlockDataSize(*vertexBufferManager.worldGpuMemoryBlock) / sizeof(Vertex)) +
         '\n' + "Chunks loaded: " + std::to_string(worldManager.chunks.size()) +

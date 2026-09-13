@@ -118,12 +118,8 @@ void Application::initVulkan()
 
     descriptorPool = createDescriptorPool(vulkanCoreInfo, uiImageInfos.size());
 
-    descriptorSetsLod = createDescriptorSetsLod(vulkanCoreInfo,
-                                                descriptorPool,
-                                                descriptorSetLayoutLod,
-                                                cameraUniformBuffers,
-                                                sunShadowImage,
-                                                sunShadowSampler);
+    descriptorSetsLod = createDescriptorSetsLod(
+        vulkanCoreInfo, descriptorPool, descriptorSetLayoutLod, cameraUniformBuffers, sunShadowImage, sunShadowSampler);
 
     descriptorSets3d = createDescriptorSets3d(vulkanCoreInfo,
                                               descriptorPool,
@@ -133,6 +129,18 @@ void Application::initVulkan()
                                               blockTextureArraySampler,
                                               sunShadowImage,
                                               sunShadowSampler);
+
+    frameTimeQueryPools.resize(2);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkQueryPoolCreateInfo queryPoolInfo{
+            .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+            .queryCount = 2,
+            .queryType = VK_QUERY_TYPE_TIMESTAMP,
+        };
+        if (vkCreateQueryPool(vulkanCoreInfo.device, &queryPoolInfo, nullptr, &frameTimeQueryPools[i].queryPool) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create timestamp query pool!");
+        }
+    }
 
     descriptorSets2d =
         createDescriptorSets2d(vulkanCoreInfo, descriptorPool, descriptorSetLayout2d, uiImageInfos, uiTextureSampler);
@@ -176,7 +184,8 @@ void Application::mainLoop()
                             .cameraHandler = cameraHandler,
                             .vertexBufferManager = vertexBufferManager,
                             .uiManager = uiManager,
-                            .debugMenu = debugMenu};
+                            .debugMenu = debugMenu,
+                            .frameTimeQueryPools = frameTimeQueryPools};
 
         drawFrame(vulkanCoreInfo, swapChainInfo, frame);
     }
@@ -201,7 +210,8 @@ void Application::gameMainLoop()
 
     blockEntityManager.updateBlockEntities();
 
-    updatePlayerControls(cameraHandler.position, worldManager, blockEntityManager, chunkRenderer, cameraHandler, playerInfo);
+    updatePlayerControls(
+        cameraHandler.position, worldManager, blockEntityManager, chunkRenderer, cameraHandler, playerInfo);
     updatePlayerInventory(playerInfo, uiManager, blockEntityManager);
 
     debugMenu.update(uiManager, vertexBufferManager, worldManager, cameraHandler);

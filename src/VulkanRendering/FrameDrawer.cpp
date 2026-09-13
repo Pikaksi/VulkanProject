@@ -3,6 +3,7 @@
 #include <array>
 #include <iostream>
 
+#include "assertm.hpp"
 #include "FrameDrawer.hpp"
 #include "Constants.hpp"
 #include "DebugMenu.hpp"
@@ -105,10 +106,10 @@ void getChunkCenterOffsets(ChunkCenterOffsets& chunkCenterOffsets, ViewingFrustu
 }
 
 bool chunkIsInViewingFrustum(glm::vec3& cameraLocation,
-                                glm::ivec3& chunkLocation,
-                                ChunkCenterOffsets& chunkCenterOffsets,
-                                ViewingFrustumNormals& viewingFrustumNormals,
-                                int lod)
+                             glm::ivec3& chunkLocation,
+                             ChunkCenterOffsets& chunkCenterOffsets,
+                             ViewingFrustumNormals& viewingFrustumNormals,
+                             int lod)
 {
     int lodScaling = 1 << lod;
     return glm::dot(static_cast<glm::vec3>(chunkLocation * CHUNK_SIZE + chunkCenterOffsets.top * lodScaling) -
@@ -138,6 +139,10 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
         throw std::runtime_error("failed to begin recording command buffer!");
     }
+
+    vkCmdResetQueryPool(commandBuffer, draw.frameTimeQueryPools[draw.currentFrame].queryPool, 0, 2);
+    vkCmdWriteTimestamp(
+        commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, draw.frameTimeQueryPools[draw.currentFrame].queryPool, 0);
 
     VkBuffer worldVertexBuffer;
     std::vector<WorldDrawCallData> worldDrawCallData;
@@ -352,10 +357,10 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                 continue;
 
             if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
-                                            drawCallData.chunkLocation,
-                                            chunkCenterOffsets,
-                                            viewingFrustumNormals,
-                                            0)) {
+                                         drawCallData.chunkLocation,
+                                         chunkCenterOffsets,
+                                         viewingFrustumNormals,
+                                         0)) {
                 continue;
             }
 
@@ -401,10 +406,10 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                 continue;
 
             if (!chunkIsInViewingFrustum(draw.cameraHandler.position,
-                                            drawCallData.chunkLocation,
-                                            chunkCenterOffsets,
-                                            viewingFrustumNormals,
-                                            drawCallData.lod)) {
+                                         drawCallData.chunkLocation,
+                                         chunkCenterOffsets,
+                                         viewingFrustumNormals,
+                                         drawCallData.lod)) {
                 continue;
             }
 
@@ -486,6 +491,9 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
 
     vkCmdPipelineBarrier2(commandBuffer, &postRenderDepInfo);
 
+    vkCmdWriteTimestamp(
+        commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, draw.frameTimeQueryPools[draw.currentFrame].queryPool, 1);
+
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
     }
@@ -497,9 +505,33 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
 
     vkWaitForFences(vulkanCoreInfo.device, 1, &draw.inFlightFences[draw.currentFrame], VK_TRUE, UINT64_MAX);
 
+    uint64_t timestamps[2];
+    if (draw.frameTimeQueryPools[draw.currentFrame].hasBeenQueried) {
+        assertm(vkGetQueryPoolResults(vulkanCoreInfo.device,
+                                  draw.frameTimeQueryPools[draw.currentFrame].queryPool,
+                                  0,
+                                  2,
+                                  sizeof(timestamps),
+                                  timestamps,
+                                  sizeof(uint64_t),
+                                  VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT) == VK_SUCCESS, "");
+
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(vulkanCoreInfo.physicalDevice, &deviceProperties);
+        float timestampPeriod = deviceProperties.limits.timestampPeriod;
+
+        uint64_t timeDifferenceTicks = timestamps[1] - timestamps[0];
+
+        float gpuTimeMs = (timeDifferenceTicks * timestampPeriod) / 1000000.0f;
+
+        debugMenuGlobals.gpuFrameTimeSum += gpuTimeMs;
+        debugMenuGlobals.gpuFramesTimed += 1;
+    }
+
     auto debugEndWait = std::chrono::high_resolution_clock::now();
-    draw.debugMenu.fenceWaitTimeLast =
+    debugMenuGlobals.fenceWaitTimeSum +=
         std::chrono::duration<float, std::chrono::milliseconds::period>(debugEndWait - debugStartWait).count();
+    debugMenuGlobals.fencesTimesWaited += 1;
 
     uint32_t swapChainImageIndex;
     VkResult result = vkAcquireNextImageKHR(vulkanCoreInfo.device,
@@ -509,11 +541,11 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
                                             VK_NULL_HANDLE,
                                             &swapChainImageIndex);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    if (timestampResult == VK_ERROR_OUT_OF_DATE_KHR) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo, draw.commandPool);
         return;
     }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    else if (timestampResult != VK_SUCCESS && timestampResult != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
     updateUniformBuffer(draw.currentFrame, draw.uniformBufferInfos, draw.cameraHandler, swapChainInfo.extent);
@@ -556,14 +588,23 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
 
     presentInfo.pImageIndices = &swapChainImageIndex;
 
-    result = vkQueuePresentKHR(vulkanCoreInfo.presentQueue, &presentInfo);
+    auto presentQueueWaitStart = std::chrono::high_resolution_clock::now();
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || draw.framebufferResized) {
+    timestampResult = vkQueuePresentKHR(vulkanCoreInfo.presentQueue, &presentInfo);
+
+    auto presentQueueWaitEnd = std::chrono::high_resolution_clock::now();
+    debugMenuGlobals.presentQueueWaitTimeSum +=
+        std::chrono::duration<float, std::chrono::milliseconds::period>(presentQueueWaitEnd - presentQueueWaitStart)
+            .count();
+    debugMenuGlobals.presentQueuesWaited += 1;
+
+    if (timestampResult == VK_ERROR_OUT_OF_DATE_KHR || timestampResult == VK_SUBOPTIMAL_KHR ||
+        draw.framebufferResized) {
         recreateSwapChain(vulkanCoreInfo, swapChainInfo, draw.commandPool);
 
         draw.framebufferResized = false;
     }
-    else if (result != VK_SUCCESS) {
+    else if (timestampResult != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
 
