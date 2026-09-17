@@ -1,4 +1,4 @@
-#include "indirectDrawCallRecorder.hpp"
+#include "drawCallRecorder.hpp"
 #include "Buffers.hpp"
 #include "VulkanTypes.hpp"
 #include "vulkan/vulkan_core.h"
@@ -68,7 +68,7 @@ void drawCallRecorderIncreaseCapacity(DrawCallRecorder& recorder, VulkanCoreInfo
 
 void drawCallRecorderAdd(DrawCallRecorder& recorder,
                          VulkanCoreInfo& vulkanCoreInfo,
-                         VkDrawIndirectCommand& command,
+                         VkDrawIndexedIndirectCommand& command,
                          void* pushConstant)
 {
     if (recorder.capacity <= recorder.size) {
@@ -82,28 +82,17 @@ void drawCallRecorderAdd(DrawCallRecorder& recorder,
     memcpy((void*)((char*)recorder.mappedData + pushConstantOffset), pushConstant, recorder.pushConstantSize);
 }
 
-void drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder,
-                                            uint64_t& drawsOffset,
-                                            uint64_t& draws,
-                                            uint64_t& pushConstantsOffset,
-                                            uint64_t& pushConstants)
+DrawCallRecorderDrawParameters drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder, VulkanCoreInfo& vulkanCoreInfo)
 {
-    drawsOffset = 0;
-    draws = recorder.size;
-    pushConstantsOffset = recorder.size * recorder.drawCommandSize;
-}
+    VkBufferDeviceAddressInfo addressInfo{};
+    addressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    addressInfo.buffer = recorder.buffer;
+    VkDeviceAddress pushConstantsPointer = vkGetBufferDeviceAddress(vulkanCoreInfo.device, &addressInfo);
+    pushConstantsPointer += recorder.capacity * recorder.drawCommandSize;
 
-/*void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo, std::vector<GpuMemoryBlock>& drawCallBuffers)
-{
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        drawCallBuffers.push_back(GpuMemoryBlock{});
-        gpuMemoryBlockInit(vulkanCoreInfo,
-                           drawCallBuffers.back(),
-                           maxDrawCalls * sizeof(VkDrawIndirectCommand) +
-                               maxDrawCalls * std::max(sizeof(PushConstant3d), sizeof(PushConstant3dLod)),
-                           true,
-                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           0);
-    }
-}*/
+    return DrawCallRecorderDrawParameters {
+        .drawsBuffer = recorder.buffer,
+        .pushConstantsDevicePointer = pushConstantsPointer,
+        .draws = recorder.size,
+    };
+}

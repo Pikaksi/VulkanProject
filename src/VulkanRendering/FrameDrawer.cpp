@@ -3,6 +3,7 @@
 #include <array>
 #include <iostream>
 
+#include "WorldVertexTracker.hpp"
 #include "assertm.hpp"
 #include "FrameDrawer.hpp"
 #include "Constants.hpp"
@@ -222,30 +223,33 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                 continue;
 
             PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer};
-            /*vkCmdPushConstants(commandBuffer,
-                               draw.pipeline3d.layout,
-                               VK_SHADER_STAGE_VERTEX_BIT,
-                               0,
-                               sizeof(PushConstant3d),
-                               &pushConstant);*/
 
-            // get index count by multiplying vertex count by 1.5
-            /*vkCmdDrawIndexed(commandBuffer,
-                             drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
-                             1,
-                             0,
-                             drawCallData.memoryLocation / sizeof(Vertex),
-                             0);*/
             VkDrawIndexedIndirectCommand drawCommand {
-                 drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
+                 (uint32_t)(drawCallData.dataSize / sizeof(Vertex) / 2 * 3),
                  1,
                  0,
-                 drawCallData.memoryLocation / sizeof(Vertex),
+                 (int32_t)(drawCallData.memoryLocation / sizeof(Vertex)),
                  0,
             };
-
-            drawCallRecorderAdd(draw.drawCallRecorders[0], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
+            drawCallRecorderAdd(draw.drawCallRecorders[draw.currentFrame][0], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
         }
+
+        auto indirectDrawInfo = drawCallRecorderGetRenderingParameters(draw.drawCallRecorders[draw.currentFrame][0]);
+
+        struct SunShadowDrawPushConstant {
+            uint64_t vertexData;
+            uint64_t pushConstantsData;
+        } drawPushConstant = {
+            worldVertexBufferPointer,
+            indirectDrawInfo.pushConstantsDevicePointer,
+        };
+
+        vkCmdPushConstants(commandBuffer,
+                           draw.pipeline3d.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(SunShadowDrawPushConstant),
+                           &drawPushConstant);
     }
 
     vkCmdEndRendering(commandBuffer);

@@ -6,7 +6,7 @@
 
 struct DrawCallRecorder
 {
-    static const uint32_t drawCommandSize = sizeof(VkDrawIndirectCommand);
+    static const uint32_t drawCommandSize = sizeof(VkDrawIndexedIndirectCommand);
     uint32_t pushConstantSize = 0;
 
     uint64_t size = 0;
@@ -26,11 +26,13 @@ void drawCallRecorderDestroy(DrawCallRecorder& recorder, VulkanCoreInfo& vulkanC
 
 void drawCallRecorderAdd(DrawCallRecorder& recorder,
                          VulkanCoreInfo& vulkanCoreInfo,
-                         VkDrawIndirectCommand command,
+                         VkDrawIndexedIndirectCommand& command,
                          void* pushConstant);
 
-void drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder,
-                                            uint64_t& drawsOffset,
-                                            uint64_t& drawsSize,
-                                            uint64_t& pushConstantsOffset,
-                                            uint64_t& pushConstantsSize);
+struct DrawCallRecorderDrawParameters {
+    uint64_t draws;
+    VkBuffer drawsBuffer;
+    VkDeviceAddress pushConstantsDevicePointer;
+};
+
+DrawCallRecorderDrawParameters drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder);
