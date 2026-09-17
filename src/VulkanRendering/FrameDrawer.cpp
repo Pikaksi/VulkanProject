@@ -13,19 +13,17 @@
 #include "UIManager.hpp"
 #include "VulkanTypes.hpp"
 #include "World/Chunk.hpp"
+#include "drawCallRecorder.hpp"
 #include "vulkan/vulkan_core.h"
 
-void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo, std::vector<GpuMemoryBlock> drawCallBuffers)
+void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo,
+                           std::array<std::array<DrawCallRecorder, 3>, MAX_FRAMES_IN_FLIGHT> drawCallRecorders)
 {
-    /*for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        drawCallBuffers.push_back(GpuMemoryBlock{});
-        gpuMemoryBlockInit(vulkanCoreInfo,
-                           drawCallBuffers.back(),
-                           0, //1000000,
-                           true,
-                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
-    }*/
+    for (auto& recorders : drawCallRecorders) {
+        drawCallRecorderInit(recorders[0], vulkanCoreInfo, sizeof(PushConstant3d), 100);
+        drawCallRecorderInit(recorders[1], vulkanCoreInfo, sizeof(PushConstant3d), 100);
+        drawCallRecorderInit(recorders[2], vulkanCoreInfo, sizeof(PushConstant3dLod), 100);
+    }
 }
 
 void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
@@ -224,20 +222,29 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                 continue;
 
             PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer};
-            vkCmdPushConstants(commandBuffer,
+            /*vkCmdPushConstants(commandBuffer,
                                draw.pipeline3d.layout,
                                VK_SHADER_STAGE_VERTEX_BIT,
                                0,
                                sizeof(PushConstant3d),
-                               &pushConstant);
+                               &pushConstant);*/
 
             // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(commandBuffer,
+            /*vkCmdDrawIndexed(commandBuffer,
                              drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
                              1,
                              0,
                              drawCallData.memoryLocation / sizeof(Vertex),
-                             0);
+                             0);*/
+            VkDrawIndexedIndirectCommand drawCommand {
+                 drawCallData.dataSize / sizeof(Vertex) / 2 * 3,
+                 1,
+                 0,
+                 drawCallData.memoryLocation / sizeof(Vertex),
+                 0,
+            };
+
+            drawCallRecorderAdd(draw.drawCallRecorders[0], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
         }
     }
 
@@ -381,6 +388,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                              0,
                              drawCallData.memoryLocation / sizeof(Vertex),
                              0);
+
         }
     }
 
@@ -609,4 +617,4 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
     }
 
     draw.currentFrame = (draw.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-}
+D

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Constants.hpp"
 #include "GPUMemoryBlock.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -30,10 +31,10 @@
 #include "World/WorldManager.hpp"
 #include "Player/PlayerInventoryManager.hpp"
 #include "blockEntityManager.hpp"
+#include "drawCallRecorder.hpp"
 
 class Application
 {
-public:
     static Application& getInstance()
     {
         static Application application;
@@ -41,7 +42,6 @@ public:
     }
     void run();
 
-private:
     Application() {}
 
     VulkanCoreInfo vulkanCoreInfo = VulkanCoreInfo();
@@ -80,8 +80,7 @@ private:
 
     std::vector<VkCommandBuffer> commandBuffers;
 
-    std::vector<GpuMemoryBlock> drawcallBuffers;
-
+    std::array<std::array<DrawCallRecorder, 3>, MAX_FRAMES_IN_FLIGHT> drawCallRecorders;
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;

@@ -1,6 +1,7 @@
 #include "Application.hpp"
 
 #include "Constants.hpp"
+#include "GPUMemoryBlock.hpp"
 #include "PlayerInputHandler.hpp"
 #include "VulkanRendering/FrameDrawer.hpp"
 #include "VulkanRendering/GraphicsPipeline.hpp"
@@ -15,6 +16,7 @@
 #include "BlockDataLookup.hpp"
 #include "VulkanTypes.hpp"
 #include "assertm.hpp"
+#include "drawCallRecorder.hpp"
 #include "threadPool.hpp"
 #include "blockEntityCrafting.hpp"
 #include "sunShadows.hpp"
@@ -132,6 +134,8 @@ void Application::initVulkan()
                                               sunShadowImage,
                                               sunShadowSampler);
 
+    createDrawCallBuffers(vulkanCoreInfo, drawCallRecorders);
+
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkQueryPoolCreateInfo queryPoolInfo{
             .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
@@ -182,7 +186,7 @@ void Application::mainLoop()
                             .currentFrame = currentFrame,
                             .framebufferResized = framebufferResized,
                             .commandBuffers = commandBuffers,
-                            .drawCallBuffers = drawcallBuffers,
+                            .drawCallRecorders = drawCallRecorders,
                             .imageAvailableSemaphores = imageAvailableSemaphores,
                             .renderFinishedSemaphores = renderFinishedSemaphores,
                             .inFlightFences = inFlightFences,
@@ -280,6 +284,12 @@ void Application::cleanup()
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyQueryPool(vulkanCoreInfo.device, frameTimeQueryPools[i].queryPool, nullptr);
+    }
+
+    for (auto& recorders : drawCallRecorders) {
+        for (auto& recorder : recorders) {
+            drawCallRecorderDestroy(recorder, vulkanCoreInfo);
+        }
     }
 
     vkDestroyCommandPool(vulkanCoreInfo.device, commandPool, nullptr);

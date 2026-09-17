@@ -7,6 +7,8 @@
 #include "2dRendering/UIManager.hpp"
 #include "CameraHandler.hpp"
 #include "GPUMemoryBlock.hpp"
+#include "drawCallRecorder.hpp"
+#include "drawCallRecorder.hpp"
 
 struct FrameDrawInfo
 {
@@ -25,7 +27,7 @@ struct FrameDrawInfo
 
     ImageInfo sunShadowImage;
 
-    std::vector<GpuMemoryBlock> drawCallBuffers;
+    std::array<std::array<DrawCallRecorder, 3>, MAX_FRAMES_IN_FLIGHT> drawCallRecorders;
     std::vector<VkCommandBuffer>& commandBuffers;
     std::vector<VkSemaphore>& imageAvailableSemaphores;
     std::vector<VkSemaphore>& renderFinishedSemaphores;
@@ -41,9 +43,10 @@ struct FrameDrawInfo
 };
 
 void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, FrameDrawInfo& draw);
-void createSyncObjects(
-    VulkanCoreInfo& vulkanCoreInfo,
-    SwapChainInfo& swapChainInfo,
-    std::vector<VkSemaphore>& imageAvailableSemaphores,
-    std::vector<VkSemaphore>& renderFinishedSemaphores,
-    std::vector<VkFence>& inFlightFences);
+void createSyncObjects(VulkanCoreInfo& vulkanCoreInfo,
+                       SwapChainInfo& swapChainInfo,
+                       std::vector<VkSemaphore>& imageAvailableSemaphores,
+                       std::vector<VkSemaphore>& renderFinishedSemaphores,
+                       std::vector<VkFence>& inFlightFences);
+void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo,
+                           std::array<std::array<DrawCallRecorder, 3>, MAX_FRAMES_IN_FLIGHT> drawCallBuffers);
