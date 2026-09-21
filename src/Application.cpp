@@ -54,7 +54,7 @@ void Application::framebufferResizeCallback(GLFWwindow* window, int width, int h
 
 void Application::initGame()
 {
-    globalThreadPool.init(1);
+    globalThreadPool.init(4);
 
     initBlockDataLookup();
 

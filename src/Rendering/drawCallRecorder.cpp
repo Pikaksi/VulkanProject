@@ -2,21 +2,25 @@
 #include "Buffers.hpp"
 #include "VulkanTypes.hpp"
 #include "vulkan/vulkan_core.h"
+#include "assertm.hpp"
 
 #include <cstring>
 
 uint64_t getRequiredRecorderSize(DrawCallRecorder& recorder)
 {
-    return recorder.capacity * (recorder.drawCommandSize + recorder.pushConstantSize);
+    // 16 bytes extra so that the push constants cal always be padded to 16 byte alignment
+    return recorder.capacity * (recorder.drawCommandSize + recorder.pushConstantSize) + 16;
 }
 
 void drawCallRecorderCreateBuffers(DrawCallRecorder& recorder, VulkanCoreInfo& vulkanCoreInfo)
 {
+    recorder.pushConstantsOffset = (recorder.capacity * recorder.drawCommandSize + 15) / 16 * 16;
+
     createBuffer(vulkanCoreInfo,
-                 recorder.size,
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+                 getRequiredRecorderSize(recorder),
+                 VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 0,
+                 VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
                  recorder.buffer,
                  recorder.deviceMemory);
 
@@ -50,13 +54,13 @@ void drawCallRecorderIncreaseCapacity(DrawCallRecorder& recorder, VulkanCoreInfo
     VkDeviceMemory deviceMemory = recorder.deviceMemory;
 
     uint64_t drawSize = recorder.drawCommandSize * recorder.size;
-    uint64_t oldPushOffset = recorder.drawCommandSize * recorder.capacity;
+    uint64_t oldPushOffset = recorder.pushConstantsOffset;
     uint64_t pushSize = recorder.pushConstantSize * recorder.size;
 
     recorder.capacity *= 2;
     drawCallRecorderCreateBuffers(recorder, vulkanCoreInfo);
 
-    uint64_t newPushOffset = recorder.drawCommandSize * recorder.capacity;
+    uint64_t newPushOffset = recorder.pushConstantsOffset;
 
     memcpy(recorder.mappedData, mappedData, drawSize);
     memcpy((void*)((char*)recorder.mappedData + newPushOffset), (void*)((char*)mappedData + oldPushOffset), pushSize);
@@ -75,24 +79,38 @@ void drawCallRecorderAdd(DrawCallRecorder& recorder,
         drawCallRecorderIncreaseCapacity(recorder, vulkanCoreInfo);
     }
 
-    uint64_t drawCommandOffset = recorder.size * recorder.drawCommandSize;
-    memcpy((void*)((char*)recorder.mappedData + drawCommandOffset), (void*)&command, recorder.drawCommandSize);
+    uint64_t drawCommandLocation = recorder.size * recorder.drawCommandSize;
+    uint64_t pushConstantLocation = recorder.pushConstantsOffset + recorder.size * recorder.pushConstantSize;
 
-    uint64_t pushConstantOffset = recorder.capacity * recorder.drawCommandSize + recorder.size * recorder.pushConstantSize;
-    memcpy((void*)((char*)recorder.mappedData + pushConstantOffset), pushConstant, recorder.pushConstantSize);
+    assertm(getRequiredRecorderSize(recorder) > pushConstantLocation, "Recorder is not big enough");
+    assertm(getRequiredRecorderSize(recorder) > drawCommandLocation, "Recorder is not big enough");
+
+    memcpy((void*)((char*)recorder.mappedData + drawCommandLocation), (void*)&command, recorder.drawCommandSize);
+    memcpy((void*)((char*)recorder.mappedData + pushConstantLocation), pushConstant, recorder.pushConstantSize);
+
+    recorder.size += 1;
 }
 
-DrawCallRecorderDrawParameters drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder, VulkanCoreInfo& vulkanCoreInfo)
+DrawCallRecorderDrawParameters drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder,
+                                                                      VulkanCoreInfo& vulkanCoreInfo)
 {
+    assertm(recorder.buffer != VK_NULL_HANDLE, "Buffer is VK_NULL_HANDLE, Capacity is " << recorder.capacity);
+    assertm(recorder.pushConstantsOffset / 16 * 16 == recorder.pushConstantsOffset, "Push constants are not aligned to 16 bytes");
+
     VkBufferDeviceAddressInfo addressInfo{};
     addressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     addressInfo.buffer = recorder.buffer;
     VkDeviceAddress pushConstantsPointer = vkGetBufferDeviceAddress(vulkanCoreInfo.device, &addressInfo);
-    pushConstantsPointer += recorder.capacity * recorder.drawCommandSize;
+    pushConstantsPointer += recorder.pushConstantsOffset;
 
-    return DrawCallRecorderDrawParameters {
+    return DrawCallRecorderDrawParameters{
         .drawsBuffer = recorder.buffer,
         .pushConstantsDevicePointer = pushConstantsPointer,
         .draws = recorder.size,
     };
+}
+
+void drawCallRecorderReset(DrawCallRecorder& recorder)
+{
+    recorder.size = 0;
 }

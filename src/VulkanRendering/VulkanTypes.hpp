@@ -67,17 +67,22 @@ struct CameraUniformBufferObject
     alignas(16) glm::vec3 sunDir;
 };
 
+struct PushConstantShadowPass
+{
+    glm::vec3 chunkWorldLocation;
+    float pad1;
+};
+
 struct PushConstant3d
 {
     glm::vec3 chunkWorldLocation;
-    uint64_t vertexBuffer;
+    float pad1;
 };
 
 struct PushConstant3dLod
 {
     glm::vec3 chunkWorldLocation;
     float chunkSize;
-    uint64_t vertexBuffer;
 };
 
 struct QueryPoolInfo

@@ -18,10 +18,10 @@
 #include "vulkan/vulkan_core.h"
 
 void createDrawCallBuffers(VulkanCoreInfo& vulkanCoreInfo,
-                           std::array<std::array<DrawCallRecorder, 3>, MAX_FRAMES_IN_FLIGHT> drawCallRecorders)
+                           std::array<std::array<DrawCallRecorder, 3>, MAX_FRAMES_IN_FLIGHT>& drawCallRecorders)
 {
     for (auto& recorders : drawCallRecorders) {
-        drawCallRecorderInit(recorders[0], vulkanCoreInfo, sizeof(PushConstant3d), 100);
+        drawCallRecorderInit(recorders[0], vulkanCoreInfo, sizeof(PushConstantShadowPass), 10);
         drawCallRecorderInit(recorders[1], vulkanCoreInfo, sizeof(PushConstant3d), 100);
         drawCallRecorderInit(recorders[2], vulkanCoreInfo, sizeof(PushConstant3dLod), 100);
     }
@@ -200,7 +200,6 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
     sunShadowRenderingInfo.layerCount = 1;
 
     vkCmdBeginRendering(commandBuffer, &sunShadowRenderingInfo);
-
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, draw.pipelineSunShadow.pipeline);
     vkCmdSetDepthBias(commandBuffer, /*constant*/ 0.0f, /*clamp*/ 0.0f, /*slope*/ -1.0f);
 
@@ -214,29 +213,31 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                                 &draw.descriptorSets3d[draw.currentFrame],
                                 0,
                                 nullptr);
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-        VkDeviceSize offsets[] = {0};
+        drawCallRecorderReset(draw.drawCallRecorders[draw.currentFrame][0]);
 
+        uint32_t drawCounter = 0;
         for (size_t i = 0; i < worldDrawCallData.size(); i++) {
             WorldDrawCallData drawCallData = worldDrawCallData[i];
             if (!drawCallData.fullDetail)
                 continue;
 
-            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer};
-
-            VkDrawIndexedIndirectCommand drawCommand {
-                 (uint32_t)(drawCallData.dataSize / sizeof(Vertex) / 2 * 3),
-                 1,
-                 0,
-                 (int32_t)(drawCallData.memoryLocation / sizeof(Vertex)),
-                 0,
+            VkDrawIndexedIndirectCommand drawCommand{
+                .indexCount = (uint32_t)(drawCallData.dataSize / sizeof(Vertex) / 2 * 3),
+                .instanceCount = 1,
+                .firstIndex = 0,
+                .vertexOffset = (int32_t)(drawCallData.memoryLocation / sizeof(Vertex)),
+                .firstInstance = drawCounter++,
             };
-            drawCallRecorderAdd(draw.drawCallRecorders[draw.currentFrame][0], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
+            PushConstantShadowPass pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 0.0f};
+            drawCallRecorderAdd(
+                draw.drawCallRecorders[draw.currentFrame][0], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
         }
 
-        auto indirectDrawInfo = drawCallRecorderGetRenderingParameters(draw.drawCallRecorders[draw.currentFrame][0]);
+        auto indirectDrawInfo =
+            drawCallRecorderGetRenderingParameters(draw.drawCallRecorders[draw.currentFrame][0], vulkanCoreInfo);
 
-        struct SunShadowDrawPushConstant {
+        struct ShadowDrawPushConstant
+        {
             uint64_t vertexData;
             uint64_t pushConstantsData;
         } drawPushConstant = {
@@ -248,8 +249,14 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                            draw.pipeline3d.layout,
                            VK_SHADER_STAGE_VERTEX_BIT,
                            0,
-                           sizeof(SunShadowDrawPushConstant),
+                           sizeof(ShadowDrawPushConstant),
                            &drawPushConstant);
+
+        vkCmdDrawIndexedIndirect(commandBuffer,
+                                 indirectDrawInfo.drawsBuffer,
+                                 0,
+                                 indirectDrawInfo.draws,
+                                 sizeof(VkDrawIndexedIndirectCommand));
     }
 
     vkCmdEndRendering(commandBuffer);
@@ -359,9 +366,9 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                                 &draw.descriptorSets3d[draw.currentFrame],
                                 0,
                                 nullptr);
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-        VkDeviceSize offsets[] = {0};
+        drawCallRecorderReset(draw.drawCallRecorders[draw.currentFrame][1]);
 
+        uint32_t drawCounter = 0;
         for (int i = 0; i < worldDrawCallData.size(); i++) {
             WorldDrawCallData drawCallData = worldDrawCallData[i];
             if (!drawCallData.fullDetail)
@@ -375,10 +382,7 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                 continue;
             }
 
-            // std::cout << "drawing with loc = " << drawCallData.memoryLocation << " size = " << drawCallData.dataSize
-            // << std::endl;
-
-            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer};
+            /*PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, worldVertexBufferPointer};
             vkCmdPushConstants(commandBuffer,
                                draw.pipeline3d.layout,
                                VK_SHADER_STAGE_VERTEX_BIT,
@@ -391,9 +395,44 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                              1,
                              0,
                              drawCallData.memoryLocation / sizeof(Vertex),
-                             0);
+                             0);*/
 
+            VkDrawIndexedIndirectCommand drawCommand{
+                .indexCount = (uint32_t)(drawCallData.dataSize / sizeof(Vertex) / 2 * 3),
+                .instanceCount = 1,
+                .firstIndex = 0,
+                .vertexOffset = (int32_t)(drawCallData.memoryLocation / sizeof(Vertex)),
+                .firstInstance = drawCounter++,
+            };
+            PushConstant3d pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, 0.0f};
+            drawCallRecorderAdd(
+                draw.drawCallRecorders[draw.currentFrame][1], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
         }
+
+        auto indirectDrawInfo =
+            drawCallRecorderGetRenderingParameters(draw.drawCallRecorders[draw.currentFrame][1], vulkanCoreInfo);
+
+        struct DrawPushConstant
+        {
+            uint64_t vertexData;
+            uint64_t pushConstantsData;
+        } drawPushConstant = {
+            worldVertexBufferPointer,
+            indirectDrawInfo.pushConstantsDevicePointer,
+        };
+
+        vkCmdPushConstants(commandBuffer,
+                           draw.pipeline3d.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(DrawPushConstant),
+                           &drawPushConstant);
+
+        vkCmdDrawIndexedIndirect(commandBuffer,
+                                 indirectDrawInfo.drawsBuffer,
+                                 0,
+                                 indirectDrawInfo.draws,
+                                 sizeof(VkDrawIndexedIndirectCommand));
     }
 
     // ---------------- LOD PASS ----------------
@@ -409,9 +448,9 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                                 &draw.descriptorSetsLod[draw.currentFrame],
                                 0,
                                 nullptr);
-        VkBuffer vertexBuffers[] = {worldVertexBuffer};
-        VkDeviceSize offsets[] = {0};
+        drawCallRecorderReset(draw.drawCallRecorders[draw.currentFrame][2]);
 
+        uint32_t drawCounter = 0;
         for (int i = 0; i < worldDrawCallData.size(); i++) {
             WorldDrawCallData drawCallData = worldDrawCallData[i];
             if (drawCallData.fullDetail)
@@ -425,22 +464,42 @@ void recordCommandBuffer(VulkanCoreInfo& vulkanCoreInfo,
                 continue;
             }
 
-            PushConstant3dLod pushConstant = {
-                drawCallData.chunkLocation * CHUNK_SIZE, (float)(1 << drawCallData.lod), worldVertexBufferPointer};
-            vkCmdPushConstants(commandBuffer,
-                               draw.pipelineLod.layout,
-                               VK_SHADER_STAGE_VERTEX_BIT,
-                               0,
-                               sizeof(PushConstant3dLod),
-                               &pushConstant);
-            // get index count by multiplying vertex count by 1.5
-            vkCmdDrawIndexed(commandBuffer,
-                             drawCallData.dataSize / sizeof(VertexLod) / 2 * 3,
-                             1,
-                             0,
-                             drawCallData.memoryLocation / sizeof(VertexLod),
-                             0);
+            VkDrawIndexedIndirectCommand drawCommand{
+                .indexCount = (uint32_t)(drawCallData.dataSize / sizeof(VertexLod) / 2 * 3),
+                .instanceCount = 1,
+                .firstIndex = 0,
+                .vertexOffset = (int32_t)(drawCallData.memoryLocation / sizeof(VertexLod)),
+                .firstInstance = drawCounter++,
+            };
+            PushConstant3dLod pushConstant = {drawCallData.chunkLocation * CHUNK_SIZE, (float)(1 << drawCallData.lod)};
+            drawCallRecorderAdd(
+                draw.drawCallRecorders[draw.currentFrame][2], vulkanCoreInfo, drawCommand, (void*)&pushConstant);
         }
+
+        auto indirectDrawInfo =
+            drawCallRecorderGetRenderingParameters(draw.drawCallRecorders[draw.currentFrame][2], vulkanCoreInfo);
+
+        struct DrawPushConstant
+        {
+            uint64_t vertexData;
+            uint64_t pushConstantsData;
+        } drawPushConstant = {
+            worldVertexBufferPointer,
+            indirectDrawInfo.pushConstantsDevicePointer,
+        };
+
+        vkCmdPushConstants(commandBuffer,
+                           draw.pipelineLod.layout,
+                           VK_SHADER_STAGE_VERTEX_BIT,
+                           0,
+                           sizeof(DrawPushConstant),
+                           &drawPushConstant);
+
+        vkCmdDrawIndexedIndirect(commandBuffer,
+                                 indirectDrawInfo.drawsBuffer,
+                                 0,
+                                 indirectDrawInfo.draws,
+                                 sizeof(VkDrawIndexedIndirectCommand));
     }
 
     // ---------------- UI PASS----------------
@@ -621,4 +680,4 @@ void drawFrame(VulkanCoreInfo& vulkanCoreInfo, SwapChainInfo& swapChainInfo, Fra
     }
 
     draw.currentFrame = (draw.currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-D
+}

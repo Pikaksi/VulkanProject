@@ -18,11 +18,18 @@ layout(buffer_reference, std430, buffer_reference_align = 8) readonly buffer Ver
     Vertex vertices[];
 };
 
-layout(push_constant) uniform constants
-{
+struct DrawData {
     vec3 chunkWorldLocation;
     float chunkSize;
+};
+layout(buffer_reference, std430, buffer_reference_align = 16) readonly buffer DrawDataBuffer {
+    DrawData data[];
+};
+
+layout(push_constant) uniform constants
+{
     VertexBuffer vertexBuffer;
+    DrawDataBuffer drawDataBuffer;
 } pc;
 
 layout(location = 0) out vec3 outPos;
@@ -63,7 +70,9 @@ void main() {
     uint uint2 = pc.vertexBuffer.vertices[gl_VertexIndex].color;
 
     vec3 pos = vec3(uint1 & 0xFF, (uint1 >> 8) & 0xFF, (uint1 >> 16) & 0xFF);
-    outPos = pc.chunkWorldLocation + pos.xyz * pc.chunkSize;
+    DrawData drawData = pc.drawDataBuffer.data[gl_InstanceIndex];
+
+    outPos = drawData.chunkWorldLocation + pos.xyz * drawData.chunkSize;
     gl_Position = ubo.camera * vec4(outPos, 1.0);
 
     uint normalIndex = (uint1 >> 24) & 0xFF;

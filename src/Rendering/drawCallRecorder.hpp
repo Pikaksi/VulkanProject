@@ -11,6 +11,7 @@ struct DrawCallRecorder
 
     uint64_t size = 0;
     uint64_t capacity = 0;
+    uint64_t pushConstantsOffset = 0;
 
     void* mappedData;
     VkBuffer buffer;
@@ -35,4 +36,7 @@ struct DrawCallRecorderDrawParameters {
     VkDeviceAddress pushConstantsDevicePointer;
 };
 
-DrawCallRecorderDrawParameters drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder);
+DrawCallRecorderDrawParameters drawCallRecorderGetRenderingParameters(DrawCallRecorder& recorder,
+                                                                      VulkanCoreInfo& vulkanCoreInfo);
+
+void drawCallRecorderReset(DrawCallRecorder& recorder);

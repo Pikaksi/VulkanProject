@@ -5,6 +5,7 @@ project('my_app', 'cpp',
 run_env = environment()
 
 src = [
+  'src/Rendering/drawCallRecorder.cpp',
   'src/Rendering/sunShadows.cpp',
   'src/blockEntities/blockEntityCrafting.cpp',
   'src/blockEntities/blockEntity.cpp',
@@ -66,13 +67,20 @@ glm_dep = dependency('glm')
 cc = meson.get_compiler('cpp')
 
 vulkan_dep = dependency('vulkan', required: false)
+
 if not vulkan_dep.found()
+  message('Vulkan not found. Trying fallback')
   vulkan_sdk_path = '/home/miika/vulkanSDK/1.4.350.1/x86_64/'
   vulkan_lib = cc.find_library('vulkan', dirs: vulkan_sdk_path / 'lib/VulkanLoader/lib/')
   vulkan_dep = declare_dependency(
     include_directories : vulkan_sdk_path / 'include',
     dependencies: vulkan_lib
   )
+
+  run_env = environment()
+  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
+  message(layer_path)
+  run_env.set('VK_LAYER_PATH', layer_path)
 
   layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
   run_env.set('VK_LAYER_PATH', layer_path)
@@ -142,13 +150,6 @@ my_exe = executable('myexe',
   cpp_args : ['-w'],
   install : should_install,
 )
-
-if host_machine.system() == 'linux'
-  run_env = environment()
-  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
-  message(layer_path)
-  run_env.set('VK_LAYER_PATH', layer_path)
-endif
 
 if host_machine.system() == 'windows'
   install_data(

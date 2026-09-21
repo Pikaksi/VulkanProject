@@ -13,7 +13,7 @@
 #include <glm/gtx/hash.hpp>
 
 // #define STB_IMAGE_IMPLEMENTATION in main.cpp
-//#include <stb_image.h>
+// #include <stb_image.h>
 
 #include <vector>
 #include <cstring>
@@ -35,6 +35,7 @@
 
 class Application
 {
+  public:
     static Application& getInstance()
     {
         static Application application;

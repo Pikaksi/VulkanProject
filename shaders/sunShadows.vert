@@ -18,10 +18,18 @@ layout(buffer_reference, std430, buffer_reference_align = 8) readonly buffer Ver
     Vertex vertices[];
 };
 
+struct DrawData {
+    vec3 chunkWorldLocation;
+    float pad1;
+};
+layout(buffer_reference, std430, buffer_reference_align = 16) readonly buffer DrawDataBuffer {
+    DrawData data[];
+};
+
 layout(push_constant) uniform constants
 {
-    vec3 chunkWorldLocation;
     VertexBuffer vertexBuffer;
+    DrawDataBuffer drawDataBuffer;
 } pc;
 
 layout(location = 0) out vec2 outUV;
@@ -31,7 +39,8 @@ void main() {
     uint uint1 = pc.vertexBuffer.vertices[gl_VertexIndex].pos;
     vec3 pos = vec3(uint1 & 0x3FF, (uint1 >> 10) & 0x3FF, (uint1 >> 20) & 0x3FF);
     pos *= (1.0 / 16.0);
-    vec3 outPos = pc.chunkWorldLocation + pos;
+    vec3 chunkWorldLocation = pc.drawDataBuffer.data[gl_InstanceIndex].chunkWorldLocation;
+    vec3 outPos = chunkWorldLocation + pos;
     gl_Position = ubo.sun * vec4(outPos, 1.0);
 
     outUV = vec2(0, 0);
