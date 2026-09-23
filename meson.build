@@ -2,8 +2,6 @@ project('my_app', 'cpp',
   version : '0.1',
   default_options : ['warning_level=1', 'b_ndebug=if-release'])
 
-run_env = environment()
-
 src = [
   'src/Rendering/drawCallRecorder.cpp',
   'src/Rendering/sunShadows.cpp',
@@ -55,74 +53,46 @@ src = [
   'src/main.cpp'
 ]
 
-glfw_dep = dependency(
-  'glfw', fallback: ['glfw', 'glfw_dep']
-  #, default_options: ['default_library=static']
-)
 #meson wrap install glfw
+glfw_dep = dependency('glfw', fallback: ['glfw', 'glfw_dep'])
 
-glm_dep = dependency('glm')
 #meson wrap install glm
+glm_dep = dependency('glm')
 
-cc = meson.get_compiler('cpp')
+vulkan_dep = dependency('vulkan', required: true)
 
-vulkan_dep = dependency('vulkan', required: false)
-
-if not vulkan_dep.found()
-  message('Vulkan not found. Trying fallback')
-  vulkan_sdk_path = '/home/miika/vulkanSDK/1.4.350.1/x86_64/'
-  vulkan_lib = cc.find_library('vulkan', dirs: vulkan_sdk_path / 'lib/VulkanLoader/lib/')
-  vulkan_dep = declare_dependency(
-    include_directories : vulkan_sdk_path / 'include',
-    dependencies: vulkan_lib
-  )
-
-  run_env = environment()
-  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
-  message(layer_path)
-  run_env.set('VK_LAYER_PATH', layer_path)
-
-  layer_path = vulkan_sdk_path / 'share/vulkan/explicit_layer.d'
-  run_env.set('VK_LAYER_PATH', layer_path)
-endif
-
+cpp_compiler = meson.get_compiler('cpp')
 if host_machine.system() == 'linux'
-  fast_noise_lib = cc.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Linux/lib')
+  fast_noise_lib = cpp_compiler.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Linux/lib')
   fast_noise_dep = declare_dependency(
     include_directories : 'dependencies/FastNoise2Linux/include/',
     dependencies: fast_noise_lib
   )
-else
-  fast_noise_lib = cc.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Win/lib')
+elif host_machine.system() == 'windows'
+  fast_noise_lib = cpp_compiler.find_library('FastNoise', dirs: meson.current_source_dir() / 'dependencies/FastNoise2Win/lib')
   fast_noise_dep = declare_dependency(
     include_directories : 'dependencies/FastNoise2Win/include/',
     dependencies: fast_noise_lib
   )
 endif
 
-deps = [
+dependencies = [
   glfw_dep,
   glm_dep,
   vulkan_dep,
-  #vulkan_validation_layer_dep,
   fast_noise_dep
 ]
 
 if host_machine.system() == 'linux'
   fastNoise2IncludeOs = include_directories('dependencies/FastNoise2Linux/include')
-else
+elif host_machine.system() == 'windows'
   fastNoise2IncludeOs = include_directories('dependencies/FastNoise2Win/include')
 endif
+
 include_dirs = [
   include_directories('dependencies/stbImages'),
-  
+
   fastNoise2IncludeOs,
-  #include_directories('dependencies/FastNoise2/include/FastNoise/Utility'),
-  #include_directories('dependencies/FastNoise2/include/FastNoise/Generators'),
-  #include_directories('dependencies/FastNoise2/build/_deps/fastsimd-src/include/FastSIMD'),
-  #include_directories('dependencies/FastNoise2/build/_deps/fastsimd-src/include/FastSIMD/Utility'),
-  #include_directories('dependencies/FastNoise2/include/FastSIMD'),
-  #include_directories('dependencies/FastNoise2/include/FastSIMD/Utility'),
 
   include_directories('src'),
   include_directories('src/2dRendering'),
@@ -137,38 +107,18 @@ include_dirs = [
   include_directories('src/blockEntities'),
 ]
 
-should_install = false
-if host_machine.system() == 'windows'
-  should_install = true
-endif
-
 my_exe = executable('myexe',
   sources : src,
-  dependencies : deps,
+  dependencies : dependencies,
   include_directories : include_dirs,
   override_options : ['cpp_std=c++20'],
   cpp_args : ['-w'],
-  install : should_install,
 )
 
-if host_machine.system() == 'windows'
-  install_data(
-    meson.current_source_dir() / 'dependencies/FastNoise2Win/bin/FastNoise.dll',
-    install_dir : 'bin/vulkanProject/bin'
-  )
-  install_subdir(
-    meson.current_source_dir() / 'shaders',
-    install_dir : 'bin/vulkanProject/shaders',
-    strip_directory : true
-  )
-  install_subdir(
-    meson.current_source_dir() / 'textures',
-    install_dir : 'bin/vulkanProject/textures',
-    strip_directory : true
-  )
-endif
+#if host_machine.system() == 'windows'
+#install_data(meson.current_source_dir() / 'dependencies/FastNoise2Win/bin/FastNoise.dll', install_dir : 'bin/vulkanProject/bin')
+#install_subdir(meson.current_source_dir() / 'shaders', install_dir : 'bin/vulkanProject/shaders', strip_directory : true)
+#install_subdir(meson.current_source_dir() / 'textures', install_dir : 'bin/vulkanProject/textures', strip_directory : true)
+#endif
 
-run_target('run',
-  command: my_exe, # Pass the executable() object you defined earlier
-  env: run_env
-)
+run_target('run', command: my_exe)
