@@ -1,12 +1,18 @@
 #pragma once
 
 #include <pthread.h>
+#include <mutex>
+#include <condition_variable>
 #include <queue>
 
 struct ThreadWork
 {
     void (*function)(void*) = nullptr;
     void* arg = nullptr;
+
+    ThreadWork() {}
+    ThreadWork(void (*function)(void* functionArg), void* arg)
+        : function(function), arg(arg) {}
 };
 
 struct ThreadPool
@@ -16,9 +22,9 @@ struct ThreadPool
 
     std::queue<ThreadWork> workQueue = std::queue<ThreadWork>();
 
-    pthread_cond_t workCond;
-    pthread_cond_t finishedCond;
-    pthread_mutex_t mutex;
+    std::condition_variable workCond;
+    std::condition_variable finishedCond;
+    std::mutex mutex;
     bool stop = false;
 
     void addWork(void (*function)(void* arg), void* arg);
@@ -28,4 +34,3 @@ struct ThreadPool
 };
 
 inline ThreadPool globalThreadPool;
-
